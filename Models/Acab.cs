@@ -14,7 +14,7 @@ namespace CityFix_backend.Models
         [Required]
         public string InvitationCode { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 8);
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

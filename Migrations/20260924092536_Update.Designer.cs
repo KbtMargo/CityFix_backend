@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CityFix_backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260924080832_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260924092536_Update")]
+    partial class Update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
