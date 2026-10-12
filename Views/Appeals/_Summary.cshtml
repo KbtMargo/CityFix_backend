@@ -1,0 +1,47 @@
+@* Read-only view of an appeal, shared by Appeals/Details and Appeals/Delete. *@
+@model CityFix_backend.Models.Appeal
+@using System.Globalization
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <partial name="_StatusBadge" model="Model.Status" />
+                    <partial name="_PriorityBadge" model="Model.Priority" />
+                </div>
+                <h2 class="h4">@Model.Title</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <p class="mb-4" style="white-space: pre-line">@Model.Description</p>
+                }
+                <dl class="row detail-list mb-0">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Address)</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</dd>
+                    <dt class="col-sm-3">@L["Location"]</dt>
+                    <dd class="col-sm-9">
+                        <i class="bi bi-geo-alt me-1"></i>@Model.Lat.ToString(CultureInfo.InvariantCulture), @Model.Lng.ToString(CultureInfo.InvariantCulture)
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <dl class="detail-list mb-0">
+                    <dt>@Html.DisplayNameFor(model => model.Author)</dt>
+                    <dd><i class="bi bi-person me-1"></i>@Model.Author?.Email</dd>
+                    <dt>@Html.DisplayNameFor(model => model.Category)</dt>
+                    <dd><i class="bi bi-tag me-1"></i>@Model.Category?.Name</dd>
+                    <dt>@Html.DisplayNameFor(model => model.Recipient)</dt>
+                    <dd><i class="bi bi-bank me-1"></i>@Model.Recipient?.Name</dd>
+                    <dt>@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+                    <dd>@Model.CreatedAt.ToUiString()</dd>
+                    <dt>@Html.DisplayNameFor(model => model.UpdatedAt)</dt>
+                    <dd class="mb-0">@Model.UpdatedAt.ToUiString()</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

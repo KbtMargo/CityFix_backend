@@ -48,7 +48,7 @@ namespace CityFix_backend.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
-            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "InvitationCode");
+            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "Name");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace CityFix_backend.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "InvitationCode", user.AcabId);
+            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "Name", user.AcabId);
             return View(user);
         }
 
@@ -82,7 +82,7 @@ namespace CityFix_backend.Controllers
             {
                 return NotFound();
             }
-            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "InvitationCode", user.AcabId);
+            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "Name", user.AcabId);
             return View(user);
         }
 
@@ -119,7 +119,7 @@ namespace CityFix_backend.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "InvitationCode", user.AcabId);
+            ViewData["AcabId"] = new SelectList(_context.Acabs, "Id", "Name", user.AcabId);
             return View(user);
         }
 

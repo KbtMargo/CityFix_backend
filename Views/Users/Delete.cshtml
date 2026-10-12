@@ -1,75 +1,24 @@
 @model CityFix_backend.Models.User
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = $"{L["Page_Delete"]} · {L["User"]}";
 }
 
-<h1>Delete</h1>
-
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>User</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PasswordHash)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PasswordHash)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FirstName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FirstName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Phone)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Phone)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Role)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Role)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Acab)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Acab.InvitationCode)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div class="page-header">
+    <div>
+        <div class="eyebrow">@L["User"] #@Model.Id</div>
+        <h1>@L["Page_Delete"]</h1>
+    </div>
 </div>
+
+<div class="alert alert-danger d-flex align-items-center gap-2 form-card">
+    <i class="bi bi-exclamation-triangle-fill"></i>@L["Delete_Confirm"]
+</div>
+
+<partial name="_Summary" />
+
+<form asp-action="Delete" class="d-flex gap-2 mt-3">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>@L["Delete"]</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
+</form>

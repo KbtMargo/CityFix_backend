@@ -1,59 +1,45 @@
 @model IEnumerable<CityFix_backend.Models.Acab>
 
 @{
-    ViewData["Title"] = "Page with all acabs";
+    ViewData["Title"] = L["Acabs"].Value;
 }
 
-<h1>All acabs</h1>
+<div class="page-header">
+    <h1>@L["Acabs"]</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>@L["Add"]</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Address)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InvitationCode)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UpdatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Address)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InvitationCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center text-secondary py-5">@L["No_Records"]</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.Name)</th>
+                        <th>@Html.DisplayNameFor(model => model.Address)</th>
+                        <th>@Html.DisplayNameFor(model => model.InvitationCode)</th>
+                        <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                        <th class="text-end">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold"><i class="bi bi-houses text-primary me-2"></i>@item.Name</td>
+                            <td class="text-secondary">@item.Address</td>
+                            <td><code>@item.InvitationCode</code></td>
+                            <td class="text-nowrap">@item.CreatedAt.ToUiString()</td>
+                            <td class="text-end"><partial name="_RowActions" model="item.Id" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

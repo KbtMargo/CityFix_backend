@@ -1,0 +1,17 @@
+@model CityFix_backend.Models.Acab
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Address" class="form-label"></label>
+    <input asp-for="Address" class="form-control" />
+    <span asp-validation-for="Address" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="InvitationCode" class="form-label"></label>
+    <input asp-for="InvitationCode" class="form-control font-monospace" />
+    <span asp-validation-for="InvitationCode" class="text-danger small"></span>
+</div>

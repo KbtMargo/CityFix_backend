@@ -1,0 +1,10 @@
+@model AppealPriority
+@{
+    var css = Model switch
+    {
+        AppealPriority.Low => "text-bg-secondary",
+        AppealPriority.Normal => "text-bg-info",
+        _ => "text-bg-danger"
+    };
+}
+<span class="badge @css"><i class="bi bi-flag-fill me-1"></i>@L.EnumText(Model)</span>

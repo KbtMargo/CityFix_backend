@@ -1,78 +1,28 @@
 @model CityFix_backend.Models.Appeal
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = $"{L["Page_Edit"]} · {L["Appeal"]}";
 }
 
-<h1>Edit</h1>
-
-<h4>Appeal</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Lat" class="control-label"></label>
-                <input asp-for="Lat" class="form-control" />
-                <span asp-validation-for="Lat" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Lng" class="control-label"></label>
-                <input asp-for="Lng" class="form-control" />
-                <span asp-validation-for="Lng" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<CityFix_backend.Models.AppealStatus>()"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Priority" class="control-label"></label>
-                <select asp-for="Priority" class="form-control" asp-items="Html.GetEnumSelectList<CityFix_backend.Models.AppealPriority>()"></select>
-                <span asp-validation-for="Priority" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="AuthorId" class="control-label"></label>
-                <select asp-for="AuthorId" class="form-control" asp-items="ViewBag.AuthorId"></select>
-                <span asp-validation-for="AuthorId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RecipientId" class="control-label"></label>
-                <select asp-for="RecipientId" class="form-control" asp-items="ViewBag.RecipientId"></select>
-                <span asp-validation-for="RecipientId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <div class="eyebrow">@L["Appeal"]</div>
+        <h1>@L["Page_Edit"]</h1>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="card form-card">
+    <div class="card-body p-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <partial name="_Form" />
+            <div class="d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>@L["Save"]</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

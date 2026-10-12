@@ -1,0 +1,13 @@
+@* Details / Edit / Delete buttons for one record; the model is the record Id. *@
+@model int
+<div class="btn-group btn-group-sm" role="group">
+    <a asp-action="Details" asp-route-id="@Model" class="btn btn-outline-secondary" title="@L["Details"]">
+        <i class="bi bi-eye"></i><span class="visually-hidden">@L["Details"]</span>
+    </a>
+    <a asp-action="Edit" asp-route-id="@Model" class="btn btn-outline-secondary" title="@L["Edit"]">
+        <i class="bi bi-pencil"></i><span class="visually-hidden">@L["Edit"]</span>
+    </a>
+    <a asp-action="Delete" asp-route-id="@Model" class="btn btn-outline-danger" title="@L["Delete"]">
+        <i class="bi bi-trash"></i><span class="visually-hidden">@L["Delete"]</span>
+    </a>
+</div>

@@ -1,0 +1,22 @@
+@model CityFix_backend.Models.User
+
+<div class="card form-card">
+    <div class="card-body p-4">
+        <dl class="row detail-list mb-0">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.FirstName)</dt>
+            <dd class="col-sm-9 fw-semibold">@Model.FirstName @Model.LastName</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Phone)</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Role)</dt>
+            <dd class="col-sm-9"><span class="badge text-bg-light border">@L.EnumText(Model.Role)</span></dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Acab)</dt>
+            <dd class="col-sm-9">@(Model.Acab?.Name ?? "—")</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToUiString()</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UpdatedAt)</dt>
+            <dd class="col-sm-9 mb-0">@Model.UpdatedAt.ToUiString()</dd>
+        </dl>
+    </div>
+</div>

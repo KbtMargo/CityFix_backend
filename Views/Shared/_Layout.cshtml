@@ -1,45 +1,70 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var returnUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
+    string Active(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="@lang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CityFix_backend</title>
+    <title>@ViewData["Title"] - CityFix</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CityFix_backend.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CityFix_backend</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-lg navbar-dark cf-navbar">
+            <div class="container">
+                <a class="navbar-brand fw-semibold" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-buildings me-1"></i>CityFix
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="@L["Toggle navigation"]">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @Active("Appeals")" asp-controller="Appeals" asp-action="Index"><i class="bi bi-megaphone me-1"></i>@L["Appeals"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @Active("Categories")" asp-controller="Categories" asp-action="Index"><i class="bi bi-tags me-1"></i>@L["Categories"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Active("Recipients")" asp-controller="Recipients" asp-action="Index"><i class="bi bi-bank me-1"></i>@L["Recipients"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Active("Acabs")" asp-controller="Acabs" asp-action="Index"><i class="bi bi-houses me-1"></i>@L["Acabs"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Active("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people me-1"></i>@L["Users"]</a>
                         </li>
                     </ul>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="@L["Language"]">
+                        <a class="btn @(lang == "uk" ? "btn-light" : "btn-outline-light")" asp-controller="Home" asp-action="SetLanguage"
+                           asp-route-culture="uk" asp-route-returnUrl="@returnUrl">UA</a>
+                        <a class="btn @(lang == "en" ? "btn-light" : "btn-outline-light")" asp-controller="Home" asp-action="SetLanguage"
+                           asp-route-culture="en" asp-route-returnUrl="@returnUrl">EN</a>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container py-4">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - CityFix_backend - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="cf-footer text-muted">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; 2026 CityFix &middot; @L["Footer_Tagline"]</span>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">@L["Privacy"]</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -1,0 +1,15 @@
+@model CityFix_backend.Models.Category
+
+<div class="card form-card">
+    <div class="card-body p-4">
+        <dl class="row detail-list mb-0">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Name)</dt>
+            <dd class="col-sm-9 fw-semibold">@Model.Name</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Icon)</dt>
+            <dd class="col-sm-9 mb-0">
+                <span class="fs-4 text-primary me-2"><partial name="_CategoryIcon" model="Model.Icon ?? string.Empty" /></span>
+                <code>@Model.Icon</code>
+            </dd>
+        </dl>
+    </div>
+</div>

@@ -1,0 +1,11 @@
+@model AppealStatus
+@{
+    var css = Model switch
+    {
+        AppealStatus.New => "text-bg-primary",
+        AppealStatus.InProgress => "text-bg-warning",
+        AppealStatus.Done => "text-bg-success",
+        _ => "text-bg-danger"
+    };
+}
+<span class="badge @css">@L.EnumText(Model)</span>

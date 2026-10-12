@@ -1,0 +1,15 @@
+@model CityFix_backend.Models.Category
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Icon" class="form-label"></label>
+    <input asp-for="Icon" class="form-control" placeholder="bi-lightbulb" />
+    <div class="form-text">
+        <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener">Bootstrap Icons</a>: bi-lightbulb, bi-droplet, bi-sign-stop, bi-tree…
+    </div>
+    <span asp-validation-for="Icon" class="text-danger small"></span>
+</div>

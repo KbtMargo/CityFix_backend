@@ -1,0 +1,18 @@
+@model CityFix_backend.Models.Acab
+
+<div class="card form-card">
+    <div class="card-body p-4">
+        <dl class="row detail-list mb-0">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Name)</dt>
+            <dd class="col-sm-9 fw-semibold">@Model.Name</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Address)</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.InvitationCode)</dt>
+            <dd class="col-sm-9"><code>@Model.InvitationCode</code></dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToUiString()</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UpdatedAt)</dt>
+            <dd class="col-sm-9 mb-0">@Model.UpdatedAt.ToUiString()</dd>
+        </dl>
+    </div>
+</div>

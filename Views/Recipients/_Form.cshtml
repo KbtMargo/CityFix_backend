@@ -1,0 +1,12 @@
+@model CityFix_backend.Models.Recipient
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="ContactInfo" class="form-label"></label>
+    <textarea asp-for="ContactInfo" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="ContactInfo" class="text-danger small"></span>
+</div>

@@ -1,83 +1,49 @@
 @model IEnumerable<CityFix_backend.Models.User>
 
 @{
-    ViewData["Title"] = "Page with all users";
+    ViewData["Title"] = L["Users"].Value;
 }
 
-<h1>All users</h1>
+<div class="page-header">
+    <h1>@L["Users"]</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>@L["Add"]</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PasswordHash)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LastName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Phone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Role)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Acab)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UpdatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PasswordHash)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Phone)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Role)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Acab.InvitationCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center text-secondary py-5">@L["No_Records"]</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.FirstName)</th>
+                        <th>@Html.DisplayNameFor(model => model.Email)</th>
+                        <th>@Html.DisplayNameFor(model => model.Phone)</th>
+                        <th>@Html.DisplayNameFor(model => model.Role)</th>
+                        <th>@Html.DisplayNameFor(model => model.Acab)</th>
+                        <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                        <th class="text-end">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.FirstName @item.LastName</td>
+                            <td>@item.Email</td>
+                            <td class="text-nowrap">@item.Phone</td>
+                            <td><span class="badge text-bg-light border">@L.EnumText(item.Role)</span></td>
+                            <td>@item.Acab?.Name</td>
+                            <td class="text-nowrap">@item.CreatedAt.ToUiString()</td>
+                            <td class="text-end"><partial name="_RowActions" model="item.Id" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

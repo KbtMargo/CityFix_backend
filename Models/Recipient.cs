@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CityFix_backend.Models
 {
@@ -6,9 +6,11 @@ namespace CityFix_backend.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Validation_Required")]
+        [Display(Name = "Name")]
         public string Name { get; set; }
 
+        [Display(Name = "Contact info")]
         public string? ContactInfo { get; set; }
     }
 }
