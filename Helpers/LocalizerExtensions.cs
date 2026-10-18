@@ -1,21 +1,83 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Localization;
+using System.Reflection;
+using System.Resources;
+using CityFix_backend.Models;
 
 namespace CityFix_backend.Helpers
 {
-    public static class LocalizerExtensions
+    // The shared resources (Resources/SharedResource.resx = Ukrainian, .en.resx = English) for code
+    // that has no IStringLocalizer at hand: enum labels, relative times, notification texts.
+    public static class SharedText
     {
-        // Localized text for an enum value; the resource key is "<EnumType>_<Value>".
-        public static string EnumText<T>(this IStringLocalizer localizer, T value) where T : struct, Enum
-            => localizer[$"{typeof(T).Name}_{value}"];
+        private static readonly ResourceManager Resources =
+            new("CityFix_backend.Resources.SharedResource", typeof(SharedResource).Assembly);
 
-        // Dropdown items for every value of an enum, with localized captions.
-        public static IEnumerable<SelectListItem> EnumItems<T>(this IStringLocalizer localizer) where T : struct, Enum
-            => Enum.GetValues<T>().Select(v => new SelectListItem(localizer.EnumText(v), v.ToString()));
+        public static string Get(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ?? key;
 
-        // Timestamps are stored in UTC; show them in the server's local time using the UI language's format.
-        public static string ToUiString(this DateTime value)
-            => value.ToLocalTime().ToString("g", CultureInfo.CurrentUICulture);
+        public static string Format(string key, params object[] args) =>
+            string.Format(CultureInfo.CurrentUICulture, Get(key), args);
+    }
+
+    public static class EnumExtensions
+    {
+        // The localized [Display(Name = "...")] label of an enum value.
+        public static string GetDisplayName(this Enum value)
+        {
+            var key = value.GetType().GetMember(value.ToString()).FirstOrDefault()
+                ?.GetCustomAttribute<DisplayAttribute>()?.Name;
+            return key == null ? value.ToString() : SharedText.Get(key);
+        }
+
+        // Pill modifier: the enum name lower-cased (cf-pill--inprogress, cf-pill--urgent, ...).
+        public static string PillModifier(this Enum value) => value.ToString().ToLowerInvariant();
+
+        // DataTable role tag modifier.
+        public static string RoleTag(this UserRole role) => role switch
+        {
+            UserRole.Administrator => "admin",
+            UserRole.AcabAdmin => "head",
+            _ => "resident"
+        };
+
+        public static bool IsClosed(this AppealStatus status) => status is AppealStatus.Done or AppealStatus.Rejected;
+    }
+
+    public static class UiFormat
+    {
+        private static readonly TimeZoneInfo Kyiv = FindKyiv();
+
+        private static TimeZoneInfo FindKyiv()
+        {
+            try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Kyiv"); }
+            catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"); }
+        }
+
+        // Stored timestamps are UTC; everything is shown in Kyiv time.
+        public static DateTime ToKyiv(this DateTime utc) =>
+            TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Kyiv);
+
+        // Start of a Kyiv calendar day, in UTC (for date filters).
+        public static DateTime KyivDayStartUtc(DateTime kyivDate) =>
+            TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(kyivDate.Date, DateTimeKind.Unspecified), Kyiv);
+
+        // Dates stay numeric in both languages.
+        public static string ToDate(this DateTime utc) => utc.ToKyiv().ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+
+        public static string ToDateTime(this DateTime utc) => utc.ToKyiv().ToString("dd.MM.yyyy, HH:mm:ss", CultureInfo.InvariantCulture);
+
+        // "Щойно" / "N год тому" / "N д тому", then the date.
+        public static string TimeAgo(this DateTime utc)
+        {
+            var span = DateTime.UtcNow - DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+            if (span < TimeSpan.FromHours(1)) return SharedText.Get("Time.JustNow");
+            if (span < TimeSpan.FromDays(1)) return SharedText.Format("Time.HoursAgo", (int)span.TotalHours);
+            if (span < TimeSpan.FromDays(7)) return SharedText.Format("Time.DaysAgo", (int)span.TotalDays);
+            return utc.ToDate();
+        }
+
+        // Coordinates: 5 decimals, always with a dot.
+        public static string Coordinate(this decimal? value) =>
+            value?.ToString("0.00000", CultureInfo.InvariantCulture) ?? "";
     }
 }

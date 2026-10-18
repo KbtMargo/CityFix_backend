@@ -1,29 +1,16 @@
-@model CityFix_backend.Models.Acab
-
+@model Acab
 @{
-    ViewData["Title"] = $"{L["Page_Create"]} · {L["Acab"]}";
+    ViewData["Title"] = L["Acabs.Add"].Value;
 }
-
-<div class="page-header">
-    <div>
-        <div class="eyebrow">@L["Acab"]</div>
-        <h1>@L["Page_Create"]</h1>
-    </div>
+<div class="cf-form-page">
+    <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Acabs.Back"]</a>
+    <h1 class="cf-form-page__title">@L["Acabs.Add"]</h1>
+    <form asp-action="Create" method="post" class="cf-form-card">
+        <partial name="_Form" />
+        <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
+        <button type="submit" class="cf-btn cf-btn--block">@L["Acabs.Add"]</button>
+    </form>
 </div>
-
-<div class="card form-card">
-    <div class="card-body p-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <partial name="_Form" />
-            <div class="d-flex gap-2 mt-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>@L["Create"]</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
-            </div>
-        </form>
-    </div>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

@@ -1,0 +1,23 @@
+@* Login and register: no sidebar, the centred auth card, the language switch in the top-right corner. *@
+@{
+    var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+}
+<!DOCTYPE html>
+<html lang="@lang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — @L["App.Name"]</title>
+    <script>document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'</script>
+    <link rel="icon" href="~/images/cityfix-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bundle.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-auth">
+        <div class="app-auth__lang"><partial name="_CultureSwitch" /></div>
+        @RenderBody()
+    </div>
+</body>
+</html>

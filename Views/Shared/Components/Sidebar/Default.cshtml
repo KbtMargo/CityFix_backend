@@ -1,0 +1,26 @@
+@model CityFix_backend.ViewComponents.SidebarModel
+<div class="cf-sidebar">
+    <div class="cf-sidebar__head"><partial name="_Logo" /></div>
+    <div class="cf-sidebar__body">
+        <div class="cf-box cf-stats-box">
+            <div class="cf-stats-box__row"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span>@L["Stats.Open"]</span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
+            <div class="cf-stats-box__row"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span>@L["Stats.Closed"]</span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
+        </div>
+        <nav class="cf-sidebar__nav" aria-label="@L["Nav.Label"]">
+            @foreach (var item in Model.Items)
+            {
+                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)">
+                    <span class="cf-nav-item__main"><span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@item.Icon" aria-hidden="true"></span></span><span class="cf-nav-item__text"><span class="cf-nav-item__label">@L[item.LabelKey]</span><span class="cf-nav-item__sub">@L[item.SubKey]</span></span></span>
+                    @if (item.Count is int count)
+                    {
+                        <span class="cf-count"><span class="cf-sr-only">@L["Nav.Unread"]: </span>@count</span>
+                    }
+                </a>
+            }
+        </nav>
+    </div>
+    <div class="cf-sidebar__foot cf-stack-4">
+        <partial name="_CultureSwitch" />
+        <div class="cf-box cf-help-box"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+    </div>
+</div>

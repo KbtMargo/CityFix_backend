@@ -1,9 +1,11 @@
-﻿namespace CityFix_backend.Models
+using System.ComponentModel.DataAnnotations;
+
+namespace CityFix_backend.Models
 {
     public enum UserRole
     {
-        Resident,
-        AcabAdmin,
-        Administrator
+        [Display(Name = "Enum.UserRole.Resident")] Resident,
+        [Display(Name = "Enum.UserRole.AcabAdmin")] AcabAdmin,
+        [Display(Name = "Enum.UserRole.Administrator")] Administrator
     }
 }

@@ -1,0 +1,63 @@
+@model AnalyticsData
+@{
+    ViewData["Title"] = L["Analytics.Title"].Value;
+    var stats = new[]
+    {
+        (Icon: "list-lucide", Label: "Analytics.Total", Value: Model.Total),
+        (Icon: "alert-circle", Label: "Analytics.Waiting", Value: Model.New),
+        (Icon: "trending-up", Label: "Analytics.InProgress", Value: Model.InProgress),
+        (Icon: "check-circle", Label: "Analytics.Resolved", Value: Model.Done)
+    };
+    var data = new
+    {
+        byCategory = Model.ByCategory,
+        perDay = Model.PerDay,
+        byStatus = Model.ByStatus,
+        byPriority = Model.ByPriority
+    };
+}
+<div class="cf-page-head">
+    <div>
+        <h1 class="cf-page-title">@L["Analytics.Title"]</h1>
+        <p class="cf-page-sub">@L["Analytics.Sub"]</p>
+    </div>
+</div>
+
+<div class="cf-grid-4">
+    @foreach (var s in stats)
+    {
+        <div class="cf-statcard">
+            <div class="cf-statcard__tile"><span class="cf-icon cf-icon--@s.Icon cf-icon--6" aria-hidden="true"></span></div>
+            <div><p class="cf-statcard__title">@L[s.Label]</p><p class="cf-statcard__value">@s.Value.ToString("N0", CultureInfo.CurrentUICulture)</p></div>
+        </div>
+    }
+</div>
+
+@if (Model.Total == 0)
+{
+    <div class="cf-empty">
+        <div class="cf-empty__tile"><span class="cf-icon cf-icon--chart-bar cf-icon--6" aria-hidden="true"></span></div>
+        <div class="cf-empty__title">@L["Analytics.EmptyTitle"]</div>
+        <div class="cf-empty__text">@L["Analytics.EmptyText"]</div>
+    </div>
+}
+else
+{
+    <div class="cf-grid-2">
+        <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.ByCategory"]</h5><div class="cf-chart-box"><canvas id="chart-category" role="img" aria-label="@L["Analytics.ByCategory"]"></canvas></div></div>
+        <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.PerDay"]</h5><div class="cf-chart-box"><canvas id="chart-day" role="img" aria-label="@L["Analytics.PerDay"]"></canvas></div></div>
+        <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.ByStatus"]</h5><div class="cf-chart-box"><canvas id="chart-status" role="img" aria-label="@L["Analytics.ByStatus"]"></canvas></div></div>
+        <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.ByPriority"]</h5><div class="cf-chart-box"><canvas id="chart-priority" role="img" aria-label="@L["Analytics.ByPriority"]"></canvas></div></div>
+    </div>
+
+    <script type="application/json" id="analytics-data">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))</script>
+}
+
+@section Scripts {
+    @if (Model.Total > 0)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+                integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
+        <script src="~/js/analytics.js" asp-append-version="true"></script>
+    }
+}

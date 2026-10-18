@@ -1,0 +1,9 @@
+@* One-off feedback after a redirect (this design has no toasts). The detail modal shows its own error and sets FlashHandled. *@
+@if (ViewData["FlashHandled"] is not true && TempData[CityFix_backend.Controllers.AppController.ErrorKey] is string error)
+{
+    <div class="cf-alert" role="alert">@error</div>
+}
+@if (TempData[CityFix_backend.Controllers.AppController.SuccessKey] is string success)
+{
+    <div role="status"><span class="cf-badge cf-badge--success">@success</span></div>
+}

@@ -1,0 +1,33 @@
+@model RegisterViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = L["Auth.Register.Title"].Value;
+    var error = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+}
+<div class="cf-auth cf-auth--register">
+    <div class="cf-auth__card cf-auth__card--wide">
+        <div class="cf-auth__head">
+            <h1 class="cf-auth__title">@L["Auth.Register.Title"]</h1>
+            <p class="cf-auth__sub">@L["Auth.Register.Sub", L["App.Name"]]</p>
+        </div>
+        <form asp-action="Register" method="post" class="cf-stack-4" novalidate>
+            <div class="cf-form-grid">
+                <div><label class="cf-auth__label" asp-for="FirstName"></label><input asp-for="FirstName" class="cf-auth__input" autocomplete="given-name" placeholder="@L["Auth.Register.FirstNamePlaceholder"]" /></div>
+                <div><label class="cf-auth__label" asp-for="LastName"></label><input asp-for="LastName" class="cf-auth__input" autocomplete="family-name" placeholder="@L["Auth.Register.LastNamePlaceholder"]" /></div>
+            </div>
+            <div><label class="cf-auth__label" asp-for="Email"></label><input asp-for="Email" class="cf-auth__input" autocomplete="email" placeholder="you@example.com" /></div>
+            <div><label class="cf-auth__label" asp-for="Phone"></label><input asp-for="Phone" class="cf-auth__input" type="tel" autocomplete="tel" placeholder="+380..." /></div>
+            <div class="cf-form-grid">
+                <div><label class="cf-auth__label" asp-for="Password"></label><input asp-for="Password" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
+                <div><label class="cf-auth__label" asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
+            </div>
+            <div><label class="cf-auth__label" asp-for="InvitationCode"></label><input asp-for="InvitationCode" class="cf-auth__input" autocomplete="off" spellcheck="false" placeholder="@L["Auth.Register.CodePlaceholder"]" /></div>
+            @if (error != null)
+            {
+                <p class="cf-auth__error" role="alert">@error</p>
+            }
+            <div class="app-auth-submit"><button type="submit" class="cf-auth__submit">@L["Auth.Register.Submit"]</button></div>
+        </form>
+        <p class="cf-auth__foot">@L["Auth.Register.HaveAccount"] <a class="cf-auth__link" asp-action="Login">@L["Auth.Register.ToLogin"]</a></p>
+    </div>
+</div>

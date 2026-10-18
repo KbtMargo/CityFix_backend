@@ -1,92 +1,69 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using CityFix_backend.Data;
 using CityFix_backend.Models;
+using CityFix_backend.Services;
+using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    public class CategoriesController : Controller
+    [Authorize(Roles = "Administrator")]
+    public class CategoriesController : AppController
     {
         private readonly ApplicationDbContext _context;
+        private readonly IStringLocalizer<SharedResource> _l;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController(ApplicationDbContext context, IStringLocalizer<SharedResource> localizer)
         {
             _context = context;
+            _l = localizer;
         }
 
         // GET: Categories
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Categories.ToListAsync());
-        }
-
-        // GET: Categories/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(category);
+            var result = await _context.Categories.AsNoTracking().OrderBy(c => c.Name).ThenBy(c => c.Id).ToPagedResultAsync(page);
+            var ids = result.Items.Select(c => c.Id).ToList();
+            var appeals = await _context.Appeals.Where(a => ids.Contains(a.CategoryId))
+                .GroupBy(a => a.CategoryId).Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count);
+            return View(new TablePageViewModel<Category> { Page = result, Counts = appeals });
         }
 
         // GET: Categories/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Category());
         }
 
         // POST: Categories/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Icon")] Category category)
+        public async Task<IActionResult> Create([Bind("Name")] Category category)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(category);
                 await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Saved"]);
                 return RedirectToAction(nameof(Index));
             }
             return View(category);
         }
 
         // GET: Categories/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-            return View(category);
+            return category == null ? NotFound() : View(category);
         }
 
-        // POST: Categories/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Categories/Edit/5  (Icon isn't shown in this design and keeps its stored value)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Icon")] Category category)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Category category)
         {
             if (id != category.Id)
             {
@@ -95,42 +72,28 @@ namespace CityFix_backend.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                var existing = await _context.Categories.FindAsync(id);
+                if (existing == null)
                 {
-                    _context.Update(category);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(category.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                existing.Name = category.Name;
+                await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Saved"]);
                 return RedirectToAction(nameof(Index));
             }
             return View(category);
         }
 
-        // GET: Categories/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // GET: Categories/Delete/5  (blocked while appeals use it: the FK would delete them too)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var category = await _context.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
             if (category == null)
             {
                 return NotFound();
             }
-
+            ViewData["AppealCount"] = await _context.Appeals.CountAsync(a => a.CategoryId == id);
             return View(category);
         }
 
@@ -139,19 +102,19 @@ namespace CityFix_backend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (await _context.Appeals.AnyAsync(a => a.CategoryId == id))
+            {
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+
             var category = await _context.Categories.FindAsync(id);
             if (category != null)
             {
                 _context.Categories.Remove(category);
+                await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Deleted"]);
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return _context.Categories.Any(e => e.Id == id);
         }
     }
 }

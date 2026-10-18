@@ -1,49 +1,84 @@
-@model IEnumerable<CityFix_backend.Models.User>
-
+@model TablePageViewModel<User>
 @{
-    ViewData["Title"] = L["Users"].Value;
+    ViewData["Title"] = L["Users.Title"].Value;
+    var isAdmin = User.IsInRole(nameof(UserRole.Administrator));
+    var hasHistory = ViewData["HasHistory"] as List<int> ?? new();
+    var me = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }
-
-<div class="page-header">
-    <h1>@L["Users"]</h1>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>@L["Add"]</a>
+<div>
+    <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+    <div class="cf-page-head">
+        <h1 class="cf-page-title">@L["Users.Title"]</h1>
+        <div class="cf-toolbar">
+            <div class="cf-page-head__meta">@L["Users.Total"]: <b>@Model.Page.TotalCount</b></div>
+            @if (isAdmin)
+            {
+                <a class="cf-btn cf-btn--icon-gap" asp-action="Create"><span class="cf-icon cf-icon--plus cf-icon--4" aria-hidden="true"></span>@L["Users.Add"]</a>
+            }
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    @if (!Model.Any())
-    {
-        <div class="card-body text-center text-secondary py-5">@L["No_Records"]</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>@Html.DisplayNameFor(model => model.FirstName)</th>
-                        <th>@Html.DisplayNameFor(model => model.Email)</th>
-                        <th>@Html.DisplayNameFor(model => model.Phone)</th>
-                        <th>@Html.DisplayNameFor(model => model.Role)</th>
-                        <th>@Html.DisplayNameFor(model => model.Acab)</th>
-                        <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
-                        <th class="text-end">@L["Actions"]</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
+<div class="cf-table-card">
+    <div class="cf-table-scroll">
+        <table class="cf-table">
+            <thead>
+                <tr>
+                    <th scope="col">@L["Users.Col.User"]</th>
+                    <th scope="col">@L["Field.Email"]</th>
+                    <th scope="col">@L["Field.Role"]</th>
+                    <th scope="col">@L["Field.Acab"]</th>
+                    <th scope="col">@L["Users.Col.Appeals"]</th>
+                    <th scope="col">@L["Users.Col.Registered"]</th>
+                    @if (isAdmin)
                     {
-                        <tr>
-                            <td class="fw-semibold">@item.FirstName @item.LastName</td>
-                            <td>@item.Email</td>
-                            <td class="text-nowrap">@item.Phone</td>
-                            <td><span class="badge text-bg-light border">@L.EnumText(item.Role)</span></td>
-                            <td>@item.Acab?.Name</td>
-                            <td class="text-nowrap">@item.CreatedAt.ToUiString()</td>
-                            <td class="text-end"><partial name="_RowActions" model="item.Id" /></td>
-                        </tr>
+                        <th scope="col" class="cf-center">@L["Table.Actions"]</th>
                     }
-                </tbody>
-            </table>
-        </div>
-    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Page.Items.Count == 0)
+                {
+                    <tr><td colspan="@(isAdmin ? 7 : 6)" class="cf-table__empty">@L["Users.Empty"]</td></tr>
+                }
+                @foreach (var u in Model.Page.Items)
+                {
+                    var name = $"{u.FirstName} {u.LastName}".Trim();
+                    var appeals = Model.Count(u.Id);
+                    var blocked = appeals > 0 || hasHistory.Contains(u.Id) || u.Id == me;
+                    <tr>
+                        <td class="cf-strong">
+                            <div class="cf-table__name">@name</div>
+                            @if (!string.IsNullOrWhiteSpace(u.Phone))
+                            {
+                                <div class="cf-table__sub">@u.Phone</div>
+                            }
+                        </td>
+                        <td>@u.Email</td>
+                        <td><span class="cf-tag cf-tag--@u.Role.RoleTag()">@u.Role.GetDisplayName()</span></td>
+                        <td>@(u.Acab?.Name ?? L["Common.NotSpecified"].Value)</td>
+                        <td><span class="cf-tag @(appeals > 0 ? "cf-tag--count" : "cf-tag--zero")">@appeals</span></td>
+                        <td>@u.CreatedAt.ToDate()</td>
+                        @if (isAdmin)
+                        {
+                            <td>
+                                <div class="cf-row-actions">
+                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@u.Id" aria-label="@L["Common.EditItem", name]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                    @if (blocked)
+                                    {
+                                        <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", name]" title="@L[u.Id == me ? "Users.CannotDeleteSelf" : "Users.CannotDelete"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
+                                    }
+                                    else
+                                    {
+                                        <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@u.Id" aria-label="@L["Common.DeleteItem", name]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                    }
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page)" />
 </div>

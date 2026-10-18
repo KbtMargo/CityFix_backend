@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Appeal photos uploaded at runtime
+wwwroot/uploads/

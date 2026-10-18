@@ -1,12 +1,11 @@
-@model CityFix_backend.Models.Recipient
-
-<div class="mb-3">
-    <label asp-for="Name" class="form-label"></label>
-    <input asp-for="Name" class="form-control" />
-    <span asp-validation-for="Name" class="text-danger small"></span>
+@model Recipient
+<div>
+    <label class="cf-label" asp-for="Name"></label>
+    <label class="cf-field"><input asp-for="Name" class="@(ViewData.ModelState["Name"]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input")" placeholder="@L["Recipients.NamePlaceholder"]" /></label>
+    <span asp-validation-for="Name" class="cf-field__error"></span>
 </div>
-<div class="mb-3">
-    <label asp-for="ContactInfo" class="form-label"></label>
-    <textarea asp-for="ContactInfo" class="form-control" rows="3"></textarea>
-    <span asp-validation-for="ContactInfo" class="text-danger small"></span>
+<div>
+    <label class="cf-label" asp-for="ContactInfo">@L["Field.ContactInfoOptional"]</label>
+    <label class="cf-field"><textarea asp-for="ContactInfo" class="cf-textarea" rows="3" placeholder="@L["Recipients.ContactPlaceholder"]"></textarea></label>
+    <span asp-validation-for="ContactInfo" class="cf-field__error"></span>
 </div>

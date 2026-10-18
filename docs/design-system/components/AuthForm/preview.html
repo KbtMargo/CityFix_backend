@@ -1,0 +1,24 @@
+<!-- @dsCard group="Pages" height=1460 subtitle="Login and register — centred card on slate-50" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AuthForm — preview</title>
+<style>body{padding:0;background:var(--auth-page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-auth cf-auth--login" style="min-height:640px"><div class="cf-auth__card">
+<div class="cf-auth__head"><h1 class="cf-auth__title">Вхід в акаунт</h1><p class="cf-auth__sub">Вітаємо з поверненням!</p></div>
+<form class="cf-stack-6" onsubmit="return false"><div><label class="cf-auth__label" for="le">Email-адреса</label><input id="le" class="cf-auth__input" type="email" autocomplete="email" placeholder="you@example.com"></div>
+<div><label class="cf-auth__label" for="lp">Пароль</label><input id="lp" class="cf-auth__input" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+<p class="cf-auth__error" role="alert">Невірний email або пароль</p><div><button type="submit" class="cf-auth__submit">Увійти</button></div></form>
+<p class="cf-auth__foot">Ще не маєте акаунту? <a class="cf-auth__link" href="#">Зареєструватися</a></p></div></div><div class="cf-auth cf-auth--register"><div class="cf-auth__card cf-auth__card--wide">
+<div class="cf-auth__head"><h1 class="cf-auth__title">Створення акаунту</h1><p class="cf-auth__sub">Заповніть форму для реєстрації в CivicReport</p></div>
+<form class="cf-stack-4" onsubmit="return false"><div class="cf-form-grid"><div><label class="cf-auth__label" for="fn">Ім'я</label><input id="fn" class="cf-auth__input" placeholder="Тарас"></div><div><label class="cf-auth__label" for="ln">Прізвище</label><input id="ln" class="cf-auth__input" placeholder="Шевченко"></div></div>
+<div><label class="cf-auth__label" for="re">Email</label><input id="re" class="cf-auth__input" type="email" placeholder="you@example.com"></div>
+<div><label class="cf-auth__label" for="rp">Номер телефону (опційно)</label><input id="rp" class="cf-auth__input" type="tel" placeholder="+380..."></div>
+<div class="cf-form-grid"><div><label class="cf-auth__label" for="p1">Пароль</label><input id="p1" class="cf-auth__input" type="password" placeholder="••••••••"></div><div><label class="cf-auth__label" for="p2">Підтвердіть пароль</label><input id="p2" class="cf-auth__input" type="password" placeholder="••••••••"></div></div>
+<div><label class="cf-auth__label" for="code">Код ОСББ</label><input id="code" class="cf-auth__input" placeholder="Код вашого будинку"></div>
+<p class="cf-auth__error" role="alert">Паролі не співпадають.</p><div style="padding-top:8px"><button type="submit" class="cf-auth__submit">Зареєструватися</button></div></form>
+<div class="cf-divider"><div class="cf-divider__label"><span>Або увійдіть через</span></div></div>
+<p class="cf-auth__foot">Вже маєте акаунт? <a class="cf-auth__link" href="#">Увійти</a></p></div></div>
+
+</body>
+</html>

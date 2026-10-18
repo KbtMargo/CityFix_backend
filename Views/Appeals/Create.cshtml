@@ -1,29 +1,21 @@
-@model CityFix_backend.Models.Appeal
-
+@model Appeal
 @{
-    ViewData["Title"] = $"{L["Page_Create"]} · {L["Appeal"]}";
+    ViewData["Title"] = L["Appeals.CreateTitle"].Value;
+}
+@section Head {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+          integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous" />
 }
 
-<div class="page-header">
-    <div>
-        <div class="eyebrow">@L["Appeal"]</div>
-        <h1>@L["Page_Create"]</h1>
-    </div>
-</div>
-
-<div class="card form-card">
-    <div class="card-body p-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <partial name="_Form" />
-            <div class="d-flex gap-2 mt-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>@L["Create"]</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
-            </div>
-        </form>
-    </div>
+<div class="cf-form-page">
+    <h1 class="cf-form-page__title">@L["Appeals.CreateTitle"]</h1>
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="cf-form-card">
+        <partial name="_Form" />
+        <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
+        <button type="submit" class="cf-btn cf-btn--block">@L["Appeals.CreateSubmit"]</button>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_FormAssets" />
 }

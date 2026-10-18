@@ -61,7 +61,8 @@ namespace CityFix_backend.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("text");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<int>("AuthorId")
                         .HasColumnType("integer");
@@ -73,18 +74,19 @@ namespace CityFix_backend.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
-                    b.Property<decimal>("Lat")
+                    b.Property<decimal?>("Lat")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("Lng")
+                    b.Property<decimal?>("Lng")
                         .HasColumnType("numeric");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 
-                    b.Property<int>("RecipientId")
+                    b.Property<int?>("RecipientId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Status")
@@ -92,7 +94,8 @@ namespace CityFix_backend.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -106,6 +109,74 @@ namespace CityFix_backend.Migrations
                     b.HasIndex("RecipientId");
 
                     b.ToTable("Appeals");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AppealFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppealId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppealId");
+
+                    b.ToTable("AppealFiles");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AppealUpdate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppealId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ChangedById")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<int>("NewStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OldStatus")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppealId");
+
+                    b.HasIndex("ChangedById");
+
+                    b.ToTable("AppealUpdates");
                 });
 
             modelBuilder.Entity("CityFix_backend.Models.Category", b =>
@@ -126,6 +197,45 @@ namespace CityFix_backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppealId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("NewStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppealId");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("CityFix_backend.Models.Recipient", b =>
@@ -190,6 +300,9 @@ namespace CityFix_backend.Migrations
 
                     b.HasIndex("AcabId");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
@@ -210,14 +323,61 @@ namespace CityFix_backend.Migrations
                     b.HasOne("CityFix_backend.Models.Recipient", "Recipient")
                         .WithMany()
                         .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 
                     b.Navigation("Category");
 
                     b.Navigation("Recipient");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AppealFile", b =>
+                {
+                    b.HasOne("CityFix_backend.Models.Appeal", "Appeal")
+                        .WithMany("Files")
+                        .HasForeignKey("AppealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appeal");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AppealUpdate", b =>
+                {
+                    b.HasOne("CityFix_backend.Models.Appeal", "Appeal")
+                        .WithMany("Updates")
+                        .HasForeignKey("AppealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CityFix_backend.Models.User", "ChangedBy")
+                        .WithMany()
+                        .HasForeignKey("ChangedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appeal");
+
+                    b.Navigation("ChangedBy");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.Notification", b =>
+                {
+                    b.HasOne("CityFix_backend.Models.Appeal", "Appeal")
+                        .WithMany()
+                        .HasForeignKey("AppealId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("CityFix_backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appeal");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CityFix_backend.Models.User", b =>
@@ -227,6 +387,13 @@ namespace CityFix_backend.Migrations
                         .HasForeignKey("AcabId");
 
                     b.Navigation("Acab");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.Appeal", b =>
+                {
+                    b.Navigation("Files");
+
+                    b.Navigation("Updates");
                 });
 #pragma warning restore 612, 618
         }

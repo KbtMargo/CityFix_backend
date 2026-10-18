@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = L["Denied.Title"].Value;
+    var role = Enum.TryParse<UserRole>(User.FindFirstValue(ClaimTypes.Role), out var r) ? r.GetDisplayName() : "";
+}
+<div class="cf-denied">
+    <h2 class="cf-denied__title">@L["Denied.Title"]</h2>
+    <p class="cf-denied__text">@L["Denied.YourRole"]: <strong>@role</strong></p>
+    <p class="cf-denied__text">@L["Denied.Text"]</p>
+    <a class="cf-denied__btn" asp-controller="Dashboard" asp-action="Index">@L["Denied.ToDashboard"]</a>
+</div>

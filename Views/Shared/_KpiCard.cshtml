@@ -1,0 +1,16 @@
+@* One KpiCard. The chip colour says whether the change is good; the arrow says which way it went. *@
+@model (Kpi Kpi, string Tone, string Icon, string LabelKey, string Href)
+@{
+    var k = Model.Kpi;
+    var kind = k.Kind switch { DeltaKind.Good => "good", DeltaKind.Bad => "bad", _ => "flat" };
+    var arrow = k.Direction switch { DeltaDirection.Up => "arrow-up", DeltaDirection.Down => "arrow-down", _ => "arrow-right" };
+}
+<a class="cf-kpi-card cf-kpi-card--@Model.Tone" href="@Model.Href">
+    <div class="cf-kpi-card__top"><span class="cf-kpi-card__label">@L[Model.LabelKey]</span><span class="cf-kpi-card__tile"><span class="cf-icon cf-icon--@Model.Icon cf-icon--5" aria-hidden="true"></span></span></div>
+    <div class="cf-kpi-card__value">@k.Value@if (k.Unit != null)
+        {<span class="cf-kpi-card__unit">@k.Unit</span>}</div>
+    <div class="cf-kpi-card__foot">
+        <div class="cf-kpi-card__trend"><span class="cf-delta cf-delta--@kind"><span class="cf-icon cf-icon--@arrow" aria-hidden="true"></span>@k.DeltaText</span><span>@k.Note</span></div>
+        <partial name="_Sparkline" model="k.Series" />
+    </div>
+</a>

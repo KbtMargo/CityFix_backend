@@ -1,0 +1,20 @@
+@* Segmented tabs: All / New / In progress / Closed (Done + Rejected). Keeps the other filters. *@
+@model AppealListViewModel
+@{
+    var current = Model.Filter.CurrentTab;
+    var tabs = new[]
+    {
+        (Key: AppealFilter.TabAll, Label: "Tabs.All"),
+        (Key: AppealFilter.TabNew, Label: "Tabs.New"),
+        (Key: AppealFilter.TabInProgress, Label: "Tabs.InProgress"),
+        (Key: AppealFilter.TabClosed, Label: "Tabs.Closed")
+    };
+}
+<div class="cf-tabs" role="tablist" aria-label="@L["Tabs.Label"]">
+    @foreach (var tab in tabs)
+    {
+        var route = Model.Filter.ToRouteValues(includeTab: false);
+        if (tab.Key != AppealFilter.TabAll) { route["tab"] = tab.Key; }
+        <a class="cf-tab" role="tab" aria-selected="@(current == tab.Key ? "true" : "false")" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">@L[tab.Label]</a>
+    }
+</div>

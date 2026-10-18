@@ -1,30 +1,17 @@
-@model CityFix_backend.Models.User
-
+@model User
 @{
-    ViewData["Title"] = $"{L["Page_Edit"]} · {L["User"]}";
+    ViewData["Title"] = L["Users.Edit"].Value;
 }
-
-<div class="page-header">
-    <div>
-        <div class="eyebrow">@L["User"]</div>
-        <h1>@L["Page_Edit"]</h1>
-    </div>
+<div class="cf-form-page">
+    <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Users.Back"]</a>
+    <h1 class="cf-form-page__title">@L["Users.Edit"]</h1>
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="cf-form-card">
+        <input type="hidden" asp-for="Id" />
+        <partial name="_Form" />
+        <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
+        <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
+    </form>
 </div>
-
-<div class="card form-card">
-    <div class="card-body p-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <partial name="_Form" />
-            <div class="d-flex gap-2 mt-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>@L["Save"]</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
-            </div>
-        </form>
-    </div>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

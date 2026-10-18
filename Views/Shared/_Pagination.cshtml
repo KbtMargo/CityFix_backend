@@ -1,0 +1,21 @@
+@* Pagination: outline sm buttons with chevrons and "Page x of y"; disabled ends are spans with aria-disabled. *@
+@model PaginationModel
+<nav class="cf-pagination" aria-label="@L["Pagination.Label"]">
+    @if (Model.PageNumber > 1)
+    {
+        <a class="cf-btn cf-btn--outline cf-btn--sm" rel="prev" asp-all-route-data="Model.RouteFor(Model.PageNumber - 1)"><span class="cf-icon cf-icon--chevron-left cf-icon--4" aria-hidden="true"></span>@L["Pagination.Prev"]</a>
+    }
+    else
+    {
+        <span class="cf-btn cf-btn--outline cf-btn--sm" aria-disabled="true"><span class="cf-icon cf-icon--chevron-left cf-icon--4" aria-hidden="true"></span>@L["Pagination.Prev"]</span>
+    }
+    <span class="cf-pagination__status" aria-current="page">@Html.Raw(L["Pagination.Status", $"<b>{Model.PageNumber}</b>", Model.TotalPages].Value)</span>
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a class="cf-btn cf-btn--outline cf-btn--sm" rel="next" asp-all-route-data="Model.RouteFor(Model.PageNumber + 1)">@L["Pagination.Next"]<span class="cf-icon cf-icon--chevron-right cf-icon--4" aria-hidden="true"></span></a>
+    }
+    else
+    {
+        <span class="cf-btn cf-btn--outline cf-btn--sm" aria-disabled="true">@L["Pagination.Next"]<span class="cf-icon cf-icon--chevron-right cf-icon--4" aria-hidden="true"></span></span>
+    }
+</nav>

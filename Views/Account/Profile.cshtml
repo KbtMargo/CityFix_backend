@@ -1,0 +1,62 @@
+@model ProfileViewModel
+@{
+    var user = Model.User;
+    var fullName = $"{user.FirstName} {user.LastName}".Trim();
+    ViewData["Title"] = L["Profile.Title"].Value;
+}
+<div>
+    <h1 class="cf-page-title">@L["Profile.Title"]</h1>
+    <p class="cf-page-sub">@L["Profile.Sub"]</p>
+</div>
+
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@fullName</div>
+        <div class="cf-card__desc"><span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span></div>
+    </div>
+    <div class="cf-card__body">
+        <div class="cf-form-grid">
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Email"]</div><p class="cf-fact__value">@user.Email</p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Phone"]</div><p class="cf-fact__value">@(user.Phone ?? L["Common.NotSpecified"].Value)</p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">@(user.Acab?.Name ?? L["Common.NotSpecified"].Value)</p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Profile.MemberSince"]</div><p class="cf-fact__value">@user.CreatedAt.ToDate()</p></div>
+        </div>
+    </div>
+</div>
+
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Profile.ChangePassword"]</div>
+        <div class="cf-card__desc">@L["Profile.ChangePasswordHint"]</div>
+    </div>
+    <div class="cf-card__body">
+        <form asp-action="ChangePassword" method="post" class="cf-stack-6">
+            <div>
+                <label class="cf-label" asp-for="ChangePassword.CurrentPassword"></label>
+                <label class="cf-field"><input asp-for="ChangePassword.CurrentPassword" class="cf-input" autocomplete="current-password" /></label>
+                <span asp-validation-for="ChangePassword.CurrentPassword" class="cf-field__error"></span>
+            </div>
+            <div class="cf-form-grid">
+                <div>
+                    <label class="cf-label" asp-for="ChangePassword.NewPassword"></label>
+                    <label class="cf-field"><input asp-for="ChangePassword.NewPassword" class="cf-input" autocomplete="new-password" /><span class="cf-field__hint">@L["Profile.PasswordHint"]</span></label>
+                    <span asp-validation-for="ChangePassword.NewPassword" class="cf-field__error"></span>
+                </div>
+                <div>
+                    <label class="cf-label" asp-for="ChangePassword.ConfirmPassword"></label>
+                    <label class="cf-field"><input asp-for="ChangePassword.ConfirmPassword" class="cf-input" autocomplete="new-password" /></label>
+                    <span asp-validation-for="ChangePassword.ConfirmPassword" class="cf-field__error"></span>
+                </div>
+            </div>
+            <div><button type="submit" class="cf-btn">@L["Profile.ChangePassword"]</button></div>
+        </form>
+    </div>
+</div>
+
+<form asp-action="Logout" method="post">
+    <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

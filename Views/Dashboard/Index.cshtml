@@ -1,0 +1,35 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = L["Dashboard.Title"].Value;
+    var k = Model.Kpis;
+    string ListUrl(string? tab) => Url.Action("Index", "Dashboard", tab == null ? null : new { tab })!;
+
+    // KpiCard README: the active card links to the In progress tab; tones never change between pages.
+    var cards = new[]
+    {
+        (Kpi: k.Active, Tone: "orange", Icon: "alert", LabelKey: "Kpi.Active", Href: ListUrl(AppealFilter.TabInProgress)),
+        (Kpi: k.ClosedThisMonth, Tone: "emerald", Icon: "check", LabelKey: "Kpi.ClosedThisMonth", Href: ListUrl(AppealFilter.TabClosed)),
+        (Kpi: k.Total, Tone: "slate", Icon: "users", LabelKey: "Kpi.Total", Href: ListUrl(null)),
+        (Kpi: k.AvgResponse, Tone: "purple", Icon: "clock", LabelKey: "Kpi.AvgResponse", Href: Url.Action("Index", "Analytics")!)
+    };
+}
+<div>
+    <h1 class="cf-page-title cf-page-title--xl">@L["Dashboard.Title"]</h1>
+    <p class="cf-page-sub">@L["Dashboard.Sub"]</p>
+</div>
+
+<div class="cf-kpi-grid">
+    @foreach (var card in cards)
+    {
+        <partial name="_KpiCard" model="card" />
+    }
+</div>
+
+<partial name="_AppealFilters" model="Model.List" />
+<partial name="_StatusTabs" model="Model.List" />
+<partial name="_IssueList" model="Model.List" />
+
+@if (Model.List.Selected != null)
+{
+    <partial name="_AppealModal" model="Model.List" />
+}

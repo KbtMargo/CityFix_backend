@@ -1,74 +1,33 @@
 @{
-    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-    var returnUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
-    string Active(string name) => string.Equals(controller, name, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    // Residents get the 320px white sidebar; association heads and administrators the 280px admin shell.
+    var staff = User.IsInRole(nameof(UserRole.Administrator)) || User.IsInRole(nameof(UserRole.AcabAdmin));
 }
 <!DOCTYPE html>
 <html lang="@lang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CityFix</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <title>@ViewData["Title"] — @L["App.Name"]</title>
+    <script>document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'</script>
+    <link rel="icon" href="~/images/cityfix-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bundle.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/CityFix_backend.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark cf-navbar">
-            <div class="container">
-                <a class="navbar-brand fw-semibold" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-buildings me-1"></i>CityFix
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-                        aria-controls="mainNav" aria-expanded="false" aria-label="@L["Toggle navigation"]">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="mainNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link @Active("Appeals")" asp-controller="Appeals" asp-action="Index"><i class="bi bi-megaphone me-1"></i>@L["Appeals"]</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Active("Categories")" asp-controller="Categories" asp-action="Index"><i class="bi bi-tags me-1"></i>@L["Categories"]</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Active("Recipients")" asp-controller="Recipients" asp-action="Index"><i class="bi bi-bank me-1"></i>@L["Recipients"]</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Active("Acabs")" asp-controller="Acabs" asp-action="Index"><i class="bi bi-houses me-1"></i>@L["Acabs"]</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Active("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people me-1"></i>@L["Users"]</a>
-                        </li>
-                    </ul>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="@L["Language"]">
-                        <a class="btn @(lang == "uk" ? "btn-light" : "btn-outline-light")" asp-controller="Home" asp-action="SetLanguage"
-                           asp-route-culture="uk" asp-route-returnUrl="@returnUrl">UA</a>
-                        <a class="btn @(lang == "en" ? "btn-light" : "btn-outline-light")" asp-controller="Home" asp-action="SetLanguage"
-                           asp-route-culture="en" asp-route-returnUrl="@returnUrl">EN</a>
-                    </div>
-                </div>
+    <div class="@(staff ? "cf-shell cf-shell--admin" : "cf-shell")">
+        <aside class="cf-shell__sidebar">@await Component.InvokeAsync("Sidebar")</aside>
+        <main class="cf-shell__main">
+            <div class="@(staff ? "cf-stack-6" : "cf-page")">
+                @* The view body has already run when the layout executes, so the detail modal can claim an error first. *@
+                <partial name="_Flash" />
+                @RenderBody()
             </div>
-        </nav>
-    </header>
-    <div class="container py-4">
-        <main role="main">
-            @RenderBody()
         </main>
     </div>
-
-    <footer class="cf-footer text-muted">
-        <div class="container d-flex flex-wrap justify-content-between gap-2">
-            <span>&copy; 2026 CityFix &middot; @L["Footer_Tagline"]</span>
-            <a asp-area="" asp-controller="Home" asp-action="Privacy">@L["Privacy"]</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

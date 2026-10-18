@@ -6,11 +6,11 @@ namespace CityFix_backend.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Validation_Required")]
-        [Display(Name = "Name")]
+        [Required(ErrorMessage = "Validation.Required")]
+        [Display(Name = "Field.Name")]
         public string Name { get; set; }
 
-        [Display(Name = "Icon")]
+        [Display(Name = "Field.Icon")]
         public string? Icon { get; set; }
     }
 }

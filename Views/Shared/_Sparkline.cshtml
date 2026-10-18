@@ -1,0 +1,20 @@
+@* KpiCard sparkline: 88×32, 7 points, line + 12% area + end dot in the card's tone. *@
+@model IReadOnlyList<double>
+@{
+    var max = Model.Count > 0 ? Model.Max() : 0;
+    var min = Model.Count > 0 ? Model.Min() : 0;
+    var step = Model.Count > 1 ? 82.0 / (Model.Count - 1) : 0;
+    string F(double v) => v.ToString("0.0", CultureInfo.InvariantCulture);
+    var points = Model.Select((v, i) =>
+    {
+        // Flat series sit on the baseline when they are all zero, otherwise in the middle.
+        var y = max > min ? 29 - (v - min) / (max - min) * 26 : (max == 0 ? 29 : 16);
+        return (X: 3 + i * step, Y: y);
+    }).ToList();
+    var line = string.Join(" ", points.Select((p, i) => $"{(i == 0 ? "M" : "L")}{F(p.X)} {F(p.Y)}"));
+    var last = points.LastOrDefault();
+}
+@if (points.Count > 0)
+{
+    <svg class="cf-kpi-card__spark" viewBox="0 0 88 32" aria-hidden="true"><path class="area" d="@line L@(F(last.X)) 32 L3.0 32 Z" /><path class="line" d="@line" /><circle class="end" cx="@F(last.X)" cy="@F(last.Y)" r="2.5" /></svg>
+}

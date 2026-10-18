@@ -4,53 +4,320 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-
-  <!-- English is the fallback: keys that are missing here are shown as-is, so plain-text keys need no entry.
-       Only keys that differ from their English caption are listed. -->
-
-  <data name="AppealStatus_New" xml:space="preserve"><value>New</value></data>
-  <data name="AppealStatus_InProgress" xml:space="preserve"><value>In progress</value></data>
-  <data name="AppealStatus_Done" xml:space="preserve"><value>Done</value></data>
-  <data name="AppealStatus_Rejected" xml:space="preserve"><value>Rejected</value></data>
-
-  <data name="AppealPriority_Low" xml:space="preserve"><value>Low</value></data>
-  <data name="AppealPriority_Normal" xml:space="preserve"><value>Normal</value></data>
-  <data name="AppealPriority_Urgent" xml:space="preserve"><value>Urgent</value></data>
-
-  <data name="UserRole_Resident" xml:space="preserve"><value>Resident</value></data>
-  <data name="UserRole_AcabAdmin" xml:space="preserve"><value>Acab admin</value></data>
-  <data name="UserRole_Administrator" xml:space="preserve"><value>Administrator</value></data>
-
-  <data name="Validation_Required" xml:space="preserve"><value>The {0} field is required.</value></data>
-  <data name="Validation_Range" xml:space="preserve"><value>The {0} field must be between {1} and {2}.</value></data>
-  <data name="Validation_Email" xml:space="preserve"><value>The {0} field is not a valid e-mail address.</value></data>
-
-  <data name="Page_Create" xml:space="preserve"><value>Create</value></data>
-  <data name="Page_Edit" xml:space="preserve"><value>Edit</value></data>
-  <data name="Page_Details" xml:space="preserve"><value>Details</value></data>
-  <data name="Page_Delete" xml:space="preserve"><value>Delete</value></data>
-  <data name="Delete_Confirm" xml:space="preserve"><value>Are you sure you want to delete this record? This action cannot be undone.</value></data>
-  <data name="No_Records" xml:space="preserve"><value>Nothing here yet.</value></data>
-  <data name="None_Option" xml:space="preserve"><value>— none —</value></data>
-
-  <data name="View_Cards" xml:space="preserve"><value>Cards</value></data>
-  <data name="View_List" xml:space="preserve"><value>List</value></data>
-  <data name="View_Table" xml:space="preserve"><value>Table</value></data>
-
-  <data name="Footer_Tagline" xml:space="preserve"><value>Recording urban infrastructure problems</value></data>
-
-  <data name="Home_Title" xml:space="preserve"><value>Report city problems. Track the result.</value></data>
-  <data name="Home_Lead" xml:space="preserve"><value>CityFix is a web service where residents record urban infrastructure problems — roads, lighting, water supply, public spaces — and send them to the responsible authorities.</value></data>
-  <data name="Home_ViewAppeals" xml:space="preserve"><value>View appeals</value></data>
-  <data name="Home_SubmitAppeal" xml:space="preserve"><value>Submit an appeal</value></data>
-  <data name="Home_F1_Title" xml:space="preserve"><value>Record a problem</value></data>
-  <data name="Home_F1_Text" xml:space="preserve"><value>Describe the issue, choose a category and give the address and coordinates.</value></data>
-  <data name="Home_F2_Title" xml:space="preserve"><value>Send it to the right authority</value></data>
-  <data name="Home_F2_Text" xml:space="preserve"><value>Every appeal is addressed to a responsible recipient from the directory.</value></data>
-  <data name="Home_F3_Title" xml:space="preserve"><value>Follow the status</value></data>
-  <data name="Home_F3_Text" xml:space="preserve"><value>New, in progress, done or rejected — status and priority are always visible.</value></data>
-  <data name="Home_About" xml:space="preserve"><value>Course project: Web Application for Recording Urban Infrastructure Problems and Automated Analysis of Citizens' Appeals</value></data>
-
-  <data name="Privacy_Title" xml:space="preserve"><value>Privacy Policy</value></data>
-  <data name="Privacy_Text" xml:space="preserve"><value>The privacy policy of the service will be described on this page.</value></data>
+  <!-- Ukrainian: the default UI language. Every key must also exist in SharedResource.en.resx. -->
+  <data name="App.Name" xml:space="preserve"><value>CityFix</value></data>
+  <data name="App.Tagline" xml:space="preserve"><value>Платформа громади</value></data>
+  <data name="Nav.Label" xml:space="preserve"><value>Головне меню</value></data>
+  <data name="Nav.Home" xml:space="preserve"><value>Головна</value></data>
+  <data name="Nav.Home.Sub" xml:space="preserve"><value>Огляд панелі</value></data>
+  <data name="Nav.Home.SubAdmin" xml:space="preserve"><value>Огляд адмін-панелі</value></data>
+  <data name="Nav.MyAppeals" xml:space="preserve"><value>Мої звернення</value></data>
+  <data name="Nav.MyAppeals.Sub" xml:space="preserve"><value>Стежити за зверненнями</value></data>
+  <data name="Nav.NewAppeal" xml:space="preserve"><value>Нове звернення</value></data>
+  <data name="Nav.NewAppeal.Sub" xml:space="preserve"><value>Повідомити проблему</value></data>
+  <data name="Nav.Analytics" xml:space="preserve"><value>Аналітика</value></data>
+  <data name="Nav.Analytics.Sub" xml:space="preserve"><value>Переглянути статистику</value></data>
+  <data name="Nav.Notifications" xml:space="preserve"><value>Сповіщення</value></data>
+  <data name="Nav.Notifications.Sub" xml:space="preserve"><value>Оновлення та відповіді</value></data>
+  <data name="Nav.Profile" xml:space="preserve"><value>Профіль</value></data>
+  <data name="Nav.Profile.Sub" xml:space="preserve"><value>Налаштування облікового запису</value></data>
+  <data name="Nav.AllAppeals" xml:space="preserve"><value>Всі звернення</value></data>
+  <data name="Nav.AllAppeals.Sub" xml:space="preserve"><value>Перегляд всіх звернень</value></data>
+  <data name="Nav.Users" xml:space="preserve"><value>Користувачі</value></data>
+  <data name="Nav.Users.Sub" xml:space="preserve"><value>Керування акаунтами</value></data>
+  <data name="Nav.Acabs" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Nav.Acabs.Sub" xml:space="preserve"><value>Керування спільнотами</value></data>
+  <data name="Nav.Categories" xml:space="preserve"><value>Категорії</value></data>
+  <data name="Nav.Categories.Sub" xml:space="preserve"><value>Типи проблем</value></data>
+  <data name="Nav.Recipients" xml:space="preserve"><value>Отримувачі</value></data>
+  <data name="Nav.Recipients.Sub" xml:space="preserve"><value>Відповідальні служби</value></data>
+  <data name="Nav.Unread" xml:space="preserve"><value>Непрочитані</value></data>
+  <data name="Stats.Open" xml:space="preserve"><value>Відкрито</value></data>
+  <data name="Stats.Closed" xml:space="preserve"><value>Закрито</value></data>
+  <data name="Help.Title" xml:space="preserve"><value>Допомога та підтримка</value></data>
+  <data name="Help.Text" xml:space="preserve"><value>Питання? Напишіть у службу підтримки.</value></data>
+  <data name="Language.Label" xml:space="preserve"><value>Мова інтерфейсу</value></data>
+  <data name="Common.Back" xml:space="preserve"><value>Назад</value></data>
+  <data name="Common.BackToDashboard" xml:space="preserve"><value>Назад до панелі</value></data>
+  <data name="Common.CannotUndo" xml:space="preserve"><value>Цю дію не можна скасувати.</value></data>
+  <data name="Common.Close" xml:space="preserve"><value>Закрити</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Видалити</value></data>
+  <data name="Common.DeleteItem" xml:space="preserve"><value>Видалити: {0}</value></data>
+  <data name="Common.Deleted" xml:space="preserve"><value>Запис видалено.</value></data>
+  <data name="Common.Edit" xml:space="preserve"><value>Редагувати</value></data>
+  <data name="Common.EditItem" xml:space="preserve"><value>Редагувати: {0}</value></data>
+  <data name="Common.HasAppeals" xml:space="preserve"><value>Є звернення, видалення недоступне</value></data>
+  <data name="Common.HasAppealsText" xml:space="preserve"><value>Звернень: {0}. Спочатку перенесіть або видаліть їх.</value></data>
+  <data name="Common.NotSpecified" xml:space="preserve"><value>Не вказано</value></data>
+  <data name="Common.SaveChanges" xml:space="preserve"><value>Зберегти зміни</value></data>
+  <data name="Common.Saved" xml:space="preserve"><value>Зміни збережено.</value></data>
+  <data name="Dashboard.Title" xml:space="preserve"><value>Панель</value></data>
+  <data name="Dashboard.Sub" xml:space="preserve"><value>Огляд всіх звернень та їхнього статусу</value></data>
+  <data name="Kpi.Active" xml:space="preserve"><value>Активні звернення</value></data>
+  <data name="Kpi.ClosedThisMonth" xml:space="preserve"><value>Закрито цього місяця</value></data>
+  <data name="Kpi.Total" xml:space="preserve"><value>Разом звернень</value></data>
+  <data name="Kpi.AvgResponse" xml:space="preserve"><value>Середній час відповіді</value></data>
+  <data name="Kpi.ThisWeek" xml:space="preserve"><value>за тиждень</value></data>
+  <data name="Kpi.ThisMonth" xml:space="preserve"><value>за місяць</value></data>
+  <data name="Kpi.VsMonth" xml:space="preserve"><value>до {0}</value></data>
+  <data name="Kpi.Days" xml:space="preserve"><value>дні</value></data>
+  <data name="Kpi.Faster" xml:space="preserve"><value>швидше</value></data>
+  <data name="Kpi.Slower" xml:space="preserve"><value>повільніше</value></data>
+  <data name="Kpi.NoChange" xml:space="preserve"><value>без змін</value></data>
+  <data name="Kpi.NoData" xml:space="preserve"><value>даних поки немає</value></data>
+  <data name="Kpi.NoComparison" xml:space="preserve"><value>немає з чим порівняти</value></data>
+  <data name="Tabs.Label" xml:space="preserve"><value>Статус звернень</value></data>
+  <data name="Tabs.All" xml:space="preserve"><value>Усі</value></data>
+  <data name="Tabs.New" xml:space="preserve"><value>Нові</value></data>
+  <data name="Tabs.InProgress" xml:space="preserve"><value>В роботі</value></data>
+  <data name="Tabs.Closed" xml:space="preserve"><value>Закриті</value></data>
+  <data name="Filters.Title" xml:space="preserve"><value>Фільтри</value></data>
+  <data name="Filters.Active" xml:space="preserve"><value>Активних фільтрів</value></data>
+  <data name="Filters.Search" xml:space="preserve"><value>Пошук звернень</value></data>
+  <data name="Filters.SearchPlaceholder" xml:space="preserve"><value>Пошук звернень…</value></data>
+  <data name="Filters.Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Filters.DateFrom" xml:space="preserve"><value>Від</value></data>
+  <data name="Filters.DateTo" xml:space="preserve"><value>До</value></data>
+  <data name="Filters.AllCategories" xml:space="preserve"><value>Всі категорії</value></data>
+  <data name="Filters.AllRecipients" xml:space="preserve"><value>Всі установи</value></data>
+  <data name="Filters.AllAcabs" xml:space="preserve"><value>Всі ОСББ</value></data>
+  <data name="Filters.Reset" xml:space="preserve"><value>Скинути</value></data>
+  <data name="Filters.Apply" xml:space="preserve"><value>Застосувати</value></data>
+  <data name="Empty.Filtered" xml:space="preserve"><value>Нічого не знайдено за поточними фільтрами.</value></data>
+  <data name="Empty.NoAppealsYet" xml:space="preserve"><value>Ви ще не створювали жодного звернення.</value></data>
+  <data name="Empty.Title" xml:space="preserve"><value>Тут поки порожньо</value></data>
+  <data name="Empty.StaffText" xml:space="preserve"><value>Нові звернення мешканців з&apos;являться тут.</value></data>
+  <data name="Appeal.NoDescription" xml:space="preserve"><value>Без опису</value></data>
+  <data name="Appeal.Coordinates" xml:space="preserve"><value>Координати: {0}, {1}</value></data>
+  <data name="Appeal.NoRecipient" xml:space="preserve"><value>Отримувача не вказано</value></data>
+  <data name="Appeal.PhotoAlt" xml:space="preserve"><value>Зображення для: {0}</value></data>
+  <data name="Appeal.Created" xml:space="preserve"><value>Звернення створено.</value></data>
+  <data name="Appeal.Saved" xml:space="preserve"><value>Зміни збережено.</value></data>
+  <data name="Appeal.StatusSaved" xml:space="preserve"><value>Звернення оновлено.</value></data>
+  <data name="Appeal.Deleted" xml:space="preserve"><value>Звернення видалено.</value></data>
+  <data name="Appeals.MyTitle" xml:space="preserve"><value>Мої звернення</value></data>
+  <data name="Appeals.MySub" xml:space="preserve"><value>Стежте за статусом своїх звернень</value></data>
+  <data name="Appeals.AllTitle" xml:space="preserve"><value>Всі звернення</value></data>
+  <data name="Appeals.Total" xml:space="preserve"><value>Всього звернень</value></data>
+  <data name="Appeals.CreateTitle" xml:space="preserve"><value>Створити нове звернення</value></data>
+  <data name="Appeals.CreateSubmit" xml:space="preserve"><value>Створити звернення</value></data>
+  <data name="Appeals.EditTitle" xml:space="preserve"><value>Редагувати звернення</value></data>
+  <data name="Appeals.BackToAppeal" xml:space="preserve"><value>Назад до звернення</value></data>
+  <data name="Appeals.DeleteTitle" xml:space="preserve"><value>Видалити звернення?</value></data>
+  <data name="Appeals.DeleteText" xml:space="preserve"><value>Звернення «{0}», його фото та історію буде видалено. Цю дію не можна скасувати.</value></data>
+  <data name="Table.Appeal" xml:space="preserve"><value>Звернення</value></data>
+  <data name="Table.Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Table.Actions" xml:space="preserve"><value>Дії</value></data>
+  <data name="Modal.Photos" xml:space="preserve"><value>Фотодоказ</value></data>
+  <data name="Modal.PrevPhoto" xml:space="preserve"><value>Попереднє фото</value></data>
+  <data name="Modal.NextPhoto" xml:space="preserve"><value>Наступне фото</value></data>
+  <data name="Modal.PhotoAlt" xml:space="preserve"><value>Фото до звернення</value></data>
+  <data name="Modal.PhotoN" xml:space="preserve"><value>Фото {0}</value></data>
+  <data name="Modal.NoDescription" xml:space="preserve"><value>Опис відсутній.</value></data>
+  <data name="Modal.Place" xml:space="preserve"><value>Місце</value></data>
+  <data name="Modal.Reported" xml:space="preserve"><value>Повідомлено</value></data>
+  <data name="Timeline.Title" xml:space="preserve"><value>Часова шкала статусу</value></data>
+  <data name="Timeline.Submitted" xml:space="preserve"><value>Звернення подано</value></data>
+  <data name="Timeline.StatusChanged" xml:space="preserve"><value>Статус змінено: {0} → {1}</value></data>
+  <data name="Timeline.CommentAdded" xml:space="preserve"><value>Додано коментар</value></data>
+  <data name="Update.Title" xml:space="preserve"><value>Оновити звернення</value></data>
+  <data name="Update.Comment" xml:space="preserve"><value>Коментар (опційно)</value></data>
+  <data name="Update.CommentPlaceholder" xml:space="preserve"><value>Додайте коментар про зміну...</value></data>
+  <data name="Update.CommentHint" xml:space="preserve"><value>Для статусу «Виконано» коментар обов&apos;язковий.</value></data>
+  <data name="Form.TitlePlaceholder" xml:space="preserve"><value>Коротко опишіть проблему</value></data>
+  <data name="Form.TitleHint" xml:space="preserve"><value>Від 5 до 100 символів</value></data>
+  <data name="Form.DescriptionLabel" xml:space="preserve"><value>Детальний опис (опційно)</value></data>
+  <data name="Form.DescriptionPlaceholder" xml:space="preserve"><value>Додайте більше деталей про проблему...</value></data>
+  <data name="Form.Location" xml:space="preserve"><value>Місцезнаходження</value></data>
+  <data name="Form.LocationHelp" xml:space="preserve"><value>Введіть адресу, використайте геолокацію, або оберіть точку на карті.</value></data>
+  <data name="Form.AddressPlaceholder" xml:space="preserve"><value>Введіть адресу...</value></data>
+  <data name="Form.Locate" xml:space="preserve"><value>Визначити поточне місцезнаходження</value></data>
+  <data name="Form.LocateFailed" xml:space="preserve"><value>Не вдалося визначити місцезнаходження. Оберіть точку на карті.</value></data>
+  <data name="Form.CoordsChosen" xml:space="preserve"><value>Координати обрано: {0}, {1}</value></data>
+  <data name="Form.MapLabel" xml:space="preserve"><value>Карта: оберіть місце проблеми</value></data>
+  <data name="Form.ChooseCategory" xml:space="preserve"><value>Виберіть категорію...</value></data>
+  <data name="Form.ChooseRecipient" xml:space="preserve"><value>Виберіть відповідальну службу...</value></data>
+  <data name="Form.Photos" xml:space="preserve"><value>Фото-докази (до {0} файлів)</value></data>
+  <data name="Form.DropzoneClick" xml:space="preserve"><value>Натисніть, щоб завантажити</value></data>
+  <data name="Form.DropzoneDrag" xml:space="preserve"><value>або перетягніть файли</value></data>
+  <data name="Form.DropzoneHint" xml:space="preserve"><value>PNG, JPG, GIF до 10MB</value></data>
+  <data name="Form.RemoveFile" xml:space="preserve"><value>Видалити файл</value></data>
+  <data name="Analytics.Title" xml:space="preserve"><value>Аналітика</value></data>
+  <data name="Analytics.Sub" xml:space="preserve"><value>Статистика звернень, доступних вам</value></data>
+  <data name="Analytics.Total" xml:space="preserve"><value>Всього звернень</value></data>
+  <data name="Analytics.Waiting" xml:space="preserve"><value>Очікують</value></data>
+  <data name="Analytics.InProgress" xml:space="preserve"><value>В роботі</value></data>
+  <data name="Analytics.Resolved" xml:space="preserve"><value>Вирішено</value></data>
+  <data name="Analytics.ByCategory" xml:space="preserve"><value>Найпоширеніші проблеми</value></data>
+  <data name="Analytics.PerDay" xml:space="preserve"><value>Нові звернення за 30 днів</value></data>
+  <data name="Analytics.ByStatus" xml:space="preserve"><value>Звернення за статусом</value></data>
+  <data name="Analytics.ByPriority" xml:space="preserve"><value>Звернення за пріоритетом</value></data>
+  <data name="Analytics.EmptyTitle" xml:space="preserve"><value>Даних поки немає</value></data>
+  <data name="Analytics.EmptyText" xml:space="preserve"><value>Графіки з&apos;являться після перших звернень.</value></data>
+  <data name="Notifications.Title" xml:space="preserve"><value>Сповіщення</value></data>
+  <data name="Notifications.Sub" xml:space="preserve"><value>Слідкуйте за оновленнями по вашим зверненням</value></data>
+  <data name="Notifications.MarkAll" xml:space="preserve"><value>Позначити всі як прочитані</value></data>
+  <data name="Notifications.AllRead" xml:space="preserve"><value>Усі сповіщення позначено як прочитані.</value></data>
+  <data name="Notifications.Unread" xml:space="preserve"><value>Непрочитані</value></data>
+  <data name="Notifications.All" xml:space="preserve"><value>Всі</value></data>
+  <data name="Notifications.UnreadPrefix" xml:space="preserve"><value>Непрочитане</value></data>
+  <data name="Notifications.StatusTitle" xml:space="preserve"><value>Статус звернення змінено</value></data>
+  <data name="Notifications.CommentTitle" xml:space="preserve"><value>Новий коментар</value></data>
+  <data name="Notifications.NewAppealTitle" xml:space="preserve"><value>Нове звернення</value></data>
+  <data name="Notifications.AssignedTitle" xml:space="preserve"><value>Звернення призначено</value></data>
+  <data name="Notifications.StatusText" xml:space="preserve"><value>Ваше звернення «{0}» переведено у статус «{1}».</value></data>
+  <data name="Notifications.GenericText" xml:space="preserve"><value>Оновлення щодо звернення «{0}».</value></data>
+  <data name="Notifications.Comment" xml:space="preserve"><value>Коментар</value></data>
+  <data name="Notifications.EmptyTitle" xml:space="preserve"><value>Все переглянуто!</value></data>
+  <data name="Notifications.EmptyText" xml:space="preserve"><value>Нових сповіщень немає.</value></data>
+  <data name="Pagination.Label" xml:space="preserve"><value>Сторінки</value></data>
+  <data name="Pagination.Prev" xml:space="preserve"><value>Назад</value></data>
+  <data name="Pagination.Next" xml:space="preserve"><value>Далі</value></data>
+  <data name="Pagination.Status" xml:space="preserve"><value>Сторінка {0} з {1}</value></data>
+  <data name="Pagination.Showing" xml:space="preserve"><value>Показано {0}–{1} з {2}</value></data>
+  <data name="Auth.Login.Title" xml:space="preserve"><value>Вхід в акаунт</value></data>
+  <data name="Auth.Login.Sub" xml:space="preserve"><value>Вітаємо з поверненням!</value></data>
+  <data name="Auth.Login.Submit" xml:space="preserve"><value>Увійти</value></data>
+  <data name="Auth.Login.NoAccount" xml:space="preserve"><value>Ще не маєте акаунту?</value></data>
+  <data name="Auth.Login.ToRegister" xml:space="preserve"><value>Зареєструватися</value></data>
+  <data name="Auth.LoginFailed" xml:space="preserve"><value>Невірний email або пароль</value></data>
+  <data name="Auth.Register.Title" xml:space="preserve"><value>Створення акаунту</value></data>
+  <data name="Auth.Register.Sub" xml:space="preserve"><value>Заповніть форму для реєстрації в {0}</value></data>
+  <data name="Auth.Register.FirstNamePlaceholder" xml:space="preserve"><value>Тарас</value></data>
+  <data name="Auth.Register.LastNamePlaceholder" xml:space="preserve"><value>Шевченко</value></data>
+  <data name="Auth.Register.CodePlaceholder" xml:space="preserve"><value>Код вашого будинку</value></data>
+  <data name="Auth.Register.Submit" xml:space="preserve"><value>Зареєструватися</value></data>
+  <data name="Auth.Register.HaveAccount" xml:space="preserve"><value>Вже маєте акаунт?</value></data>
+  <data name="Auth.Register.ToLogin" xml:space="preserve"><value>Увійти</value></data>
+  <data name="Auth.EmailTaken" xml:space="preserve"><value>Акаунт із цим email вже існує.</value></data>
+  <data name="Auth.CodeNotFound" xml:space="preserve"><value>Не вдалося знайти ОСББ з таким кодом.</value></data>
+  <data name="Auth.Welcome" xml:space="preserve"><value>Реєстрація успішна.</value></data>
+  <data name="Denied.Title" xml:space="preserve"><value>Доступ заборонено</value></data>
+  <data name="Denied.YourRole" xml:space="preserve"><value>Ваша роль</value></data>
+  <data name="Denied.Text" xml:space="preserve"><value>У вас немає прав для перегляду цієї сторінки.</value></data>
+  <data name="Denied.ToDashboard" xml:space="preserve"><value>Перейти до кабінету</value></data>
+  <data name="Error.NotFound.Title" xml:space="preserve"><value>Сторінку не знайдено</value></data>
+  <data name="Error.NotFound.Text" xml:space="preserve"><value>Можливо, посилання застаріле або звернення було видалено.</value></data>
+  <data name="Error.Server.Title" xml:space="preserve"><value>Щось пішло не так</value></data>
+  <data name="Error.Server.Text" xml:space="preserve"><value>Не вдалося виконати запит. Спробуйте ще раз пізніше.</value></data>
+  <data name="Error.RequestId" xml:space="preserve"><value>Ідентифікатор запиту</value></data>
+  <data name="Error.ToDashboard" xml:space="preserve"><value>Перейти до панелі</value></data>
+  <data name="Profile.Title" xml:space="preserve"><value>Профіль</value></data>
+  <data name="Profile.Sub" xml:space="preserve"><value>Налаштування облікового запису</value></data>
+  <data name="Profile.MemberSince" xml:space="preserve"><value>Дата реєстрації</value></data>
+  <data name="Profile.ChangePassword" xml:space="preserve"><value>Змінити пароль</value></data>
+  <data name="Profile.ChangePasswordHint" xml:space="preserve"><value>Введіть поточний пароль і новий двічі.</value></data>
+  <data name="Profile.PasswordHint" xml:space="preserve"><value>Щонайменше 8 символів</value></data>
+  <data name="Profile.PasswordChanged" xml:space="preserve"><value>Пароль змінено.</value></data>
+  <data name="Profile.WrongPassword" xml:space="preserve"><value>Невірний поточний пароль.</value></data>
+  <data name="Profile.Logout" xml:space="preserve"><value>Вийти</value></data>
+  <data name="Users.Title" xml:space="preserve"><value>Керування користувачами</value></data>
+  <data name="Users.Total" xml:space="preserve"><value>Всього користувачів</value></data>
+  <data name="Users.Add" xml:space="preserve"><value>Додати користувача</value></data>
+  <data name="Users.AddHint" xml:space="preserve"><value>Пароль тут не вводиться: система створить тимчасовий і покаже його один раз.</value></data>
+  <data name="Users.Edit" xml:space="preserve"><value>Редагувати користувача</value></data>
+  <data name="Users.Back" xml:space="preserve"><value>Назад до користувачів</value></data>
+  <data name="Users.Empty" xml:space="preserve"><value>Користувачів не знайдено.</value></data>
+  <data name="Users.Col.User" xml:space="preserve"><value>Користувач</value></data>
+  <data name="Users.Col.Appeals" xml:space="preserve"><value>Звернень</value></data>
+  <data name="Users.Col.Registered" xml:space="preserve"><value>Дата реєстрації</value></data>
+  <data name="Users.CannotDelete" xml:space="preserve"><value>Є звернення або історія змін, видалення недоступне</value></data>
+  <data name="Users.CannotDeleteSelf" xml:space="preserve"><value>Не можна видалити власний акаунт</value></data>
+  <data name="Users.CannotDeleteTitle" xml:space="preserve"><value>Неможливо видалити користувача</value></data>
+  <data name="Users.CannotDeleteText" xml:space="preserve"><value>У користувача є звернення ({0}) або змінені ним статуси. Спочатку перенесіть або видаліть звернення.</value></data>
+  <data name="Users.CreatedWithPassword" xml:space="preserve"><value>Користувача {0} створено. Тимчасовий пароль: {1}. Він показується лише один раз.</value></data>
+  <data name="Users.DeleteTitle" xml:space="preserve"><value>Видалити користувача?</value></data>
+  <data name="Acabs.Title" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Acabs.Total" xml:space="preserve"><value>Всього ОСББ</value></data>
+  <data name="Acabs.Add" xml:space="preserve"><value>Додати ОСББ</value></data>
+  <data name="Acabs.Edit" xml:space="preserve"><value>Редагувати ОСББ</value></data>
+  <data name="Acabs.Back" xml:space="preserve"><value>Назад до ОСББ</value></data>
+  <data name="Acabs.Empty" xml:space="preserve"><value>ОСББ ще не додано.</value></data>
+  <data name="Acabs.Col.Members" xml:space="preserve"><value>Мешканців</value></data>
+  <data name="Acabs.CodeHint" xml:space="preserve"><value>Хто зареєструється з цим кодом, стане головою ОСББ.</value></data>
+  <data name="Acabs.CannotDelete" xml:space="preserve"><value>Є мешканці, видалення недоступне</value></data>
+  <data name="Acabs.CannotDeleteTitle" xml:space="preserve"><value>Неможливо видалити ОСББ</value></data>
+  <data name="Acabs.CannotDeleteText" xml:space="preserve"><value>До ОСББ прив&apos;язано користувачів: {0}. Спочатку змініть їм ОСББ.</value></data>
+  <data name="Acabs.DeleteTitle" xml:space="preserve"><value>Видалити ОСББ?</value></data>
+  <data name="Categories.Title" xml:space="preserve"><value>Категорії</value></data>
+  <data name="Categories.Total" xml:space="preserve"><value>Всього категорій</value></data>
+  <data name="Categories.Add" xml:space="preserve"><value>Додати категорію</value></data>
+  <data name="Categories.Edit" xml:space="preserve"><value>Редагувати категорію</value></data>
+  <data name="Categories.Back" xml:space="preserve"><value>Назад до категорій</value></data>
+  <data name="Categories.Empty" xml:space="preserve"><value>Категорій ще немає.</value></data>
+  <data name="Categories.NamePlaceholder" xml:space="preserve"><value>Наприклад, Дороги</value></data>
+  <data name="Categories.CannotDeleteTitle" xml:space="preserve"><value>Неможливо видалити категорію</value></data>
+  <data name="Categories.DeleteTitle" xml:space="preserve"><value>Видалити категорію?</value></data>
+  <data name="Recipients.Title" xml:space="preserve"><value>Отримувачі</value></data>
+  <data name="Recipients.Total" xml:space="preserve"><value>Всього отримувачів</value></data>
+  <data name="Recipients.Add" xml:space="preserve"><value>Додати отримувача</value></data>
+  <data name="Recipients.Edit" xml:space="preserve"><value>Редагувати отримувача</value></data>
+  <data name="Recipients.Back" xml:space="preserve"><value>Назад до отримувачів</value></data>
+  <data name="Recipients.Empty" xml:space="preserve"><value>Отримувачів ще немає.</value></data>
+  <data name="Recipients.NamePlaceholder" xml:space="preserve"><value>Наприклад, Служба доріг</value></data>
+  <data name="Recipients.ContactPlaceholder" xml:space="preserve"><value>Телефон, email або адреса</value></data>
+  <data name="Recipients.CannotDeleteTitle" xml:space="preserve"><value>Неможливо видалити отримувача</value></data>
+  <data name="Recipients.DeleteTitle" xml:space="preserve"><value>Видалити отримувача?</value></data>
+  <data name="Field.Title" xml:space="preserve"><value>Заголовок</value></data>
+  <data name="Field.Description" xml:space="preserve"><value>Опис</value></data>
+  <data name="Field.Latitude" xml:space="preserve"><value>Широта</value></data>
+  <data name="Field.Longitude" xml:space="preserve"><value>Довгота</value></data>
+  <data name="Field.Address" xml:space="preserve"><value>Адреса</value></data>
+  <data name="Field.AddressOptional" xml:space="preserve"><value>Адреса (опційно)</value></data>
+  <data name="Field.Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Field.Priority" xml:space="preserve"><value>Пріоритет</value></data>
+  <data name="Field.Author" xml:space="preserve"><value>Автор</value></data>
+  <data name="Field.Category" xml:space="preserve"><value>Категорія</value></data>
+  <data name="Field.Recipient" xml:space="preserve"><value>Отримувач</value></data>
+  <data name="Field.CreatedAt" xml:space="preserve"><value>Створено</value></data>
+  <data name="Field.UpdatedAt" xml:space="preserve"><value>Оновлено</value></data>
+  <data name="Field.Email" xml:space="preserve"><value>Email-адреса</value></data>
+  <data name="Field.Password" xml:space="preserve"><value>Пароль</value></data>
+  <data name="Field.ConfirmPassword" xml:space="preserve"><value>Підтвердіть пароль</value></data>
+  <data name="Field.CurrentPassword" xml:space="preserve"><value>Поточний пароль</value></data>
+  <data name="Field.NewPassword" xml:space="preserve"><value>Новий пароль</value></data>
+  <data name="Field.ConfirmNewPassword" xml:space="preserve"><value>Підтвердіть новий пароль</value></data>
+  <data name="Field.RememberMe" xml:space="preserve"><value>Запам&apos;ятати мене</value></data>
+  <data name="Field.FirstName" xml:space="preserve"><value>Ім&apos;я</value></data>
+  <data name="Field.LastName" xml:space="preserve"><value>Прізвище</value></data>
+  <data name="Field.Phone" xml:space="preserve"><value>Телефон</value></data>
+  <data name="Field.PhoneOptional" xml:space="preserve"><value>Номер телефону (опційно)</value></data>
+  <data name="Field.Role" xml:space="preserve"><value>Роль</value></data>
+  <data name="Field.Acab" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Field.AcabCode" xml:space="preserve"><value>Код ОСББ</value></data>
+  <data name="Field.Name" xml:space="preserve"><value>Назва</value></data>
+  <data name="Field.InvitationCode" xml:space="preserve"><value>Код запрошення</value></data>
+  <data name="Field.Icon" xml:space="preserve"><value>Іконка</value></data>
+  <data name="Field.ContactInfo" xml:space="preserve"><value>Контакти</value></data>
+  <data name="Field.ContactInfoOptional" xml:space="preserve"><value>Контакти (опційно)</value></data>
+  <data name="Field.PasswordHash" xml:space="preserve"><value>Хеш пароля</value></data>
+  <data name="Enum.AppealStatus.New" xml:space="preserve"><value>Нове</value></data>
+  <data name="Enum.AppealStatus.InProgress" xml:space="preserve"><value>В роботі</value></data>
+  <data name="Enum.AppealStatus.Done" xml:space="preserve"><value>Виконано</value></data>
+  <data name="Enum.AppealStatus.Rejected" xml:space="preserve"><value>Відхилено</value></data>
+  <data name="Enum.AppealPriority.Low" xml:space="preserve"><value>низький пріоритет</value></data>
+  <data name="Enum.AppealPriority.Normal" xml:space="preserve"><value>середній пріоритет</value></data>
+  <data name="Enum.AppealPriority.Urgent" xml:space="preserve"><value>високий пріоритет</value></data>
+  <data name="Enum.UserRole.Resident" xml:space="preserve"><value>Мешканець</value></data>
+  <data name="Enum.UserRole.AcabAdmin" xml:space="preserve"><value>Голова ОСББ</value></data>
+  <data name="Enum.UserRole.Administrator" xml:space="preserve"><value>Адміністратор</value></data>
+  <data name="Time.JustNow" xml:space="preserve"><value>Щойно</value></data>
+  <data name="Time.HoursAgo" xml:space="preserve"><value>{0} год тому</value></data>
+  <data name="Time.DaysAgo" xml:space="preserve"><value>{0} д тому</value></data>
+  <data name="Validation.Required" xml:space="preserve"><value>Заповніть поле «{0}».</value></data>
+  <data name="Validation.Choose" xml:space="preserve"><value>Оберіть значення зі списку.</value></data>
+  <data name="Validation.Email" xml:space="preserve"><value>Введіть коректну email-адресу.</value></data>
+  <data name="Validation.Phone" xml:space="preserve"><value>Введіть коректний номер телефону.</value></data>
+  <data name="Validation.Length" xml:space="preserve"><value>Поле «{0}» має містити від {2} до {1} символів.</value></data>
+  <data name="Validation.MaxLength" xml:space="preserve"><value>Поле «{0}» має містити не більше {1} символів.</value></data>
+  <data name="Validation.PasswordLength" xml:space="preserve"><value>Пароль має містити щонайменше {2} символів.</value></data>
+  <data name="Validation.PasswordMatch" xml:space="preserve"><value>Паролі не співпадають.</value></data>
+  <data name="Validation.Range" xml:space="preserve"><value>Значення поля «{0}» має бути від {1} до {2}.</value></data>
+  <data name="Validation.Invalid" xml:space="preserve"><value>Значення «{0}» не підходить для поля «{1}».</value></data>
+  <data name="Validation.LocationRequired" xml:space="preserve"><value>Вкажіть адресу або оберіть точку на карті.</value></data>
+  <data name="Validation.DoneNeedsComment" xml:space="preserve"><value>Щоб позначити звернення виконаним, додайте коментар.</value></data>
+  <data name="Validation.NothingChanged" xml:space="preserve"><value>Змініть статус або додайте коментар.</value></data>
+  <data name="Validation.PhotosTooMany" xml:space="preserve"><value>Можна додати не більше 5 фото.</value></data>
+  <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Кожне фото має бути не більше 10 MB.</value></data>
+  <data name="Validation.PhotoType" xml:space="preserve"><value>Підтримуються лише зображення PNG, JPG, GIF або WebP.</value></data>
 </root>

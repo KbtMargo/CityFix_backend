@@ -1,0 +1,151 @@
+@* ReportDetailModal, rendered on the list page when ?appealId= is set. Closing goes back to the list
+   with the same filters; staff get the "Update appeal" panel wired to IAppealService.UpdateStatusAsync. *@
+@model AppealListViewModel
+@{
+    var a = Model.Selected!;
+    var closeRoute = Model.Filter.ToRouteValues(includePage: true).ToDictionary(kv => kv.Key, kv => (object?)kv.Value);
+    var closeUrl = Url.Action(Model.Action, Model.Controller, new RouteValueDictionary(closeRoute));
+    var currentUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
+
+    // A failed status update comes back here with its error and the typed comment.
+    var updateError = TempData[CityFix_backend.Controllers.AppController.ErrorKey] as string;
+    var keptComment = TempData["Comment"] as string;
+    var keptStatus = Enum.TryParse<AppealStatus>(TempData["Status"] as string, out var s) ? s : a.Status;
+    if (updateError != null) { ViewData["FlashHandled"] = true; }
+}
+<div class="cf-overlay" data-close-href="@closeUrl">
+    <div class="cf-modal" role="dialog" aria-modal="true" aria-labelledby="appeal-title">
+        <div class="cf-modal__head">
+            <div class="cf-modal__titlebar">
+                <h2 class="cf-modal__title" id="appeal-title">@a.Title</h2>
+                <div class="cf-modal__actions">
+                    @if (Model.CanEditSelected)
+                    {
+                        <a class="cf-btn cf-btn--outline cf-btn--sm" asp-controller="Appeals" asp-action="Edit" asp-route-id="@a.Id"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span>@L["Common.Edit"]</a>
+                    }
+                    <a class="cf-modal__close" href="@closeUrl" aria-label="@L["Common.Close"]"><span class="cf-icon cf-icon--x-lucide cf-icon--6" aria-hidden="true"></span></a>
+                </div>
+            </div>
+            <div class="cf-chips">
+                <partial name="_StatusPill" model="a.Status" />
+                <span class="cf-pill cf-pill--neutral">@a.Category?.Name</span>
+                <partial name="_PriorityPill" model="a.Priority" />
+            </div>
+        </div>
+
+        <div class="cf-modal__body">
+            @if (a.Files.Count > 0)
+            {
+                var first = a.Files[0];
+                <div class="cf-modal__section" data-cf-gallery>
+                    <h3 class="cf-modal__h">@L["Modal.Photos"]</h3>
+                    <div class="cf-carousel">
+                        @if (a.Files.Count > 1)
+                        {
+                            <button type="button" class="cf-carousel__btn cf-carousel__btn--prev" data-gallery-step="-1" aria-label="@L["Modal.PrevPhoto"]"><span class="cf-icon cf-icon--chevron-left cf-icon--6" aria-hidden="true"></span></button>
+                        }
+                        <img src="~/@first.FilePath" alt="@L["Modal.PhotoAlt"]" data-gallery-main />
+                        @if (a.Files.Count > 1)
+                        {
+                            <button type="button" class="cf-carousel__btn cf-carousel__btn--next" data-gallery-step="1" aria-label="@L["Modal.NextPhoto"]"><span class="cf-icon cf-icon--chevron-right cf-icon--6" aria-hidden="true"></span></button>
+                        }
+                    </div>
+                    @if (a.Files.Count > 1)
+                    {
+                        <div class="cf-thumbs">
+                            @for (var i = 0; i < a.Files.Count; i++)
+                            {
+                                <button type="button" class="cf-thumb @(i == 0 ? "is-active" : "")" data-gallery-src="@Url.Content("~/" + a.Files[i].FilePath)" aria-label="@L["Modal.PhotoN", i + 1]"><img src="~/@a.Files[i].FilePath" alt="" /></button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="cf-modal__section">
+                <h3 class="cf-modal__h">@L["Field.Description"]</h3>
+                <p class="cf-modal__text">@(a.Description ?? L["Modal.NoDescription"].Value)</p>
+            </div>
+
+            <div class="cf-modal__facts">
+                <div class="cf-fact">
+                    <div class="cf-fact__label"><span class="cf-icon cf-icon--map-pin cf-icon--4" aria-hidden="true"></span> @L["Modal.Place"]</div>
+                    <p class="cf-fact__value">@(a.Address ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</p>
+                </div>
+                <div class="cf-fact">
+                    <div class="cf-fact__label"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span> @L["Modal.Reported"]</div>
+                    <p class="cf-fact__value">@a.CreatedAt.ToDateTime()</p>
+                </div>
+                <div class="cf-fact">
+                    <div class="cf-fact__label"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span> @L["Field.Recipient"]</div>
+                    <p class="cf-fact__value">@(a.Recipient?.Name ?? L["Appeal.NoRecipient"].Value)</p>
+                </div>
+                @if (Model.IsStaff)
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--shield cf-icon--4" aria-hidden="true"></span> @L["Field.Author"]</div>
+                        <p class="cf-fact__value">@a.Author?.FirstName @a.Author?.LastName</p>
+                    </div>
+                }
+            </div>
+
+            <div class="cf-modal__section">
+                <h3 class="cf-modal__h">@L["Timeline.Title"]</h3>
+                <div class="cf-timeline">
+                    <div class="cf-timeline__item">
+                        <div class="cf-timeline__dot"><span class="cf-icon cf-icon--file-text cf-icon--3" aria-hidden="true"></span></div>
+                        <div class="cf-timeline__content"><p class="cf-timeline__title">@L["Timeline.Submitted"]</p><p class="cf-timeline__time">@a.CreatedAt.ToDateTime()</p></div>
+                    </div>
+                    @foreach (var u in a.Updates)
+                    {
+                        <div class="cf-timeline__item">
+                            <div class="cf-timeline__dot cf-timeline__dot--@u.NewStatus.PillModifier()"></div>
+                            <div class="cf-timeline__content">
+                                <p class="cf-timeline__title">@(u.OldStatus == u.NewStatus
+                                    ? L["Timeline.CommentAdded"].Value
+                                    : L["Timeline.StatusChanged", u.OldStatus.GetDisplayName(), u.NewStatus.GetDisplayName()].Value)</p>
+                                <p class="cf-timeline__time">@u.ChangedAt.ToDateTime()@(Model.IsStaff && u.ChangedBy != null ? $" · {u.ChangedBy.FirstName} {u.ChangedBy.LastName}".TrimEnd() : "")</p>
+                                @if (!string.IsNullOrWhiteSpace(u.Comment))
+                                {
+                                    <p class="cf-timeline__comment">@u.Comment</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.IsStaff)
+        {
+            <div class="cf-modal__foot">
+                <form class="cf-update-panel" asp-controller="Appeals" asp-action="UpdateStatus" method="post">
+                    <h3 class="cf-update-panel__title">@L["Update.Title"]</h3>
+                    @if (updateError != null)
+                    {
+                        <div class="cf-alert" role="alert">@updateError</div>
+                    }
+                    <input type="hidden" name="appealId" value="@a.Id" />
+                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                    <div>
+                        <label class="cf-label cf-label--muted" for="update-status">@L["Field.Status"]</label>
+                        <div class="cf-select app-control-gap">
+                            <select id="update-status" name="status">
+                                @foreach (var item in Html.GetEnumSelectList<AppealStatus>())
+                                {
+                                    <option value="@(Enum.Parse<AppealStatus>(item.Value))" selected="@(item.Value == ((int)keptStatus).ToString())">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="cf-label cf-label--muted" for="update-comment">@L["Update.Comment"]</label>
+                        <textarea id="update-comment" name="comment" class="cf-textarea app-control-gap" rows="4" maxlength="1000" placeholder="@L["Update.CommentPlaceholder"]">@keptComment</textarea>
+                        <p class="cf-help">@L["Update.CommentHint"]</p>
+                    </div>
+                    <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>

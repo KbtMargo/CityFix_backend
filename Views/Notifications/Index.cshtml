@@ -1,0 +1,73 @@
+@* Notifications page: underline tabs (Unread / All), .cf-note rows, "Mark all as read", empty state.
+   Rows are submit buttons: clicking one marks it read (POST) and opens its appeal. *@
+@model NotificationsViewModel
+@{
+    ViewData["Title"] = L["Notifications.Title"].Value;
+
+    string TitleFor(Notification n) => n.Type switch
+    {
+        NotificationType.StatusChanged when n.NewStatus == null => L["Notifications.CommentTitle"].Value,
+        NotificationType.StatusChanged => L["Notifications.StatusTitle"].Value,
+        NotificationType.NewAppeal => L["Notifications.NewAppealTitle"].Value,
+        _ => L["Notifications.AssignedTitle"].Value
+    };
+
+    string TextFor(Notification n)
+    {
+        var title = n.Appeal?.Title ?? "";
+        var text = n.NewStatus is AppealStatus status
+            ? L["Notifications.StatusText", title, status.GetDisplayName()].Value
+            : L["Notifications.GenericText", title].Value;
+        return string.IsNullOrWhiteSpace(n.Message) ? text : $"{text} {L["Notifications.Comment"]}: {n.Message}";
+    }
+}
+<div class="cf-notes-page">
+    <div class="cf-notes-head">
+        <div>
+            <h1 class="cf-notes-head__title">@L["Notifications.Title"]</h1>
+            <p class="cf-notes-head__sub">@L["Notifications.Sub"]</p>
+        </div>
+        @if (Model.UnreadCount > 0)
+        {
+            <form asp-action="MarkAllRead" method="post"><button type="submit" class="cf-btn-plain">@L["Notifications.MarkAll"]</button></form>
+        }
+    </div>
+
+    <div class="cf-utabs">
+        <nav class="cf-utabs__nav" role="tablist" aria-label="@L["Notifications.Title"]">
+            <a class="cf-utab" role="tab" aria-selected="@(Model.UnreadTab ? "true" : "false")" asp-action="Index" asp-route-tab="unread">@L["Notifications.Unread"]@if (Model.UnreadCount > 0)
+                {<span class="cf-utab__count">@Model.UnreadCount</span>}</a>
+            <a class="cf-utab" role="tab" aria-selected="@(Model.UnreadTab ? "false" : "true")" asp-action="Index" asp-route-tab="all">@L["Notifications.All"]</a>
+        </nav>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="cf-empty cf-empty--page">
+            <span class="cf-icon cf-icon--bell-lucide cf-icon--12 cf-empty__icon" aria-hidden="true"></span>
+            <h3 class="cf-empty__title">@L["Notifications.EmptyTitle"]</h3>
+            <p class="cf-empty__text">@L["Notifications.EmptyText"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="cf-notes">
+            @foreach (var n in Model.Items)
+            {
+                <form asp-action="MarkRead" asp-route-id="@n.Id" method="post">
+                    <button type="submit" class="cf-note app-note-button @(n.IsRead ? "" : "is-unread")">
+                        <span class="cf-icon cf-icon--bell-lucide cf-icon--5 cf-note__icon" aria-hidden="true"></span>
+                        <span class="cf-note__main">
+                            <span class="cf-note__top">
+                                <span class="cf-note__title">@if (!n.IsRead)
+                                    {<span class="cf-sr-only">@L["Notifications.UnreadPrefix"]: </span>}@TitleFor(n)</span>
+                                <span class="cf-note__time">@n.CreatedAt.TimeAgo()</span>
+                            </span>
+                            <span class="cf-note__text">@TextFor(n)</span>
+                        </span>
+                    </button>
+                </form>
+            }
+        </div>
+    }
+</div>

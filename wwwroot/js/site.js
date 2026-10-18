@@ -1,28 +1,35 @@
-// Appeals index: let the user switch between cards, list and table; the choice is remembered.
+// Small progressive enhancements. Every page works without them.
+
+// Overlays (detail modal, delete dialog): clicking the backdrop or pressing Escape closes them,
+// by going to the same URL the close button links to.
 (function () {
-    var root = document.getElementById('appeals');
-    if (!root) return;
+    var overlay = document.querySelector('[data-close-href]');
+    if (!overlay) return;
+    var href = overlay.getAttribute('data-close-href');
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) location.href = href; });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') location.href = href; });
+})();
 
-    var storageKey = 'cityfix.appeals.view';
-    var modes = ['cards', 'list', 'table'];
-    var buttons = document.querySelectorAll('[data-view-mode]');
+// The close (×) button inside the filters popover closes its <details>.
+document.querySelectorAll('[data-close-details]').forEach(function (button) {
+    button.addEventListener('click', function () { button.closest('details').open = false; });
+});
 
-    function apply(mode) {
-        if (modes.indexOf(mode) === -1) mode = 'cards';
-        root.setAttribute('data-view', mode);
-        buttons.forEach(function (b) {
-            var active = b.getAttribute('data-view-mode') === mode;
-            b.classList.toggle('active', active);
-            b.setAttribute('aria-pressed', active ? 'true' : 'false');
-        });
-        try { localStorage.setItem(storageKey, mode); } catch (e) { }
+// Photo carousel in the detail modal: thumbnails and arrows switch the main image.
+document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
+    var main = gallery.querySelector('[data-gallery-main]');
+    var thumbs = Array.from(gallery.querySelectorAll('[data-gallery-src]'));
+    if (!main || thumbs.length < 2) return;
+    var current = 0;
+
+    function show(index) {
+        current = (index + thumbs.length) % thumbs.length;
+        main.src = thumbs[current].getAttribute('data-gallery-src');
+        thumbs.forEach(function (t, i) { t.classList.toggle('is-active', i === current); });
     }
 
-    buttons.forEach(function (b) {
-        b.addEventListener('click', function () { apply(b.getAttribute('data-view-mode')); });
+    thumbs.forEach(function (t, i) { t.addEventListener('click', function () { show(i); }); });
+    gallery.querySelectorAll('[data-gallery-step]').forEach(function (button) {
+        button.addEventListener('click', function () { show(current + parseInt(button.getAttribute('data-gallery-step'), 10)); });
     });
-
-    var saved = null;
-    try { saved = localStorage.getItem(storageKey); } catch (e) { }
-    apply(saved);
-})();
+});

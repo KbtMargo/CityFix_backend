@@ -1,0 +1,16 @@
+<!-- @dsCard group="Overlays" height=520 subtitle="shadcn Dialog; admin edit and delete modals" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dialog — preview</title>
+<style>body{padding:24px;background:var(--scrim-dialog)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="pv-grid">
+<div class="cf-dialog" role="dialog" aria-labelledby="dt"><div class="cf-dialog__header"><h2 class="cf-dialog__title" id="dt">Експорт звіту</h2><p class="cf-dialog__desc">Оберіть період і формат файлу.</p></div>
+<div class="cf-stack-2"><label class="cf-label" for="fmt">Формат</label><div class="cf-select"><select id="fmt"><option>PDF</option><option>Excel</option></select></div></div>
+<div class="cf-dialog__footer"><button class="cf-btn cf-btn--outline">Скасувати</button><button class="cf-btn"><span class="cf-icon cf-icon--download cf-icon--4" aria-hidden="true"></span>Експортувати</button></div><button class="cf-dialog__close" aria-label="Close"><span class="cf-icon cf-icon--x-lucide cf-icon--4" aria-hidden="true"></span></button></div>
+<div class="cf-panel-modal cf-panel-modal--sm" role="dialog" aria-labelledby="del"><h2 class="cf-panel-modal__title cf-panel-modal__title--danger" id="del"><span class="cf-icon cf-icon--alert cf-icon--5" aria-hidden="true"></span>Видалити користувача?</h2>
+<div class="cf-alert cf-alert--box"><p class="cf-alert__title">Неможливо видалити користувача!</p><p>У користувача є 3 звернення. Спочатку перенесіть або видаліть їх.</p></div>
+<p class="cf-panel-modal__text">Цю дію не можна скасувати.</p><div class="cf-panel-modal__foot"><button class="cf-btn cf-btn--outline">Закрити</button><button class="cf-btn cf-btn--destructive" disabled>Видалити</button></div></div></div>
+
+</body>
+</html>

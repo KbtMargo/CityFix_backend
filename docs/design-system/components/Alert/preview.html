@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=420 subtitle="Inline error box, error text, access-denied panel" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Alert — preview</title>
+<style>body{padding:24px;background:var(--page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="pv-block"><span class="pv-label">Помилка в формі</span><div class="cf-alert" role="alert">Помилка 403: недостатньо прав для зміни статусу</div></div>
+<div class="pv-block"><span class="pv-label">Текст помилки під формою · успіх</span><p class="cf-auth__error" style="text-align:left">Паролі не співпадають.</p><p class="cf-success-text" style="margin-top:8px">Координати обрано: 49.42265, 26.98712</p></div>
+<div class="pv-block"><span class="pv-label">Доступ заборонено</span><div class="cf-denied"><h2 class="cf-denied__title">Доступ заборонено</h2><p class="cf-denied__text">Ваша роль: <strong>RESIDENT</strong></p><p class="cf-denied__text">Потрібна роль: <strong>ADMIN</strong> або <strong>OSBB_ADMIN</strong></p><a class="cf-denied__btn" href="#">Перейти до кабінету</a></div></div>
+
+</body>
+</html>

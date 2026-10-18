@@ -1,92 +1,72 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using CityFix_backend.Data;
 using CityFix_backend.Models;
+using CityFix_backend.Services;
+using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    public class AcabsController : Controller
+    // Condominium associations (ОСББ). The entity stays "Acab" in code and in the database.
+    [Authorize(Roles = "Administrator")]
+    public class AcabsController : AppController
     {
         private readonly ApplicationDbContext _context;
+        private readonly IStringLocalizer<SharedResource> _l;
 
-        public AcabsController(ApplicationDbContext context)
+        public AcabsController(ApplicationDbContext context, IStringLocalizer<SharedResource> localizer)
         {
             _context = context;
+            _l = localizer;
         }
 
         // GET: Acabs
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Acabs.ToListAsync());
-        }
-
-        // GET: Acabs/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var acab = await _context.Acabs
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (acab == null)
-            {
-                return NotFound();
-            }
-
-            return View(acab);
+            var result = await _context.Acabs.AsNoTracking().OrderBy(a => a.Name).ThenBy(a => a.Id).ToPagedResultAsync(page);
+            var ids = result.Items.Select(a => a.Id).ToList();
+            var members = await _context.Users.Where(u => u.AcabId != null && ids.Contains(u.AcabId.Value))
+                .GroupBy(u => u.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count);
+            return View(new TablePageViewModel<Acab> { Page = result, Counts = members });
         }
 
         // GET: Acabs/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Acab());
         }
 
         // POST: Acabs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Address,InvitationCode,CreatedAt,UpdatedAt")] Acab acab)
+        public async Task<IActionResult> Create([Bind("Name,Address,InvitationCode")] Acab acab)
         {
             if (ModelState.IsValid)
             {
+                acab.CreatedAt = DateTime.UtcNow;
+                acab.UpdatedAt = acab.CreatedAt;
                 _context.Add(acab);
                 await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Saved"]);
                 return RedirectToAction(nameof(Index));
             }
             return View(acab);
         }
 
         // GET: Acabs/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var acab = await _context.Acabs.FindAsync(id);
-            if (acab == null)
-            {
-                return NotFound();
-            }
-            return View(acab);
+            return acab == null ? NotFound() : View(acab);
         }
 
         // POST: Acabs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,InvitationCode,CreatedAt,UpdatedAt")] Acab acab)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,InvitationCode")] Acab acab)
         {
             if (id != acab.Id)
             {
@@ -95,43 +75,33 @@ namespace CityFix_backend.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                var existing = await _context.Acabs.FindAsync(id);
+                if (existing == null)
                 {
-                    acab.UpdatedAt = DateTime.UtcNow;
-                    _context.Update(acab);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AcabExists(acab.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+
+                // Copy the editable fields so CreatedAt keeps its stored value.
+                existing.Name = acab.Name;
+                existing.Address = acab.Address;
+                existing.InvitationCode = acab.InvitationCode;
+                existing.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Saved"]);
                 return RedirectToAction(nameof(Index));
             }
             return View(acab);
         }
 
-        // GET: Acabs/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // GET: Acabs/Delete/5  (blocked while users are linked: Users.AcabId has no ON DELETE rule)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var acab = await _context.Acabs
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var acab = await _context.Acabs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
             if (acab == null)
             {
                 return NotFound();
             }
-
+            ViewData["MemberCount"] = await _context.Users.CountAsync(u => u.AcabId == id);
             return View(acab);
         }
 
@@ -140,19 +110,19 @@ namespace CityFix_backend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (await _context.Users.AnyAsync(u => u.AcabId == id))
+            {
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+
             var acab = await _context.Acabs.FindAsync(id);
             if (acab != null)
             {
                 _context.Acabs.Remove(acab);
+                await _context.SaveChangesAsync();
+                FlashSuccess(_l["Common.Deleted"]);
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool AcabExists(int id)
-        {
-            return _context.Acabs.Any(e => e.Id == id);
         }
     }
 }

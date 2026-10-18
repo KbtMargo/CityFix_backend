@@ -1,105 +1,99 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using CityFix_backend.Data;
+using Microsoft.Extensions.Localization;
 using CityFix_backend.Models;
+using CityFix_backend.Services;
+using CityFix_backend.Services.Interfaces;
+using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    public class AppealsController : Controller
+    [Authorize]
+    public class AppealsController : AppController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAppealService _appeals;
+        private readonly IFileService _files;
+        private readonly IStringLocalizer<SharedResource> _l;
 
-        public AppealsController(ApplicationDbContext context)
+        public AppealsController(IAppealService appeals, IFileService files, IStringLocalizer<SharedResource> localizer)
         {
-            _context = context;
+            _appeals = appeals;
+            _files = files;
+            _l = localizer;
         }
 
-        // GET: Appeals
-        public async Task<IActionResult> Index()
+        // GET: Appeals  ("My appeals" for residents, "All appeals" for staff; ?appealId= opens the detail modal)
+        public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
-            var applicationDbContext = _context.Appeals.Include(a => a.Author).Include(a => a.Category).Include(a => a.Recipient);
-            return View(await applicationDbContext.ToListAsync());
-        }
+            var user = await _appeals.GetUserAsync(CurrentUserId);
+            filter.MineOnly = user.Role == UserRole.Resident;
 
-        // GET: Appeals/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
+            var model = await BuildListAsync(filter, appealId, user, "Appeals");
+            if (appealId != null && model.Selected == null)
             {
                 return NotFound();
             }
-
-            var appeal = await _context.Appeals
-                .Include(a => a.Author)
-                .Include(a => a.Category)
-                .Include(a => a.Recipient)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (appeal == null)
-            {
-                return NotFound();
-            }
-
-            return View(appeal);
+            return View(model);
         }
+
+        // GET: Appeals/Details/5 → the list with the modal open
+        public IActionResult Details(int id) => RedirectToAction(nameof(Index), new { appealId = id });
 
         // GET: Appeals/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["AuthorId"] = new SelectList(_context.Users, "Id", "Email");
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
-            ViewData["RecipientId"] = new SelectList(_context.Recipients, "Id", "Name");
-            return View();
+            await PopulateFormAsync(null);
+            return View(new Appeal());
         }
 
         // POST: Appeals/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Lat,Lng,Address,Status,Priority,AuthorId,CategoryId,RecipientId,CreatedAt,UpdatedAt")] Appeal appeal)
+        [RequestSizeLimit(60 * 1024 * 1024)]
+        public async Task<IActionResult> Create([Bind("Title,Description,Lat,Lng,Address,CategoryId,RecipientId")] Appeal appeal, List<IFormFile> photos)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(appeal);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Check the photos first, so a bad file doesn't leave an appeal without its photos.
+                    _files.ValidatePhotos(photos);
+                    await _appeals.CreateAsync(appeal, CurrentUserId);
+                    if (photos.Count > 0)
+                    {
+                        await _files.SaveAppealPhotosAsync(appeal.Id, photos);
+                    }
+                    FlashSuccess(_l["Appeal.Created"]);
+                    return RedirectToAction(nameof(Index), new { appealId = appeal.Id });
+                }
+                catch (ServiceValidationException ex)
+                {
+                    ModelState.AddModelError(ex.Field, _l[ex.MessageKey]);
+                }
             }
-            ViewData["AuthorId"] = new SelectList(_context.Users, "Id", "Email", appeal.AuthorId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", appeal.CategoryId);
-            ViewData["RecipientId"] = new SelectList(_context.Recipients, "Id", "Name", appeal.RecipientId);
+
+            await PopulateFormAsync(appeal);
             return View(appeal);
         }
 
         // GET: Appeals/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var appeal = await _context.Appeals.FindAsync(id);
+            var (appeal, error) = await LoadAsync(id);
             if (appeal == null)
             {
-                return NotFound();
+                return error!;
             }
-            ViewData["AuthorId"] = new SelectList(_context.Users, "Id", "Email", appeal.AuthorId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", appeal.CategoryId);
-            ViewData["RecipientId"] = new SelectList(_context.Recipients, "Id", "Name", appeal.RecipientId);
+            await PopulateFormAsync(appeal);
             return View(appeal);
         }
 
         // POST: Appeals/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Lat,Lng,Address,Status,Priority,AuthorId,CategoryId,RecipientId,CreatedAt,UpdatedAt")] Appeal appeal)
+        [RequestSizeLimit(60 * 1024 * 1024)]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Lat,Lng,Address,CategoryId,RecipientId,Priority")] Appeal appeal, List<IFormFile> photos)
         {
             if (id != appeal.Id)
             {
@@ -110,48 +104,70 @@ namespace CityFix_backend.Controllers
             {
                 try
                 {
-                    appeal.UpdatedAt = DateTime.UtcNow;
-                    _context.Update(appeal);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AppealExists(appeal.Id))
+                    _files.ValidatePhotos(photos, await _files.CountAppealPhotosAsync(id));
+                    if (!await _appeals.UpdateAsync(appeal, CurrentUserId))
                     {
                         return NotFound();
                     }
-                    else
+                    if (photos.Count > 0)
                     {
-                        throw;
+                        await _files.SaveAppealPhotosAsync(id, photos);
                     }
+                    FlashSuccess(_l["Appeal.Saved"]);
+                    return RedirectToAction(nameof(Index), new { appealId = id });
                 }
-                return RedirectToAction(nameof(Index));
+                catch (UnauthorizedAccessException)
+                {
+                    return Forbid();
+                }
+                catch (ServiceValidationException ex)
+                {
+                    ModelState.AddModelError(ex.Field, _l[ex.MessageKey]);
+                }
             }
-            ViewData["AuthorId"] = new SelectList(_context.Users, "Id", "Email", appeal.AuthorId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", appeal.CategoryId);
-            ViewData["RecipientId"] = new SelectList(_context.Recipients, "Id", "Name", appeal.RecipientId);
+
+            var stored = await _appeals.GetByIdAsync(id, CurrentUserId);
+            appeal.Files = stored?.Files ?? new();
+            await PopulateFormAsync(appeal);
             return View(appeal);
         }
 
-        // GET: Appeals/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // POST: Appeals/UpdateStatus  (the "Update appeal" panel in the detail modal)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int appealId, AppealStatus status, string? comment, string? returnUrl)
         {
-            if (id == null)
+            try
+            {
+                await _appeals.UpdateStatusAsync(appealId, status, comment, CurrentUserId);
+                FlashSuccess(_l["Appeal.StatusSaved"]);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var appeal = await _context.Appeals
-                .Include(a => a.Author)
-                .Include(a => a.Category)
-                .Include(a => a.Recipient)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (appeal == null)
+            catch (ServiceValidationException ex)
             {
-                return NotFound();
+                // Shown inside the modal as a cf-alert; the comment is kept so it isn't lost.
+                FlashError(_l[ex.MessageKey]);
+                TempData["Comment"] = comment;
+                TempData["Status"] = status.ToString();
             }
 
-            return View(appeal);
+            return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
+                ? LocalRedirect(returnUrl)
+                : RedirectToAction(nameof(Index), new { appealId });
+        }
+
+        // GET: Appeals/Delete/5  (confirmation dialog)
+        public async Task<IActionResult> Delete(int id)
+        {
+            var (appeal, error) = await LoadAsync(id);
+            return appeal != null ? View(appeal) : error!;
         }
 
         // POST: Appeals/Delete/5
@@ -159,19 +175,44 @@ namespace CityFix_backend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var appeal = await _context.Appeals.FindAsync(id);
-            if (appeal != null)
+            try
             {
-                _context.Appeals.Remove(appeal);
+                await _appeals.DeleteAsync(id, CurrentUserId);
+                _files.DeleteAppealFolder(id);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
 
-            await _context.SaveChangesAsync();
+            FlashSuccess(_l["Appeal.Deleted"]);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AppealExists(int id)
+        // The appeal the current user may access, or the 404 / 403 result to return instead.
+        private async Task<(Appeal? Appeal, IActionResult? Error)> LoadAsync(int id)
         {
-            return _context.Appeals.Any(e => e.Id == id);
+            try
+            {
+                var appeal = await _appeals.GetByIdAsync(id, CurrentUserId);
+                return appeal != null ? (appeal, null) : (null, NotFound());
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return (null, Forbid());
+            }
+        }
+
+        private Task<AppealListViewModel> BuildListAsync(AppealFilter filter, int? appealId, User user, string controller) =>
+            AppealListFactory.BuildAsync(_appeals, filter, appealId, user, controller);
+
+        private async Task PopulateFormAsync(Appeal? appeal)
+        {
+            var lookups = await _appeals.GetLookupsAsync();
+            var user = await _appeals.GetUserAsync(CurrentUserId);
+            ViewData["IsStaff"] = user.Role != UserRole.Resident;
+            ViewData["CategoryId"] = new SelectList(lookups.Categories, "Id", "Name", appeal?.CategoryId);
+            ViewData["RecipientId"] = new SelectList(lookups.Recipients, "Id", "Name", appeal?.RecipientId);
         }
     }
 }

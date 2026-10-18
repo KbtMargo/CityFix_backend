@@ -1,0 +1,15 @@
+<!-- @dsCard group="Forms" height=560 subtitle="Input, TextArea, Label, Select, Checkbox, Switch" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FormField — preview</title>
+<style>body{padding:24px;background:var(--page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-form-grid"><label class="cf-field"><div class="cf-field__label">Заголовок</div><input class="cf-input" placeholder="Коротко опишіть проблему" value=""><div class="cf-field__hint">Від 5 до 100 символів</div></label><label class="cf-field"><div class="cf-field__label">Адреса</div><input class="cf-input cf-input--error" placeholder="" value="Зарічанська"><div class="cf-field__error">Вкажіть номер будинку</div></label>
+<label class="cf-field"><div class="cf-field__label">Опис</div><textarea class="cf-textarea" rows="4" placeholder="Додайте більше деталей про проблему..."></textarea></label>
+<div class="cf-stack-2"><label class="cf-label" for="c1">Категорія</label><div class="cf-select"><select id="c1"><option>Виберіть категорію...</option><option>Дороги</option><option>Освітлення</option></select></div>
+<div class="cf-listbox" role="listbox"><div class="cf-option is-active" role="option" aria-selected="true"><span class="cf-option__check"><span class="cf-icon cf-icon--check-lucide cf-icon--4" aria-hidden="true"></span></span>Дороги</div><div class="cf-option" role="option">Освітлення</div></div></div></div>
+<div class="pv-row" style="margin-top:24px"><label class="cf-check"><input type="checkbox" checked><span>Запам'ятати мене</span></label>
+<button class="cf-switch" role="switch" aria-checked="true" aria-label="Email-сповіщення"></button><button class="cf-switch" role="switch" aria-checked="false" aria-label="SMS-сповіщення"></button></div>
+
+</body>
+</html>

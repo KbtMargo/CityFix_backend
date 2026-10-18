@@ -1,24 +1,14 @@
-@model CityFix_backend.Models.Category
-
+@model Category
 @{
-    ViewData["Title"] = $"{L["Page_Delete"]} · {L["Category"]}";
+    ViewData["Title"] = L["Categories.DeleteTitle"].Value;
+    var appeals = ViewData["AppealCount"] as int? ?? 0;
+    var dialog = new DeleteDialogModel(
+        Model.Id,
+        L["Categories.DeleteTitle"],
+        L["Common.CannotUndo"],
+        L["Common.Delete"],
+        "Index",
+        BlockedTitle: appeals > 0 ? L["Categories.CannotDeleteTitle"].Value : null,
+        BlockedText: appeals > 0 ? L["Common.HasAppealsText", appeals].Value : null);
 }
-
-<div class="page-header">
-    <div>
-        <div class="eyebrow">@L["Category"] #@Model.Id</div>
-        <h1>@L["Page_Delete"]</h1>
-    </div>
-</div>
-
-<div class="alert alert-danger d-flex align-items-center gap-2 form-card">
-    <i class="bi bi-exclamation-triangle-fill"></i>@L["Delete_Confirm"]
-</div>
-
-<partial name="_Summary" />
-
-<form asp-action="Delete" class="d-flex gap-2 mt-3">
-    <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>@L["Delete"]</button>
-    <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
-</form>
+<partial name="_DeleteDialog" model="dialog" />

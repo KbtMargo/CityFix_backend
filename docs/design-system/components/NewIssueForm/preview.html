@@ -1,0 +1,45 @@
+<!-- @dsCard group="Pages" height=1420 subtitle="dashboard/new-issue — the full form" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NewIssueForm — preview</title>
+<style>body{padding:0 24px 24px;background:var(--page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-form-page"><h1 class="cf-form-page__title">Створити нове звернення</h1><form class="cf-form-card" onsubmit="return false">
+<div><label class="cf-label" for="t">Заголовок</label><label class="cf-field"><input id="t" class="cf-input" placeholder="Коротко опишіть проблему"></label></div>
+<div><label class="cf-label" for="d">Детальний опис (опційно)</label><label class="cf-field"><textarea id="d" class="cf-textarea" rows="4" placeholder="Додайте більше деталей про проблему..."></textarea></label></div>
+<div class="cf-stack-2"><label class="cf-label" for="addr">Місцезнаходження</label><p class="cf-help">Введіть адресу, використайте геолокацію, або оберіть точку на карті.</p>
+<div class="cf-toolbar" style="gap:8px"><div class="cf-toolbar__grow"><input id="addr" class="cf-input" placeholder="Введіть адресу..."></div><button type="button" class="cf-btn cf-btn--outline cf-btn--icon" aria-label="Визначити поточне місцезнаходження"><span class="cf-icon cf-icon--locate-fixed cf-icon--4" aria-hidden="true"></span></button></div>
+<p class="cf-success-text">Координати обрано: 49.42265, 26.98712</p><div class="cf-map" role="img" aria-label="Карта: Хмельницький, обрана точка">
+<svg viewBox="0 0 640 300" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
+<rect width="640" height="300" fill="#f2efe9"/><rect x="420" y="20" width="170" height="120" fill="#c8facc"/><path d="M0 250 C140 230 220 285 360 262 S560 236 640 258 V300 H0z" fill="#aad3df"/>
+<g fill="#e0dfdf"><rect x="30" y="30" width="120" height="70"/><rect x="180" y="30" width="200" height="70"/><rect x="30" y="130" width="120" height="80"/><rect x="180" y="130" width="90" height="80"/><rect x="300" y="130" width="80" height="80"/><rect x="420" y="170" width="170" height="50"/></g>
+<g stroke="#fff" stroke-width="10"><path d="M0 115H640"/><path d="M165 0V240"/><path d="M400 0V240"/><path d="M0 225H640"/></g><g stroke="#f7fabf" stroke-width="14"><path d="M285 0V240"/></g>
+<g stroke="#e9cf8f" stroke-width="1"><path d="M285 0V240" stroke-width="16" stroke="#e9cf8f" opacity=".5"/></g></svg>
+<svg viewBox="0 0 25 41" width="25" height="41" style="position:absolute;left:50%;top:50%;margin:-41px 0 0 -12.5px;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.35))"><path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="#2981ca" stroke="#3274a3"/><circle cx="12.5" cy="12.5" r="4.5" fill="#fff"/></svg>
+<div style="position:absolute;right:0;bottom:0;padding:0 5px;background:rgba(255,255,255,.8);font:12px/1.4 Helvetica,Arial,sans-serif;color:#333">&copy; <a style="color:#0078a8">OpenStreetMap</a> contributors</div>
+<div style="position:absolute;left:10px;top:10px;border:2px solid rgba(0,0,0,.2);border-radius:4px;background:#fff;font:bold 18px/26px 'Lucida Console',Monaco,monospace;color:#000;text-align:center"><div style="width:30px;height:30px;line-height:30px;border-bottom:1px solid #ccc">+</div><div style="width:30px;height:30px;line-height:30px">&minus;</div></div></div></div><div><label class="cf-label" for="cat">Категорія</label><div class="cf-select" style="margin-top:0"><select id="cat"><option>Виберіть категорію...</option></select></div></div><div><label class="cf-label" for="rec">Отримувач</label><div class="cf-select" style="margin-top:0"><select id="rec"><option>Виберіть відповідальну службу...</option></select></div></div>
+<div><label class="cf-label" for="ph2">Фото-докази (до 5 файлів)</label><label class="cf-dropzone" for="ph2" data-cf-dropzone="#pl2"><div class="cf-dropzone__inner"><span class="cf-icon cf-icon--upload cf-icon--12 cf-dropzone__icon" aria-hidden="true"></span>
+<p class="cf-dropzone__text"><span class="cf-dropzone__link">Натисніть, щоб завантажити</span> або перетягніть файли</p><p class="cf-dropzone__hint">PNG, JPG, GIF до 10MB</p></div></label>
+<input id="ph2" name="Photos" type="file" class="cf-sr-only" multiple accept="image/*"></div><div class="cf-previews" id="pl2" hidden></div>
+<button type="submit" class="cf-btn cf-btn--block">Створити звернення</button></form></div>
+<script>
+document.querySelectorAll('[data-cf-dropzone]').forEach(function (zone) {
+  var input = document.getElementById(zone.getAttribute('for')), list = document.querySelector(zone.dataset.cfDropzone);
+  ['dragenter','dragover'].forEach(function (e) { zone.addEventListener(e, function (ev) { ev.preventDefault(); zone.classList.add('is-dragover'); }); });
+  ['dragleave','drop'].forEach(function (e) { zone.addEventListener(e, function () { zone.classList.remove('is-dragover'); }); });
+  zone.addEventListener('drop', function (ev) { ev.preventDefault(); var dt = new DataTransfer(); Array.from(input.files).concat(Array.from(ev.dataTransfer.files)).slice(0, 5).forEach(function (f) { dt.items.add(f); }); input.files = dt.files; render(); });
+  function render() {
+    var files = Array.from(input.files); list.innerHTML = ''; list.hidden = !files.length;
+    files.forEach(function (f, i) {
+      var d = document.createElement('div'); d.className = 'cf-preview';
+      d.innerHTML = '<img alt=""><button type="button" class="cf-preview__remove" aria-label="Видалити файл ' + f.name.replace(/"/g, '') + '"><span class="cf-icon cf-icon--x-lucide cf-icon--3"></span></button>';
+      d.querySelector('img').src = URL.createObjectURL(f);
+      d.querySelector('button').onclick = function () { var dt = new DataTransfer(); files.forEach(function (g, j) { if (j !== i) dt.items.add(g); }); input.files = dt.files; render(); };
+      list.appendChild(d);
+    });
+  }
+  input.addEventListener('change', render);
+});
+</script>
+</body>
+</html>

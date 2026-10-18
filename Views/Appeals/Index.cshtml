@@ -1,106 +1,79 @@
-@model IEnumerable<CityFix_backend.Models.Appeal>
-@using System.Globalization
-
+@model AppealListViewModel
 @{
-    ViewData["Title"] = L["Appeals"].Value;
-
-    string Location(Appeal a) => !string.IsNullOrWhiteSpace(a.Address)
-        ? a.Address
-        : $"{a.Lat.ToString(CultureInfo.InvariantCulture)}, {a.Lng.ToString(CultureInfo.InvariantCulture)}";
+    ViewData["Title"] = Model.IsStaff ? L["Appeals.AllTitle"].Value : L["Appeals.MyTitle"].Value;
 }
 
-<div class="page-header">
-    <h1>@L["Appeals"]</h1>
-    <div class="d-flex flex-wrap gap-2">
-        <div class="btn-group view-switch" role="group" aria-label="@L["View mode"]">
-            <button type="button" class="btn btn-outline-secondary active" data-view-mode="cards" title="@L["View_Cards"]">
-                <i class="bi bi-grid-3x2-gap"></i><span class="d-none d-md-inline ms-1">@L["View_Cards"]</span>
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-view-mode="list" title="@L["View_List"]">
-                <i class="bi bi-view-list"></i><span class="d-none d-md-inline ms-1">@L["View_List"]</span>
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-view-mode="table" title="@L["View_Table"]">
-                <i class="bi bi-table"></i><span class="d-none d-md-inline ms-1">@L["View_Table"]</span>
-            </button>
-        </div>
-        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>@L["Add"]</a>
-    </div>
-</div>
-
-@if (!Model.Any())
+@if (!Model.IsStaff)
 {
-    <div class="card"><div class="card-body text-center text-secondary py-5">@L["No_Records"]</div></div>
+    <div>
+        <h1 class="cf-page-title">@L["Appeals.MyTitle"]</h1>
+        <p class="cf-page-sub">@L["Appeals.MySub"]</p>
+    </div>
+    <partial name="_AppealFilters" model="Model" />
+    <partial name="_StatusTabs" model="Model" />
+    <partial name="_IssueList" model="Model" />
 }
 else
 {
-    <div id="appeals" data-view="cards">
-        <div class="row g-3 appeal-grid">
-            @foreach (var item in Model)
-            {
-                <div class="col-12 col-md-6 col-xl-4 appeal-col">
-                    <article class="card appeal-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex flex-wrap gap-1 mb-2">
-                                <partial name="_StatusBadge" model="item.Status" />
-                                <partial name="_PriorityBadge" model="item.Priority" />
-                            </div>
-                            <h2 class="card-title">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="text-reset text-decoration-none">@item.Title</a>
-                            </h2>
-                            @if (!string.IsNullOrWhiteSpace(item.Description))
-                            {
-                                <p class="card-text text-secondary appeal-desc">@item.Description</p>
-                            }
-                            <ul class="list-unstyled small text-secondary mb-0">
-                                <li><i class="bi bi-geo-alt me-1"></i>@Location(item)</li>
-                                <li><i class="bi bi-tag me-1"></i>@item.Category?.Name</li>
-                                <li><i class="bi bi-bank me-1"></i>@item.Recipient?.Name</li>
-                                <li><i class="bi bi-person me-1"></i>@item.Author?.Email</li>
-                            </ul>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center">
-                            <small class="text-secondary"><i class="bi bi-clock me-1"></i>@item.CreatedAt.ToUiString()</small>
-                            <partial name="_RowActions" model="item.Id" />
-                        </div>
-                    </article>
-                </div>
-            }
-        </div>
-
-        <div class="card appeal-table">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.Title)</th>
-                            <th>@Html.DisplayNameFor(model => model.Status)</th>
-                            <th>@Html.DisplayNameFor(model => model.Priority)</th>
-                            <th>@Html.DisplayNameFor(model => model.Category)</th>
-                            <th>@Html.DisplayNameFor(model => model.Recipient)</th>
-                            <th>@Html.DisplayNameFor(model => model.Author)</th>
-                            <th>@L["Location"]</th>
-                            <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
-                            <th class="text-end">@L["Actions"]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@item.Title</td>
-                                <td><partial name="_StatusBadge" model="item.Status" /></td>
-                                <td><partial name="_PriorityBadge" model="item.Priority" /></td>
-                                <td>@item.Category?.Name</td>
-                                <td>@item.Recipient?.Name</td>
-                                <td>@item.Author?.Email</td>
-                                <td>@Location(item)</td>
-                                <td class="text-nowrap">@item.CreatedAt.ToUiString()</td>
-                                <td class="text-end"><partial name="_RowActions" model="item.Id" /></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    <div>
+        <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+        <div class="cf-page-head">
+            <h1 class="cf-page-title">@L["Appeals.AllTitle"]</h1>
+            <div class="cf-page-head__meta">@L["Appeals.Total"]: <b>@Model.Page.TotalCount</b></div>
         </div>
     </div>
+    <partial name="_AppealFilters" model="Model" />
+    <partial name="_StatusTabs" model="Model" />
+
+    <div class="cf-table-card">
+        <div class="cf-table-scroll">
+            <table class="cf-table">
+                <thead>
+                    <tr>
+                        <th scope="col">@L["Table.Appeal"]</th>
+                        <th scope="col">@L["Field.Status"]</th>
+                        <th scope="col">@L["Field.Priority"]</th>
+                        <th scope="col">@L["Field.Category"]</th>
+                        <th scope="col">@L["Field.Author"]</th>
+                        <th scope="col">@L["Table.Date"]</th>
+                        <th scope="col" class="cf-center">@L["Table.Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Page.Items.Count == 0)
+                    {
+                        <tr><td colspan="7" class="cf-table__empty">@L["Empty.Filtered"]</td></tr>
+                    }
+                    @foreach (var a in Model.Page.Items)
+                    {
+                        var route = Model.Filter.ToRouteValues(includePage: true);
+                        route["appealId"] = a.Id.ToString();
+                        <tr>
+                            <td class="cf-strong">
+                                <div class="cf-table__name"><a asp-action="Index" asp-all-route-data="route">@a.Title</a></div>
+                                <div class="cf-table__sub">@(a.Address ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</div>
+                            </td>
+                            <td><partial name="_StatusPill" model="a.Status" /></td>
+                            <td><partial name="_PriorityPill" model="a.Priority" /></td>
+                            <td>@a.Category?.Name</td>
+                            <td>@a.Author?.FirstName @a.Author?.LastName</td>
+                            <td>@a.CreatedAt.ToDate()</td>
+                            <td>
+                                <div class="cf-row-actions">
+                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@a.Id" aria-label="@L["Common.EditItem", a.Title]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                    <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@a.Id" aria-label="@L["Common.DeleteItem", a.Title]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_PaginationBar" model="PaginationModel.For(Model.Page, Model.Filter.ToRouteValues())" />
+    </div>
+}
+
+@if (Model.Selected != null)
+{
+    <partial name="_AppealModal" model="Model" />
 }

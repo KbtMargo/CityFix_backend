@@ -6,37 +6,37 @@ namespace CityFix_backend.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Validation_Required")]
-        [EmailAddress(ErrorMessage = "Validation_Email")]
-        [Display(Name = "Email")]
+        [Required(ErrorMessage = "Validation.Required")]
+        [EmailAddress(ErrorMessage = "Validation.Email")]
+        [Display(Name = "Field.Email")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Validation_Required")]
-        [Display(Name = "Password hash")]
+        [Required(ErrorMessage = "Validation.Required")]
+        [Display(Name = "Field.PasswordHash")]
         public string PasswordHash { get; set; }
 
-        [Required(ErrorMessage = "Validation_Required")]
-        [Display(Name = "First name")]
+        [Required(ErrorMessage = "Validation.Required")]
+        [Display(Name = "Field.FirstName")]
         public string FirstName { get; set; }
 
-        [Display(Name = "Last name")]
+        [Display(Name = "Field.LastName")]
         public string? LastName { get; set; }
 
-        [Display(Name = "Phone")]
+        [Display(Name = "Field.Phone")]
         public string? Phone { get; set; }
 
-        [Required(ErrorMessage = "Validation_Required")]
-        [Display(Name = "Role")]
+        [Required(ErrorMessage = "Validation.Required")]
+        [Display(Name = "Field.Role")]
         public UserRole Role { get; set; } = UserRole.Resident;
 
-        [Display(Name = "Acab")]
+        [Display(Name = "Field.Acab")]
         public int? AcabId { get; set; }
-        [Display(Name = "Acab")]
+        [Display(Name = "Field.Acab")]
         public Acab? Acab { get; set; }
 
-        [Display(Name = "Created")]
+        [Display(Name = "Field.CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        [Display(Name = "Updated")]
+        [Display(Name = "Field.UpdatedAt")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

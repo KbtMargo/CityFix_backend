@@ -1,0 +1,16 @@
+<!-- @dsCard group="Forms" height=520 subtitle="Search + Filters button; the filters popover" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ReportFilters — preview</title>
+<style>body{padding:24px;background:var(--page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-toolbar"><div class="cf-toolbar__grow"><input class="cf-input" placeholder="Пошук звернень…" aria-label="Пошук звернень"></div><button class="cf-btn cf-btn--outline cf-btn--icon-gap" type="button"><span class="cf-icon cf-icon--sliders-horizontal cf-icon--4" aria-hidden="true"></span>Фільтри<span class="cf-btn__count">2</span></button></div>
+<div style="display:flex;justify-content:flex-end;margin-top:8px"><div class="cf-popover" role="dialog" aria-label="Фільтри">
+<div class="cf-popover__head"><h3 class="cf-popover__title">Фільтри</h3><button class="cf-btn cf-btn--ghost cf-btn--icon cf-btn--round" aria-label="Закрити"><span class="cf-icon cf-icon--x-lucide cf-icon--4" aria-hidden="true"></span></button></div>
+<div class="cf-popover__body"><div class="cf-popover__field"><label class="cf-label">Дата</label><button class="cf-btn cf-btn--outline cf-btn--block" style="justify-content:flex-start;font-weight:400"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span><span>Оберіть діапазон дат</span></button></div>
+<div class="cf-popover__field"><label class="cf-label" for="f1">Категорія</label><div class="cf-select"><select id="f1"><option>Всі категорії</option></select></div></div>
+<div class="cf-popover__field"><label class="cf-label" for="f2">Установа</label><div class="cf-select"><select id="f2"><option>Всі установи</option></select></div></div></div>
+<div class="cf-popover__foot"><button class="cf-btn cf-btn--ghost">Скинути</button><button class="cf-btn">Застосувати</button></div></div></div>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!-- @dsCard group="Overlays" height=1500 subtitle="Report details — photos, facts, status timeline, admin update form" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ReportDetailModal — preview</title>
+<style>body{padding:0;background:var(--scrim)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-overlay cf-overlay--inline"><div class="cf-modal" role="dialog" aria-labelledby="mt" style="max-height:none">
+<div class="cf-modal__head"><div class="cf-modal__titlebar"><h2 class="cf-modal__title" id="mt">Яма на дорозі біля зупинки</h2><div class="cf-modal__actions"><button class="cf-btn cf-btn--outline cf-btn--sm"><span class="cf-icon cf-icon--external-link cf-icon--4" aria-hidden="true"></span>До проблеми</button><button class="cf-modal__close" aria-label="Закрити"><span class="cf-icon cf-icon--x-lucide cf-icon--6" aria-hidden="true"></span></button></div></div>
+<div class="cf-chips"><span class="cf-pill cf-pill--inprogress">В роботі</span><span class="cf-pill cf-pill--neutral">Дороги</span><span class="cf-pill cf-pill--urgent">високий пріоритет</span></div></div>
+<div class="cf-modal__body"><div class="cf-modal__section"><h3 class="cf-modal__h">Фотодоказ</h3><div class="cf-carousel"><button class="cf-carousel__btn cf-carousel__btn--prev" aria-label="Попереднє фото"><span class="cf-icon cf-icon--chevron-left cf-icon--6" aria-hidden="true"></span></button><img src="/_blob/24f46b32c392ede7ef833002ec480367" alt="Фото до звернення"><button class="cf-carousel__btn cf-carousel__btn--next" aria-label="Наступне фото"><span class="cf-icon cf-icon--chevron-right cf-icon--6" aria-hidden="true"></span></button></div>
+<div class="cf-thumbs"><button class="cf-thumb is-active" aria-label="Фото 1"><img src="/_blob/24f46b32c392ede7ef833002ec480367" alt=""></button><button class="cf-thumb" aria-label="Фото 2"><img src="/_blob/e6d099eee863d414879abe0b10bf8031" alt=""></button><button class="cf-thumb" aria-label="Фото 3"><img src="/_blob/1133397e7fb2faf6727b80e4dcfdd195" alt=""></button></div></div>
+<div class="cf-modal__section"><h3 class="cf-modal__h">Опис</h3><p class="cf-modal__text">Після дощу в ямі збирається вода, авто об'їжджають її по зустрічній смузі.</p></div>
+<div class="cf-modal__facts"><div class="cf-fact"><div class="cf-fact__label"><span class="cf-icon cf-icon--map-pin cf-icon--4" aria-hidden="true"></span> Місце</div><p class="cf-fact__value">вул. Кам'янецька, 74, Хмельницький</p></div><div class="cf-fact"><div class="cf-fact__label"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span> Повідомлено</div><p class="cf-fact__value">03.10.2026, 18:40:12</p></div></div>
+<div class="cf-modal__section"><h3 class="cf-modal__h">Часова шкала статусу</h3><div class="cf-timeline"><div class="cf-timeline__item"><div class="cf-timeline__dot"><span class="cf-icon cf-icon--file-text cf-icon--3" aria-hidden="true"></span></div><div class="cf-timeline__content"><p class="cf-timeline__title">Звернення подано</p><p class="cf-timeline__time">03.10.2026, 18:40:12</p></div></div>
+<div class="cf-timeline__item"><div class="cf-timeline__dot cf-timeline__dot--inprogress"></div><div class="cf-timeline__content"><p class="cf-timeline__title">Статус змінено на «В роботі»</p><p class="cf-timeline__time">12.10.2026, 09:12:40</p><p class="cf-timeline__comment">Бригада приїде 13 жовтня.</p></div></div>
+</div></div></div>
+<div class="cf-modal__foot"><div class="cf-update-panel"><h3 class="cf-update-panel__title">Оновити звернення</h3>
+<div><label class="cf-label cf-label--muted" for="us">Статус</label><div class="cf-select" style="margin-top:4px"><select id="us"><option>Нове</option><option selected>В роботі</option><option>Виконано</option><option>Відхилено</option></select></div></div>
+<div><label class="cf-label cf-label--muted" for="un">Коментар (опційно)</label><textarea id="un" class="cf-textarea" rows="4" style="margin-top:4px" placeholder="Додайте коментар про зміну..."></textarea></div>
+<button class="cf-btn cf-btn--block">Зберегти зміни</button></div></div></div></div>
+
+</body>
+</html>

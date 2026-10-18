@@ -1,0 +1,36 @@
+<!-- @dsCard group="Forms" height=470 subtitle="Dashed dropzone + preview grid with a remove button on hover" -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PhotoUpload — preview</title>
+<style>body{padding:24px;background:var(--page)} .pv-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .pv-label{display:block;margin:0 0 8px;font-size:12px;line-height:16px;font-weight:500;color:var(--slate-500)} .pv-block+.pv-block{margin-top:28px} .pv-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));align-items:start}</style></head>
+<body>
+<div class="cf-form-card" style="max-width:672px">
+<div><label class="cf-label" for="ph1">Фото-докази (до 5 файлів)</label><label class="cf-dropzone" for="ph1" data-cf-dropzone="#pl1"><div class="cf-dropzone__inner"><span class="cf-icon cf-icon--upload cf-icon--12 cf-dropzone__icon" aria-hidden="true"></span>
+<p class="cf-dropzone__text"><span class="cf-dropzone__link">Натисніть, щоб завантажити</span> або перетягніть файли</p><p class="cf-dropzone__hint">PNG, JPG, GIF до 10MB</p></div></label>
+<input id="ph1" name="Photos" type="file" class="cf-sr-only" multiple accept="image/*"></div>
+<div class="cf-previews" id="pl1" hidden></div>
+<div><span class="pv-label">Обрані фото</span><div class="cf-previews">
+<div class="cf-preview"><img src="/_blob/24f46b32c392ede7ef833002ec480367" alt=""><button type="button" class="cf-preview__remove" style="opacity:1" aria-label="Видалити файл IMG_2041.jpg"><span class="cf-icon cf-icon--x-lucide cf-icon--3" aria-hidden="true"></span></button></div>
+<div class="cf-preview"><img src="/_blob/e6d099eee863d414879abe0b10bf8031" alt=""><button type="button" class="cf-preview__remove" aria-label="Видалити файл IMG_2042.jpg"><span class="cf-icon cf-icon--x-lucide cf-icon--3" aria-hidden="true"></span></button></div>
+<div class="cf-preview"><img src="/_blob/1133397e7fb2faf6727b80e4dcfdd195" alt=""><button type="button" class="cf-preview__remove" aria-label="Видалити файл IMG_2047.jpg"><span class="cf-icon cf-icon--x-lucide cf-icon--3" aria-hidden="true"></span></button></div></div></div></div>
+<script>
+document.querySelectorAll('[data-cf-dropzone]').forEach(function (zone) {
+  var input = document.getElementById(zone.getAttribute('for')), list = document.querySelector(zone.dataset.cfDropzone);
+  ['dragenter','dragover'].forEach(function (e) { zone.addEventListener(e, function (ev) { ev.preventDefault(); zone.classList.add('is-dragover'); }); });
+  ['dragleave','drop'].forEach(function (e) { zone.addEventListener(e, function () { zone.classList.remove('is-dragover'); }); });
+  zone.addEventListener('drop', function (ev) { ev.preventDefault(); var dt = new DataTransfer(); Array.from(input.files).concat(Array.from(ev.dataTransfer.files)).slice(0, 5).forEach(function (f) { dt.items.add(f); }); input.files = dt.files; render(); });
+  function render() {
+    var files = Array.from(input.files); list.innerHTML = ''; list.hidden = !files.length;
+    files.forEach(function (f, i) {
+      var d = document.createElement('div'); d.className = 'cf-preview';
+      d.innerHTML = '<img alt=""><button type="button" class="cf-preview__remove" aria-label="Видалити файл ' + f.name.replace(/"/g, '') + '"><span class="cf-icon cf-icon--x-lucide cf-icon--3"></span></button>';
+      d.querySelector('img').src = URL.createObjectURL(f);
+      d.querySelector('button').onclick = function () { var dt = new DataTransfer(); files.forEach(function (g, j) { if (j !== i) dt.items.add(g); }); input.files = dt.files; render(); };
+      list.appendChild(d);
+    });
+  }
+  input.addEventListener('change', render);
+});
+</script>
+</body>
+</html>

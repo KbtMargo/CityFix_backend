@@ -1,0 +1,80 @@
+@* ReportFilters: search + Filters button; the popover is a GET form inside <details> (works without JS). *@
+@model AppealListViewModel
+@{
+    var f = Model.Filter;
+    var count = f.ActiveFilterCount;
+    var reset = new Dictionary<string, string>();
+    if (!string.IsNullOrWhiteSpace(f.Q)) { reset["q"] = f.Q; }
+    if (f.CurrentTab != AppealFilter.TabAll) { reset["tab"] = f.CurrentTab; }
+}
+<form method="get" asp-controller="@Model.Controller" asp-action="@Model.Action" class="cf-toolbar">
+    @if (f.CurrentTab != AppealFilter.TabAll)
+    {
+        <input type="hidden" name="tab" value="@f.CurrentTab" />
+    }
+    <div class="cf-toolbar__grow"><input class="cf-input" type="search" name="q" value="@f.Q" placeholder="@L["Filters.SearchPlaceholder"]" aria-label="@L["Filters.Search"]" /></div>
+    <details class="app-filters">
+        <summary class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--sliders-horizontal cf-icon--4" aria-hidden="true"></span>@L["Filters.Title"]@if (count > 0)
+            {
+                <span class="cf-btn__count"><span class="cf-sr-only">@L["Filters.Active"]: </span>@count</span>
+            }</summary>
+        <div class="cf-popover" role="dialog" aria-label="@L["Filters.Title"]">
+            <div class="cf-popover__head">
+                <h3 class="cf-popover__title">@L["Filters.Title"]</h3>
+                <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon cf-btn--round" data-close-details aria-label="@L["Common.Close"]"><span class="cf-icon cf-icon--x-lucide cf-icon--4" aria-hidden="true"></span></button>
+            </div>
+            <div class="cf-popover__body">
+                <div class="cf-popover__field">
+                    <span class="cf-label">@L["Filters.Date"]</span>
+                    <div class="cf-form-grid">
+                        <input class="cf-input" type="date" name="from" value="@f.From?.ToString("yyyy-MM-dd")" aria-label="@L["Filters.DateFrom"]" />
+                        <input class="cf-input" type="date" name="to" value="@f.To?.ToString("yyyy-MM-dd")" aria-label="@L["Filters.DateTo"]" />
+                    </div>
+                </div>
+                <div class="cf-popover__field">
+                    <label class="cf-label" for="filter-category">@L["Field.Category"]</label>
+                    <div class="cf-select">
+                        <select id="filter-category" name="categoryId">
+                            <option value="">@L["Filters.AllCategories"]</option>
+                            @foreach (var c in Model.Lookups.Categories)
+                            {
+                                <option value="@c.Id" selected="@(f.CategoryId == c.Id)">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="cf-popover__field">
+                    <label class="cf-label" for="filter-recipient">@L["Field.Recipient"]</label>
+                    <div class="cf-select">
+                        <select id="filter-recipient" name="recipientId">
+                            <option value="">@L["Filters.AllRecipients"]</option>
+                            @foreach (var r in Model.Lookups.Recipients)
+                            {
+                                <option value="@r.Id" selected="@(f.RecipientId == r.Id)">@r.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @if (Model.IsAdministrator)
+                {
+                    <div class="cf-popover__field">
+                        <label class="cf-label" for="filter-acab">@L["Field.Acab"]</label>
+                        <div class="cf-select">
+                            <select id="filter-acab" name="acabId">
+                                <option value="">@L["Filters.AllAcabs"]</option>
+                                @foreach (var a in Model.Lookups.Acabs)
+                                {
+                                    <option value="@a.Id" selected="@(f.AcabId == a.Id)">@a.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="cf-popover__foot">
+                <a class="cf-btn cf-btn--ghost" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="reset">@L["Filters.Reset"]</a>
+                <button type="submit" class="cf-btn">@L["Filters.Apply"]</button>
+            </div>
+        </div>
+    </details>
+</form>

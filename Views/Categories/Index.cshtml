@@ -1,41 +1,56 @@
-@model IEnumerable<CityFix_backend.Models.Category>
-
+@model TablePageViewModel<Category>
 @{
-    ViewData["Title"] = L["Categories"].Value;
+    ViewData["Title"] = L["Categories.Title"].Value;
 }
-
-<div class="page-header">
-    <h1>@L["Categories"]</h1>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>@L["Add"]</a>
+<div>
+    <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+    <div class="cf-page-head">
+        <h1 class="cf-page-title">@L["Categories.Title"]</h1>
+        <div class="cf-toolbar">
+            <div class="cf-page-head__meta">@L["Categories.Total"]: <b>@Model.Page.TotalCount</b></div>
+            <a class="cf-btn cf-btn--icon-gap" asp-action="Create"><span class="cf-icon cf-icon--plus cf-icon--4" aria-hidden="true"></span>@L["Categories.Add"]</a>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    @if (!Model.Any())
-    {
-        <div class="card-body text-center text-secondary py-5">@L["No_Records"]</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
+<div class="cf-table-card">
+    <div class="cf-table-scroll">
+        <table class="cf-table">
+            <thead>
+                <tr>
+                    <th scope="col">@L["Field.Name"]</th>
+                    <th scope="col">@L["Users.Col.Appeals"]</th>
+                    <th scope="col" class="cf-center">@L["Table.Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Page.Items.Count == 0)
+                {
+                    <tr><td colspan="3" class="cf-table__empty">@L["Categories.Empty"]</td></tr>
+                }
+                @foreach (var c in Model.Page.Items)
+                {
+                    var appeals = Model.Count(c.Id);
                     <tr>
-                        <th style="width: 4rem">@Html.DisplayNameFor(model => model.Icon)</th>
-                        <th>@Html.DisplayNameFor(model => model.Name)</th>
-                        <th class="text-end">@L["Actions"]</th>
+                        <td class="cf-strong"><div class="cf-table__name">@c.Name</div></td>
+                        <td><span class="cf-tag @(appeals > 0 ? "cf-tag--count" : "cf-tag--zero")">@appeals</span></td>
+                        <td>
+                            <div class="cf-row-actions">
+                                <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@c.Id" aria-label="@L["Common.EditItem", c.Name]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                @if (appeals > 0)
+                                {
+                                    <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", c.Name]" title="@L["Common.HasAppeals"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
+                                }
+                                else
+                                {
+                                    <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@c.Id" aria-label="@L["Common.DeleteItem", c.Name]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                }
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td class="fs-5 text-primary"><partial name="_CategoryIcon" model="item.Icon ?? string.Empty" /></td>
-                            <td class="fw-semibold">@item.Name</td>
-                            <td class="text-end"><partial name="_RowActions" model="item.Id" /></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page)" />
 </div>

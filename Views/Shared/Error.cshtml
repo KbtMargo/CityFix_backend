@@ -1,25 +1,22 @@
-﻿@model ErrorViewModel
+@* Unexpected errors: the ErrorPage pattern with a generic message. *@
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    Layout = User.Identity?.IsAuthenticated == true ? "_Layout" : "_AuthLayout";
+    ViewData["Title"] = L["Error.Server.Title"].Value;
 }
-
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+<div class="cf-error-page">
+    <div class="cf-empty">
+        <div class="cf-empty__tile"><span class="cf-icon cf-icon--alert cf-icon--6" aria-hidden="true"></span></div>
+        <p class="cf-error-page__code">@(Context.Response.StatusCode >= 400 ? Context.Response.StatusCode : 500)</p>
+        <div class="cf-empty__title">@L["Error.Server.Title"]</div>
+        <div class="cf-empty__text">@L["Error.Server.Text"]</div>
+        @if (Model?.ShowRequestId == true)
+        {
+            <div class="cf-empty__text">@L["Error.RequestId"]: <code>@Model.RequestId</code></div>
+        }
+        <div class="cf-error-page__actions">
+            <a class="cf-applink cf-applink--soft" href="javascript:history.back()"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.Back"]</a>
+            <a class="cf-applink" asp-controller="Dashboard" asp-action="Index">@L["Error.ToDashboard"]</a>
+        </div>
+    </div>
+</div>

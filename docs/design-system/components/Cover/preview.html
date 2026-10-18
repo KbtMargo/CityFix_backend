@@ -1,0 +1,40 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><title>CivicReport — cover</title>
+<style>
+  html, body { margin: 0; height: 288px; background: var(--page); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; }
+  .cover svg { position: absolute; inset: 0; }
+  .ink { fill: var(--inverse); } .on-ink { fill: var(--on-inverse); }
+  .tile { fill: var(--line); } .tile-2 { fill: var(--surface-tile); }
+  .open { fill: var(--orange-500); } .closed { fill: var(--emerald-500); }
+  .r2xl { rx: var(--radius-2xl); } .rxl { rx: var(--radius-xl); } .p10 { rx: 5px; } .p8 { rx: 4px; }
+  .text { position: absolute; left: 40px; bottom: 40px; max-width: 420px; }
+  .name { margin: 0; font-family: var(--font-sans); font-weight: 700; font-size: 64px; line-height: .95; letter-spacing: -0.05em; color: var(--ink); }
+  .tag { margin: 14px 0 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--ink-muted); }
+</style></head>
+<body>
+<div class="cover">
+  <svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <!-- blocks: inverse slab 208x248 (the logo tile), slate-200 tile 152x112, surface-tile 152x120 and 168x64, orange-500 + emerald-500 dots (the sidebar's Відкрито/Закрито)
+         arrangement: one tall dark slab bleeding off the top with satellites to its right, like the sidebar + KPI cards
+         pattern: "a literal motif" — the logo's three bars and L-axis rebuilt from radius-full pills inside the slab; CivicReport is literally a bar-chart mark
+         scales: gaps space-4 (16), corners radius-2xl / radius-xl, bars as pills, rx = half their width, dots 16 -->
+    <rect class="ink r2xl" x="520" y="-24" width="208" height="248"/>
+    <rect class="on-ink p10" x="560" y="16" width="10" height="168"/>
+    <rect class="on-ink p10" x="560" y="174" width="140" height="10"/>
+    <rect class="on-ink p8" x="596" y="112" width="8" height="52"/>
+    <rect class="on-ink p8" x="632" y="64" width="8" height="100"/>
+    <rect class="on-ink p8" x="668" y="88" width="8" height="76"/>
+    <rect class="tile r2xl" x="744" y="-24" width="152" height="112"/>
+    <rect class="tile-2 r2xl" x="744" y="104" width="240" height="120"/>
+    <rect class="tile-2 rxl" x="520" y="240" width="168" height="64"/>
+    <rect class="tile r2xl" x="704" y="240" width="280" height="64"/>
+    <circle class="open" cx="792" cy="40" r="8"/>
+    <circle class="closed" cx="824" cy="40" r="8"/>
+  </svg>
+  <div class="text"><h1 class="name">CivicReport</h1><p class="tag">Community Platform — панель звернень громади</p></div>
+</div>
+</body>
+</html>

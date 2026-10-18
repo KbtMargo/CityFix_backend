@@ -1,24 +1,11 @@
-@model CityFix_backend.Models.Appeal
-
+@model Appeal
 @{
-    ViewData["Title"] = $"{L["Page_Delete"]} · {L["Appeal"]}";
+    ViewData["Title"] = L["Appeals.DeleteTitle"].Value;
+    var dialog = new DeleteDialogModel(
+        Model.Id,
+        L["Appeals.DeleteTitle"],
+        L["Appeals.DeleteText", Model.Title],
+        L["Common.Delete"],
+        "Index");
 }
-
-<div class="page-header">
-    <div>
-        <div class="eyebrow">@L["Appeal"] #@Model.Id</div>
-        <h1>@L["Page_Delete"]</h1>
-    </div>
-</div>
-
-<div class="alert alert-danger d-flex align-items-center gap-2">
-    <i class="bi bi-exclamation-triangle-fill"></i>@L["Delete_Confirm"]
-</div>
-
-<partial name="_Summary" />
-
-<form asp-action="Delete" class="d-flex gap-2 mt-3">
-    <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>@L["Delete"]</button>
-    <a asp-action="Index" class="btn btn-outline-secondary">@L["Back to list"]</a>
-</form>
+<partial name="_DeleteDialog" model="dialog" />
