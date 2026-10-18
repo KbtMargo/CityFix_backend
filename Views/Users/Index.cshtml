@@ -1,23 +1,36 @@
-@model TablePageViewModel<User>
+@model UsersIndexViewModel
 @{
     ViewData["Title"] = L["Users.Title"].Value;
-    var isAdmin = User.IsInRole(nameof(UserRole.Administrator));
-    var hasHistory = ViewData["HasHistory"] as List<int> ?? new();
-    var me = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var rows = Model.Data.Page;
+    var ownAcab = Model.Data.OwnAcab;
 }
 <div>
     <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
     <div class="cf-page-head">
         <h1 class="cf-page-title">@L["Users.Title"]</h1>
         <div class="cf-toolbar">
-            <div class="cf-page-head__meta">@L["Users.Total"]: <b>@Model.Page.TotalCount</b></div>
-            @if (isAdmin)
+            <div class="cf-page-head__meta">@L["Users.Total"]: <b>@rows.TotalCount</b></div>
+            @if (Model.IsAdministrator)
             {
                 <a class="cf-btn cf-btn--icon-gap" asp-action="Create"><span class="cf-icon cf-icon--plus cf-icon--4" aria-hidden="true"></span>@L["Users.Add"]</a>
             }
         </div>
     </div>
 </div>
+
+@* A head shares the residents' code so neighbours can join the association. *@
+@if (ownAcab != null)
+{
+    <div class="cf-box app-code-row">
+        <div>
+            <div class="cf-label">@L["Users.ResidentCodeFor", ownAcab.Name]</div>
+            <code class="app-code">@ownAcab.ResidentCode</code>
+            <p class="cf-field__hint">@L["Users.ResidentCodeHint"]</p>
+        </div>
+    </div>
+}
+
+<partial name="_TableSearch" model="Model.Q" />
 
 <div class="cf-table-card">
     <div class="cf-table-scroll">
@@ -30,47 +43,49 @@
                     <th scope="col">@L["Field.Acab"]</th>
                     <th scope="col">@L["Users.Col.Appeals"]</th>
                     <th scope="col">@L["Users.Col.Registered"]</th>
-                    @if (isAdmin)
+                    @if (Model.IsAdministrator)
                     {
                         <th scope="col" class="cf-center">@L["Table.Actions"]</th>
                     }
                 </tr>
             </thead>
             <tbody>
-                @if (Model.Page.Items.Count == 0)
+                @if (rows.Items.Count == 0)
                 {
-                    <tr><td colspan="@(isAdmin ? 7 : 6)" class="cf-table__empty">@L["Users.Empty"]</td></tr>
+                    <tr><td colspan="@(Model.IsAdministrator ? 7 : 6)" class="cf-table__empty">@L[string.IsNullOrWhiteSpace(Model.Q) ? "Users.Empty" : "Empty.Filtered"]</td></tr>
                 }
-                @foreach (var u in Model.Page.Items)
+                @foreach (var row in rows.Items)
                 {
-                    var name = $"{u.FirstName} {u.LastName}".Trim();
-                    var appeals = Model.Count(u.Id);
-                    var blocked = appeals > 0 || hasHistory.Contains(u.Id) || u.Id == me;
+                    var u = row.User;
                     <tr>
                         <td class="cf-strong">
-                            <div class="cf-table__name">@name</div>
+                            <div class="cf-table__name">@u.FullName</div>
                             @if (!string.IsNullOrWhiteSpace(u.Phone))
                             {
                                 <div class="cf-table__sub">@u.Phone</div>
+                            }
+                            @if (u.IsBlocked)
+                            {
+                                <span class="cf-badge cf-badge--danger app-table-badge">@L["Users.BlockedBadge"]</span>
                             }
                         </td>
                         <td>@u.Email</td>
                         <td><span class="cf-tag cf-tag--@u.Role.RoleTag()">@u.Role.GetDisplayName()</span></td>
                         <td>@(u.Acab?.Name ?? L["Common.NotSpecified"].Value)</td>
-                        <td><span class="cf-tag @(appeals > 0 ? "cf-tag--count" : "cf-tag--zero")">@appeals</span></td>
+                        <td><span class="cf-tag @(row.AppealCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.AppealCount</span></td>
                         <td>@u.CreatedAt.ToDate()</td>
-                        @if (isAdmin)
+                        @if (Model.IsAdministrator)
                         {
                             <td>
                                 <div class="cf-row-actions">
-                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@u.Id" aria-label="@L["Common.EditItem", name]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
-                                    @if (blocked)
+                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@u.Id" aria-label="@L["Common.EditItem", u.FullName]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                    @if (!row.CanDelete)
                                     {
-                                        <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", name]" title="@L[u.Id == me ? "Users.CannotDeleteSelf" : "Users.CannotDelete"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
+                                        <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", u.FullName]" title="@L[row.DeleteBlockedKey!]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
                                     }
                                     else
                                     {
-                                        <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@u.Id" aria-label="@L["Common.DeleteItem", name]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                        <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@u.Id" aria-label="@L["Common.DeleteItem", u.FullName]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
                                     }
                                 </div>
                             </td>
@@ -80,5 +95,5 @@
             </tbody>
         </table>
     </div>
-    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page)" />
+    <partial name="_PaginationBar" model="PaginationModel.For(rows, Model.Q)" />
 </div>

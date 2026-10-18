@@ -39,14 +39,14 @@
   <data name="Language.Label" xml:space="preserve"><value>Interface language</value></data>
   <data name="Common.Back" xml:space="preserve"><value>Back</value></data>
   <data name="Common.BackToDashboard" xml:space="preserve"><value>Back to the dashboard</value></data>
-  <data name="Common.CannotUndo" xml:space="preserve"><value>This can&apos;t be undone.</value></data>
+  <data name="Common.CannotUndo" xml:space="preserve"><value>This can't be undone.</value></data>
   <data name="Common.Close" xml:space="preserve"><value>Close</value></data>
   <data name="Common.Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="Common.DeleteItem" xml:space="preserve"><value>Delete: {0}</value></data>
   <data name="Common.Deleted" xml:space="preserve"><value>Deleted.</value></data>
   <data name="Common.Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="Common.EditItem" xml:space="preserve"><value>Edit: {0}</value></data>
-  <data name="Common.HasAppeals" xml:space="preserve"><value>Has appeals, can&apos;t be deleted</value></data>
+  <data name="Common.HasAppeals" xml:space="preserve"><value>Has appeals, can't be deleted</value></data>
   <data name="Common.HasAppealsText" xml:space="preserve"><value>Appeals: {0}. Move or delete them first.</value></data>
   <data name="Common.NotSpecified" xml:space="preserve"><value>Not specified</value></data>
   <data name="Common.SaveChanges" xml:space="preserve"><value>Save changes</value></data>
@@ -84,7 +84,7 @@
   <data name="Filters.Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Filters.Apply" xml:space="preserve"><value>Apply</value></data>
   <data name="Empty.Filtered" xml:space="preserve"><value>Nothing found for the current filters.</value></data>
-  <data name="Empty.NoAppealsYet" xml:space="preserve"><value>You haven&apos;t created any appeals yet.</value></data>
+  <data name="Empty.NoAppealsYet" xml:space="preserve"><value>You haven't created any appeals yet.</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Nothing here yet</value></data>
   <data name="Empty.StaffText" xml:space="preserve"><value>New appeals from residents will appear here.</value></data>
   <data name="Appeal.NoDescription" xml:space="preserve"><value>No description</value></data>
@@ -104,7 +104,7 @@
   <data name="Appeals.EditTitle" xml:space="preserve"><value>Edit appeal</value></data>
   <data name="Appeals.BackToAppeal" xml:space="preserve"><value>Back to the appeal</value></data>
   <data name="Appeals.DeleteTitle" xml:space="preserve"><value>Delete this appeal?</value></data>
-  <data name="Appeals.DeleteText" xml:space="preserve"><value>The appeal &quot;{0}&quot;, its photos and its history will be deleted. This can&apos;t be undone.</value></data>
+  <data name="Appeals.DeleteText" xml:space="preserve"><value>The appeal "{0}", its photos and its history will be deleted. This can't be undone.</value></data>
   <data name="Table.Appeal" xml:space="preserve"><value>Appeal</value></data>
   <data name="Table.Date" xml:space="preserve"><value>Date</value></data>
   <data name="Table.Actions" xml:space="preserve"><value>Actions</value></data>
@@ -129,10 +129,10 @@
   <data name="Form.DescriptionLabel" xml:space="preserve"><value>Detailed description (optional)</value></data>
   <data name="Form.DescriptionPlaceholder" xml:space="preserve"><value>Add more details about the problem...</value></data>
   <data name="Form.Location" xml:space="preserve"><value>Location</value></data>
-  <data name="Form.LocationHelp" xml:space="preserve"><value>Enter an address, use geolocation, or pick a point on the map.</value></data>
+  <data name="Form.LocationHelp" xml:space="preserve"><value>Mark the spot on the map or find it by address; the address is filled in automatically. If address lookup is unavailable, type it yourself.</value></data>
   <data name="Form.AddressPlaceholder" xml:space="preserve"><value>Enter an address...</value></data>
   <data name="Form.Locate" xml:space="preserve"><value>Use my current location</value></data>
-  <data name="Form.LocateFailed" xml:space="preserve"><value>Couldn&apos;t get your location. Pick a point on the map.</value></data>
+  <data name="Form.LocateFailed" xml:space="preserve"><value>Couldn't get your location. Pick a point on the map.</value></data>
   <data name="Form.CoordsChosen" xml:space="preserve"><value>Coordinates selected: {0}, {1}</value></data>
   <data name="Form.MapLabel" xml:space="preserve"><value>Map: pick the problem location</value></data>
   <data name="Form.ChooseCategory" xml:space="preserve"><value>Choose a category...</value></data>
@@ -165,8 +165,8 @@
   <data name="Notifications.CommentTitle" xml:space="preserve"><value>New comment</value></data>
   <data name="Notifications.NewAppealTitle" xml:space="preserve"><value>New appeal</value></data>
   <data name="Notifications.AssignedTitle" xml:space="preserve"><value>Appeal assigned</value></data>
-  <data name="Notifications.StatusText" xml:space="preserve"><value>Your appeal &quot;{0}&quot; is now &quot;{1}&quot;.</value></data>
-  <data name="Notifications.GenericText" xml:space="preserve"><value>Update on your appeal &quot;{0}&quot;.</value></data>
+  <data name="Notifications.StatusText" xml:space="preserve"><value>Your appeal "{0}" is now "{1}".</value></data>
+  <data name="Notifications.GenericText" xml:space="preserve"><value>Update on your appeal "{0}".</value></data>
   <data name="Notifications.Comment" xml:space="preserve"><value>Comment</value></data>
   <data name="Notifications.EmptyTitle" xml:space="preserve"><value>All caught up!</value></data>
   <data name="Notifications.EmptyText" xml:space="preserve"><value>No new notifications.</value></data>
@@ -178,28 +178,28 @@
   <data name="Auth.Login.Title" xml:space="preserve"><value>Sign in</value></data>
   <data name="Auth.Login.Sub" xml:space="preserve"><value>Welcome back!</value></data>
   <data name="Auth.Login.Submit" xml:space="preserve"><value>Sign in</value></data>
-  <data name="Auth.Login.NoAccount" xml:space="preserve"><value>Don&apos;t have an account yet?</value></data>
+  <data name="Auth.Login.NoAccount" xml:space="preserve"><value>Don't have an account yet?</value></data>
   <data name="Auth.Login.ToRegister" xml:space="preserve"><value>Sign up</value></data>
   <data name="Auth.LoginFailed" xml:space="preserve"><value>Incorrect email or password</value></data>
   <data name="Auth.Register.Title" xml:space="preserve"><value>Create an account</value></data>
   <data name="Auth.Register.Sub" xml:space="preserve"><value>Fill in the form to join {0}</value></data>
   <data name="Auth.Register.FirstNamePlaceholder" xml:space="preserve"><value>Taras</value></data>
   <data name="Auth.Register.LastNamePlaceholder" xml:space="preserve"><value>Shevchenko</value></data>
-  <data name="Auth.Register.CodePlaceholder" xml:space="preserve"><value>Your building&apos;s code</value></data>
+  <data name="Auth.Register.CodePlaceholder" xml:space="preserve"><value>Your building's code</value></data>
   <data name="Auth.Register.Submit" xml:space="preserve"><value>Sign up</value></data>
   <data name="Auth.Register.HaveAccount" xml:space="preserve"><value>Already have an account?</value></data>
   <data name="Auth.Register.ToLogin" xml:space="preserve"><value>Sign in</value></data>
   <data name="Auth.EmailTaken" xml:space="preserve"><value>An account with this email already exists.</value></data>
-  <data name="Auth.CodeNotFound" xml:space="preserve"><value>We couldn&apos;t find an association with that code.</value></data>
+  <data name="Auth.CodeNotFound" xml:space="preserve"><value>We couldn't find an association with that code.</value></data>
   <data name="Auth.Welcome" xml:space="preserve"><value>Registration complete.</value></data>
   <data name="Denied.Title" xml:space="preserve"><value>Access denied</value></data>
   <data name="Denied.YourRole" xml:space="preserve"><value>Your role</value></data>
-  <data name="Denied.Text" xml:space="preserve"><value>You don&apos;t have permission to view this page.</value></data>
+  <data name="Denied.Text" xml:space="preserve"><value>You don't have permission to view this page.</value></data>
   <data name="Denied.ToDashboard" xml:space="preserve"><value>Go to your dashboard</value></data>
   <data name="Error.NotFound.Title" xml:space="preserve"><value>Page not found</value></data>
   <data name="Error.NotFound.Text" xml:space="preserve"><value>The link may be out of date, or the appeal was deleted.</value></data>
   <data name="Error.Server.Title" xml:space="preserve"><value>Something went wrong</value></data>
-  <data name="Error.Server.Text" xml:space="preserve"><value>We couldn&apos;t complete the request. Try again later.</value></data>
+  <data name="Error.Server.Text" xml:space="preserve"><value>We couldn't complete the request. Try again later.</value></data>
   <data name="Error.RequestId" xml:space="preserve"><value>Request ID</value></data>
   <data name="Error.ToDashboard" xml:space="preserve"><value>Go to the dashboard</value></data>
   <data name="Profile.Title" xml:space="preserve"><value>Profile</value></data>
@@ -221,9 +221,9 @@
   <data name="Users.Col.User" xml:space="preserve"><value>User</value></data>
   <data name="Users.Col.Appeals" xml:space="preserve"><value>Appeals</value></data>
   <data name="Users.Col.Registered" xml:space="preserve"><value>Registered</value></data>
-  <data name="Users.CannotDelete" xml:space="preserve"><value>Has appeals or history, can&apos;t be deleted</value></data>
-  <data name="Users.CannotDeleteSelf" xml:space="preserve"><value>You can&apos;t delete your own account</value></data>
-  <data name="Users.CannotDeleteTitle" xml:space="preserve"><value>The user can&apos;t be deleted</value></data>
+  <data name="Users.CannotDelete" xml:space="preserve"><value>Has appeals or history, can't be deleted</value></data>
+  <data name="Users.CannotDeleteSelf" xml:space="preserve"><value>You can't delete your own account</value></data>
+  <data name="Users.CannotDeleteTitle" xml:space="preserve"><value>The user can't be deleted</value></data>
   <data name="Users.CannotDeleteText" xml:space="preserve"><value>The user has appeals ({0}) or status changes they made. Move or delete the appeals first.</value></data>
   <data name="Users.CreatedWithPassword" xml:space="preserve"><value>User {0} created. Temporary password: {1}. It is shown only once.</value></data>
   <data name="Users.DeleteTitle" xml:space="preserve"><value>Delete this user?</value></data>
@@ -235,8 +235,8 @@
   <data name="Acabs.Empty" xml:space="preserve"><value>No associations yet.</value></data>
   <data name="Acabs.Col.Members" xml:space="preserve"><value>Members</value></data>
   <data name="Acabs.CodeHint" xml:space="preserve"><value>Whoever registers with this code becomes the association head.</value></data>
-  <data name="Acabs.CannotDelete" xml:space="preserve"><value>Has members, can&apos;t be deleted</value></data>
-  <data name="Acabs.CannotDeleteTitle" xml:space="preserve"><value>The association can&apos;t be deleted</value></data>
+  <data name="Acabs.CannotDelete" xml:space="preserve"><value>Has members or appeals, cannot be deleted</value></data>
+  <data name="Acabs.CannotDeleteTitle" xml:space="preserve"><value>The association can't be deleted</value></data>
   <data name="Acabs.CannotDeleteText" xml:space="preserve"><value>Users linked to it: {0}. Change their association first.</value></data>
   <data name="Acabs.DeleteTitle" xml:space="preserve"><value>Delete this association?</value></data>
   <data name="Categories.Title" xml:space="preserve"><value>Categories</value></data>
@@ -246,7 +246,7 @@
   <data name="Categories.Back" xml:space="preserve"><value>Back to categories</value></data>
   <data name="Categories.Empty" xml:space="preserve"><value>No categories yet.</value></data>
   <data name="Categories.NamePlaceholder" xml:space="preserve"><value>For example, Roads</value></data>
-  <data name="Categories.CannotDeleteTitle" xml:space="preserve"><value>The category can&apos;t be deleted</value></data>
+  <data name="Categories.CannotDeleteTitle" xml:space="preserve"><value>The category can't be deleted</value></data>
   <data name="Categories.DeleteTitle" xml:space="preserve"><value>Delete this category?</value></data>
   <data name="Recipients.Title" xml:space="preserve"><value>Recipients</value></data>
   <data name="Recipients.Total" xml:space="preserve"><value>Total recipients</value></data>
@@ -256,7 +256,7 @@
   <data name="Recipients.Empty" xml:space="preserve"><value>No recipients yet.</value></data>
   <data name="Recipients.NamePlaceholder" xml:space="preserve"><value>For example, Road service</value></data>
   <data name="Recipients.ContactPlaceholder" xml:space="preserve"><value>Phone, email or address</value></data>
-  <data name="Recipients.CannotDeleteTitle" xml:space="preserve"><value>The recipient can&apos;t be deleted</value></data>
+  <data name="Recipients.CannotDeleteTitle" xml:space="preserve"><value>The recipient can't be deleted</value></data>
   <data name="Recipients.DeleteTitle" xml:space="preserve"><value>Delete this recipient?</value></data>
   <data name="Field.Title" xml:space="preserve"><value>Title</value></data>
   <data name="Field.Description" xml:space="preserve"><value>Description</value></data>
@@ -302,34 +302,42 @@
   <data name="Enum.UserRole.AcabAdmin" xml:space="preserve"><value>Association head</value></data>
   <data name="Enum.UserRole.Administrator" xml:space="preserve"><value>Administrator</value></data>
   <data name="Time.JustNow" xml:space="preserve"><value>Just now</value></data>
+  <data name="Time.MinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="Shell.Skip" xml:space="preserve"><value>Skip to content</value></data>
+  <data name="Shell.Collapse" xml:space="preserve"><value>Collapse menu</value></data>
+  <data name="Shell.Expand" xml:space="preserve"><value>Expand menu</value></data>
+  <data name="Shell.Open" xml:space="preserve"><value>Open menu</value></data>
+  <data name="Shell.Close" xml:space="preserve"><value>Close menu</value></data>
+  <data name="Theme.ToDark" xml:space="preserve"><value>Switch to dark theme</value></data>
+  <data name="Theme.ToLight" xml:space="preserve"><value>Switch to light theme</value></data>
   <data name="Time.HoursAgo" xml:space="preserve"><value>{0} h ago</value></data>
   <data name="Time.DaysAgo" xml:space="preserve"><value>{0} d ago</value></data>
-  <data name="Validation.Required" xml:space="preserve"><value>Fill in &quot;{0}&quot;.</value></data>
+  <data name="Validation.Required" xml:space="preserve"><value>Fill in "{0}".</value></data>
   <data name="Validation.Choose" xml:space="preserve"><value>Choose a value from the list.</value></data>
   <data name="Validation.Email" xml:space="preserve"><value>Enter a valid email address.</value></data>
   <data name="Validation.Phone" xml:space="preserve"><value>Enter a valid phone number.</value></data>
-  <data name="Validation.Length" xml:space="preserve"><value>&quot;{0}&quot; must be {2} to {1} characters.</value></data>
-  <data name="Validation.MaxLength" xml:space="preserve"><value>&quot;{0}&quot; must be at most {1} characters.</value></data>
+  <data name="Validation.Length" xml:space="preserve"><value>"{0}" must be {2} to {1} characters.</value></data>
+  <data name="Validation.MaxLength" xml:space="preserve"><value>"{0}" must be at most {1} characters.</value></data>
   <data name="Validation.PasswordLength" xml:space="preserve"><value>The password must be at least {2} characters.</value></data>
-  <data name="Validation.PasswordMatch" xml:space="preserve"><value>Passwords don&apos;t match.</value></data>
-  <data name="Validation.Range" xml:space="preserve"><value>&quot;{0}&quot; must be between {1} and {2}.</value></data>
-  <data name="Validation.Invalid" xml:space="preserve"><value>&quot;{0}&quot; isn&apos;t a valid value for &quot;{1}&quot;.</value></data>
+  <data name="Validation.PasswordMatch" xml:space="preserve"><value>Passwords don't match.</value></data>
+  <data name="Validation.Range" xml:space="preserve"><value>"{0}" must be between {1} and {2}.</value></data>
+  <data name="Validation.Invalid" xml:space="preserve"><value>"{0}" isn't a valid value for "{1}".</value></data>
   <data name="Validation.LocationRequired" xml:space="preserve"><value>Enter an address or pick a point on the map.</value></data>
   <data name="Validation.DoneNeedsComment" xml:space="preserve"><value>Add a comment to mark the appeal as done.</value></data>
   <data name="Validation.NothingChanged" xml:space="preserve"><value>Change the status or add a comment.</value></data>
-  <data name="Validation.PhotosTooMany" xml:space="preserve"><value>You can attach up to 5 photos.</value></data>
-  <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Each photo must be 10 MB or smaller.</value></data>
+  <data name="Validation.PhotosTooMany" xml:space="preserve"><value>You can attach up to {0} photos.</value></data>
+  <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Each photo must be {0} MB or smaller.</value></data>
   <data name="Validation.PhotoType" xml:space="preserve"><value>Only PNG, JPG, GIF or WebP images are supported.</value></data>
   <data name="Landing.Title" xml:space="preserve"><value>Resident appeals to housing associations</value></data>
   <data name="Landing.Nav.Features" xml:space="preserve"><value>Features</value></data>
   <data name="Landing.Nav.How" xml:space="preserve"><value>How it works</value></data>
-  <data name="Landing.Nav.Roles" xml:space="preserve"><value>Who it&apos;s for</value></data>
+  <data name="Landing.Nav.Roles" xml:space="preserve"><value>Who it's for</value></data>
   <data name="Landing.Hero.Badge" xml:space="preserve"><value>For residents and housing associations</value></data>
-  <data name="Landing.Hero.Title" xml:space="preserve"><value>Your building&apos;s problems, under control</value></data>
+  <data name="Landing.Hero.Title" xml:space="preserve"><value>Your building's problems, under control</value></data>
   <data name="Landing.Hero.Text" xml:space="preserve"><value>Report an issue in a minute: a photo, a pin on the map and a category. Your association head receives the appeal, and you see every status change.</value></data>
   <data name="Landing.Hero.Cta" xml:space="preserve"><value>Create an account</value></data>
   <data name="Landing.Hero.Secondary" xml:space="preserve"><value>I already have an account</value></data>
-  <data name="Landing.Hero.Note" xml:space="preserve"><value>You need an invitation code from your housing association to sign up.</value></data>
+  <data name="Landing.Hero.Note" xml:space="preserve"><value>To join your housing association, enter its invitation code when signing up.</value></data>
   <data name="Landing.Preview.Title" xml:space="preserve"><value>Stairwell lights out in entrance 2</value></data>
   <data name="Landing.Preview.Category" xml:space="preserve"><value>Lighting</value></data>
   <data name="Landing.Preview.Text" xml:space="preserve"><value>The lamps on floors 3–5 have been out for three days; the stairs are pitch dark in the evening.</value></data>
@@ -343,7 +351,7 @@
   <data name="Landing.Feature.Photos.Title" xml:space="preserve"><value>Photos of the problem</value></data>
   <data name="Landing.Feature.Photos.Text" xml:space="preserve"><value>Attach up to 5 photos so the contractor sees exactly what happened and where.</value></data>
   <data name="Landing.Feature.Map.Title" xml:space="preserve"><value>A pin on the map</value></data>
-  <data name="Landing.Feature.Map.Text" xml:space="preserve"><value>Enter an address or drop a pin, even if it&apos;s the yard or the playground.</value></data>
+  <data name="Landing.Feature.Map.Text" xml:space="preserve"><value>Enter an address or drop a pin, even if it's the yard or the playground.</value></data>
   <data name="Landing.Feature.Status.Title" xml:space="preserve"><value>Transparent status</value></data>
   <data name="Landing.Feature.Status.Text" xml:space="preserve"><value>New, In progress, Done: the full history of changes and comments from the people in charge.</value></data>
   <data name="Landing.Feature.Notifications.Title" xml:space="preserve"><value>Notifications</value></data>
@@ -355,9 +363,9 @@
   <data name="Landing.How.Title" xml:space="preserve"><value>From problem to fix</value></data>
   <data name="Landing.How.Sub" xml:space="preserve"><value>Four steps and your appeal is already being handled.</value></data>
   <data name="Landing.Step.Code.Title" xml:space="preserve"><value>Get a code</value></data>
-  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Your association head gives you an invitation code for your building.</value></data>
+  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Your association head gives you the residents' code for your building.</value></data>
   <data name="Landing.Step.Register.Title" xml:space="preserve"><value>Sign up</value></data>
-  <data name="Landing.Step.Register.Text" xml:space="preserve"><value>Create an account with the code and you&apos;re connected to your association right away.</value></data>
+  <data name="Landing.Step.Register.Text" xml:space="preserve"><value>Create an account with the code and you're connected to your association right away.</value></data>
   <data name="Landing.Step.Report.Title" xml:space="preserve"><value>Report a problem</value></data>
   <data name="Landing.Step.Report.Text" xml:space="preserve"><value>Describe it, choose a category, add photos and mark the spot on the map.</value></data>
   <data name="Landing.Step.Track.Title" xml:space="preserve"><value>Follow the progress</value></data>
@@ -368,8 +376,8 @@
   <data name="Landing.Role.Resident.Point1" xml:space="preserve"><value>New appeals with photos and a map</value></data>
   <data name="Landing.Role.Resident.Point2" xml:space="preserve"><value>Status and history of every appeal</value></data>
   <data name="Landing.Role.Resident.Point3" xml:space="preserve"><value>Notifications about replies</value></data>
-  <data name="Landing.Role.AcabAdmin.Text" xml:space="preserve"><value>Receives appeals from the association&apos;s residents and manages the work.</value></data>
-  <data name="Landing.Role.AcabAdmin.Point1" xml:space="preserve"><value>All the building&apos;s appeals in one list</value></data>
+  <data name="Landing.Role.AcabAdmin.Text" xml:space="preserve"><value>Receives appeals from the association's residents and manages the work.</value></data>
+  <data name="Landing.Role.AcabAdmin.Point1" xml:space="preserve"><value>All the building's appeals in one list</value></data>
   <data name="Landing.Role.AcabAdmin.Point2" xml:space="preserve"><value>Status changes with a comment</value></data>
   <data name="Landing.Role.AcabAdmin.Point3" xml:space="preserve"><value>Analytics for the association</value></data>
   <data name="Landing.Role.Administrator.Text" xml:space="preserve"><value>Sets up the platform for the whole community.</value></data>
@@ -377,5 +385,77 @@
   <data name="Landing.Role.Administrator.Point2" xml:space="preserve"><value>Associations, categories and recipients</value></data>
   <data name="Landing.Role.Administrator.Point3" xml:space="preserve"><value>Overall appeal statistics</value></data>
   <data name="Landing.Cta.Title" xml:space="preserve"><value>Start with your first appeal</value></data>
-  <data name="Landing.Cta.Text" xml:space="preserve"><value>Sign up with your association&apos;s code and report a problem today.</value></data>
+  <data name="Landing.Cta.Text" xml:space="preserve"><value>Sign up with your association's code and report a problem today.</value></data>
+  <data name="Acabs.Codes" xml:space="preserve"><value>Invitation codes</value></data>
+  <data name="Acabs.CodesGenerated" xml:space="preserve"><value>The residents' code and the head code are generated automatically.</value></data>
+  <data name="Acabs.Created" xml:space="preserve"><value>Association created. Share the codes with the residents and the head.</value></data>
+  <data name="Acabs.ResidentCodeHint" xml:space="preserve"><value>Residents enter it when signing up and join the association.</value></data>
+  <data name="Acabs.HeadCodeHint" xml:space="preserve"><value>Grants the association head role. Give it to the head only.</value></data>
+  <data name="Acabs.Regenerate" xml:space="preserve"><value>Generate a new one</value></data>
+  <data name="Acabs.ResidentCodeRegenerated" xml:space="preserve"><value>Residents' code replaced. The old one no longer works.</value></data>
+  <data name="Acabs.HeadCodeRegenerated" xml:space="preserve"><value>Head code replaced. The old one no longer works.</value></data>
+  <data name="Appeal.Assigned" xml:space="preserve"><value>Responsible party assigned.</value></data>
+  <data name="Appeal.Distance" xml:space="preserve"><value>{0} m</value></data>
+  <data name="Appeal.NoResponsible" xml:space="preserve"><value>Not assigned</value></data>
+  <data name="Assign.Title" xml:space="preserve"><value>Responsible</value></data>
+  <data name="Assign.Hint" xml:space="preserve"><value>The association if the problem concerns the building, or a city service. The author is notified.</value></data>
+  <data name="Assign.Submit" xml:space="preserve"><value>Assign</value></data>
+  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Optional. The residents' code joins you to the association; the head code makes you its head.</value></data>
+  <data name="Enum.ResponsibleKind.Association" xml:space="preserve"><value>Association</value></data>
+  <data name="Enum.ResponsibleKind.Recipient" xml:space="preserve"><value>Service</value></data>
+  <data name="Field.ResidentCode" xml:space="preserve"><value>Residents' code</value></data>
+  <data name="Field.HeadCode" xml:space="preserve"><value>Head code</value></data>
+  <data name="Field.IsBlocked" xml:space="preserve"><value>Blocked</value></data>
+  <data name="Field.Responsible" xml:space="preserve"><value>Responsible</value></data>
+  <data name="Filters.AllPriorities" xml:space="preserve"><value>All priorities</value></data>
+  <data name="Filters.AllResponsible" xml:space="preserve"><value>All responsible parties</value></data>
+  <data name="Form.ChooseResponsible" xml:space="preserve"><value>Choose who is responsible</value></data>
+  <data name="Form.FindAddress" xml:space="preserve"><value>Find the address on the map</value></data>
+  <data name="Form.SearchFailed" xml:space="preserve"><value>Address not found. Mark the spot on the map.</value></data>
+  <data name="Form.ResponsibleHint" xml:space="preserve"><value>Your association if it concerns the building or yard, otherwise the relevant service. The association head can change it.</value></data>
+  <data name="Form.ResponsibleHintNoAcab" xml:space="preserve"><value>Choose the service responsible for the problem. An administrator can change it.</value></data>
+  <data name="Notifications.AssignedText" xml:space="preserve"><value>“{0}”: now handled by {1}.</value></data>
+  <data name="Profile.EditTitle" xml:space="preserve"><value>Personal details</value></data>
+  <data name="Profile.EditHint" xml:space="preserve"><value>Your name, sign-in email and phone.</value></data>
+  <data name="Profile.Saved" xml:space="preserve"><value>Profile saved.</value></data>
+  <data name="Responsible.Acab" xml:space="preserve"><value>Association “{0}”</value></data>
+  <data name="Responsible.AnyAcab" xml:space="preserve"><value>The appeal's association</value></data>
+  <data name="Responsible.Services" xml:space="preserve"><value>Services</value></data>
+  <data name="Similar.Title" xml:space="preserve"><value>Similar appeals nearby</value></data>
+  <data name="Similar.Warning" xml:space="preserve"><value>There are similar appeals nearby</value></data>
+  <data name="Similar.WarningText" xml:space="preserve"><value>This problem may already be reported. Check the list; you can still send your appeal.</value></data>
+  <data name="Similar.Duplicate" xml:space="preserve"><value>Possible duplicate</value></data>
+  <data name="Similar.DuplicateHint" xml:space="preserve"><value>An earlier open appeal of the same category was submitted nearby</value></data>
+  <data name="Table.Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Table.SearchPlaceholder" xml:space="preserve"><value>Search...</value></data>
+  <data name="Timeline.Assigned" xml:space="preserve"><value>Responsible: {0}</value></data>
+  <data name="Timeline.PriorityChanged" xml:space="preserve"><value>Priority changed: {0} → {1}</value></data>
+  <data name="Update.FinalHint" xml:space="preserve"><value>The appeal is closed: its status no longer changes, but you can add a comment.</value></data>
+  <data name="Users.AcabHint" xml:space="preserve"><value>Required for an association head.</value></data>
+  <data name="Users.Access" xml:space="preserve"><value>Account access</value></data>
+  <data name="Users.ActiveState" xml:space="preserve"><value>Account is active</value></data>
+  <data name="Users.BlockedState" xml:space="preserve"><value>Account is blocked</value></data>
+  <data name="Users.BlockHint" xml:space="preserve"><value>The user cannot sign in, and their current session ends.</value></data>
+  <data name="Users.UnblockHint" xml:space="preserve"><value>The user will be able to sign in again.</value></data>
+  <data name="Users.Block" xml:space="preserve"><value>Block</value></data>
+  <data name="Users.Unblock" xml:space="preserve"><value>Unblock</value></data>
+  <data name="Users.Blocked" xml:space="preserve"><value>User blocked.</value></data>
+  <data name="Users.Unblocked" xml:space="preserve"><value>User unblocked.</value></data>
+  <data name="Users.BlockedBadge" xml:space="preserve"><value>Blocked</value></data>
+  <data name="Users.CannotBlockSelf" xml:space="preserve"><value>You cannot block your own account.</value></data>
+  <data name="Users.CannotDeleteSelfText" xml:space="preserve"><value>You cannot delete your own account.</value></data>
+  <data name="Users.CannotDemoteSelf" xml:space="preserve"><value>You cannot remove the administrator role from yourself.</value></data>
+  <data name="Users.LastAdmin" xml:space="preserve"><value>This is the last active administrator: appoint another one first.</value></data>
+  <data name="Users.DeleteText" xml:space="preserve"><value>The account “{0}” will be deleted permanently.</value></data>
+  <data name="Users.PasswordReset" xml:space="preserve"><value>New temporary password for {0}: {1}. It is shown only once.</value></data>
+  <data name="Users.ResetPassword" xml:space="preserve"><value>Issue a temporary password</value></data>
+  <data name="Users.ResetPasswordHint" xml:space="preserve"><value>The current password stops working. The new one is shown once.</value></data>
+  <data name="Users.ResidentCodeFor" xml:space="preserve"><value>Residents' code of “{0}”</value></data>
+  <data name="Users.ResidentCodeHint" xml:space="preserve"><value>Share it with residents: with it they sign up as members of your association.</value></data>
+  <data name="Validation.AppealClosed" xml:space="preserve"><value>The appeal is closed; its responsible party cannot change.</value></data>
+  <data name="Validation.ChangedMeanwhile" xml:space="preserve"><value>Someone else changed the appeal meanwhile. Review it and try again.</value></data>
+  <data name="Validation.HeadNeedsAcab" xml:space="preserve"><value>An association head must belong to an association.</value></data>
+  <data name="Validation.NoAcab" xml:space="preserve"><value>You do not belong to an association; choose a service.</value></data>
+  <data name="Validation.PointRequired" xml:space="preserve"><value>Mark the location of the problem on the map.</value></data>
+  <data name="Validation.TransitionNotAllowed" xml:space="preserve"><value>Status “{0}” cannot change to “{1}”.</value></data>
 </root>

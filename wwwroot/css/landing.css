@@ -53,6 +53,7 @@ html { scroll-padding-top: var(--app-landing-header-h); }
 .app-landing-header__nav a:hover { background: var(--tab-hover); color: var(--ink-strong); }
 
 .app-landing-header__actions { display: flex; align-items: center; gap: var(--space-3); }
+.app-landing-header__lang { display: flex; align-items: center; gap: var(--space-1); }
 .app-landing-header__login { display: none; }
 
 /* Narrow phones: the language switch moves to the footer, the logo drops its tagline. */

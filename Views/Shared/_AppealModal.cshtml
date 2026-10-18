@@ -1,17 +1,24 @@
 @* ReportDetailModal, rendered on the list page when ?appealId= is set. Closing goes back to the list
-   with the same filters; staff get the "Update appeal" panel wired to IAppealService.UpdateStatusAsync. *@
+   with the same filters. Staff get the "Update appeal" panel (status by AppealWorkflow, priority, comment)
+   and the "Responsible" panel; everyone sees the similar appeals within the search radius. *@
 @model AppealListViewModel
 @{
-    var a = Model.Selected!;
+    var d = Model.Selected!;
+    var a = d.Appeal;
     var closeRoute = Model.Filter.ToRouteValues(includePage: true).ToDictionary(kv => kv.Key, kv => (object?)kv.Value);
     var closeUrl = Url.Action(Model.Action, Model.Controller, new RouteValueDictionary(closeRoute));
     var currentUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
 
-    // A failed status update comes back here with its error and the typed comment.
+    // A failed update comes back here with its error and the typed values.
     var updateError = TempData[CityFix_backend.Controllers.AppController.ErrorKey] as string;
     var keptComment = TempData["Comment"] as string;
     var keptStatus = Enum.TryParse<AppealStatus>(TempData["Status"] as string, out var s) ? s : a.Status;
+    var keptPriority = Enum.TryParse<AppealPriority>(TempData["Priority"] as string, out var p) ? p : a.Priority;
     if (updateError != null) { ViewData["FlashHandled"] = true; }
+
+    var statuses = new[] { a.Status }.Concat(d.NextStatuses).ToList();
+    var responsibleName = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.Name : a.Recipient?.Name;
+    var responsibleValue = AppealFormViewModel.ResponsibleValue(a);
 }
 <div class="cf-overlay" data-close-href="@closeUrl">
     <div class="cf-modal" role="dialog" aria-modal="true" aria-labelledby="appeal-title">
@@ -19,9 +26,13 @@
             <div class="cf-modal__titlebar">
                 <h2 class="cf-modal__title" id="appeal-title">@a.Title</h2>
                 <div class="cf-modal__actions">
-                    @if (Model.CanEditSelected)
+                    @if (d.CanEdit)
                     {
                         <a class="cf-btn cf-btn--outline cf-btn--sm" asp-controller="Appeals" asp-action="Edit" asp-route-id="@a.Id"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span>@L["Common.Edit"]</a>
+                    }
+                    @if (d.CanDelete)
+                    {
+                        <a class="cf-btn cf-btn--outline cf-btn--sm" asp-controller="Appeals" asp-action="Delete" asp-route-id="@a.Id"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span>@L["Common.Delete"]</a>
                     }
                     <a class="cf-modal__close" href="@closeUrl" aria-label="@L["Common.Close"]"><span class="cf-icon cf-icon--x-lucide cf-icon--6" aria-hidden="true"></span></a>
                 </div>
@@ -77,17 +88,49 @@
                     <p class="cf-fact__value">@a.CreatedAt.ToDateTime()</p>
                 </div>
                 <div class="cf-fact">
-                    <div class="cf-fact__label"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span> @L["Field.Recipient"]</div>
-                    <p class="cf-fact__value">@(a.Recipient?.Name ?? L["Appeal.NoRecipient"].Value)</p>
+                    <div class="cf-fact__label"><span class="cf-icon cf-icon--wrench cf-icon--4" aria-hidden="true"></span> @L["Field.Responsible"]</div>
+                    <p class="cf-fact__value">@(responsibleName ?? L["Appeal.NoResponsible"].Value)</p>
                 </div>
+                @if (a.Acab != null)
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--apartment cf-icon--4" aria-hidden="true"></span> @L["Field.Acab"]</div>
+                        <p class="cf-fact__value">@a.Acab.Name</p>
+                    </div>
+                }
                 @if (Model.IsStaff)
                 {
                     <div class="cf-fact">
-                        <div class="cf-fact__label"><span class="cf-icon cf-icon--shield cf-icon--4" aria-hidden="true"></span> @L["Field.Author"]</div>
-                        <p class="cf-fact__value">@a.Author?.FirstName @a.Author?.LastName</p>
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span> @L["Field.Author"]</div>
+                        <p class="cf-fact__value">@a.Author?.FullName</p>
                     </div>
                 }
             </div>
+
+            @if (d.Similar.Count > 0)
+            {
+                <div class="cf-modal__section">
+                    <h3 class="cf-modal__h">@L["Similar.Title"]</h3>
+                    <ul class="app-similar__list">
+                        @foreach (var item in d.Similar)
+                        {
+                            <li>
+                                @if (item.Visible)
+                                {
+                                    var route = Model.Filter.ToRouteValues(includePage: true);
+                                    route["appealId"] = item.Id.ToString();
+                                    <a class="app-similar__name" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">@item.Title</a>
+                                }
+                                else
+                                {
+                                    <span class="app-similar__name">@item.Title</span>
+                                }
+                                <span class="app-similar__meta">@item.Status.GetDisplayName() · @item.CreatedAt.ToDate() · @L["Appeal.Distance", item.DistanceMeters]</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
 
             <div class="cf-modal__section">
                 <h3 class="cf-modal__h">@L["Timeline.Title"]</h3>
@@ -98,13 +141,19 @@
                     </div>
                     @foreach (var u in a.Updates)
                     {
+                        var titles = new List<string>();
+                        if (u.StatusChanged) titles.Add(L["Timeline.StatusChanged", u.OldStatus.GetDisplayName(), u.NewStatus.GetDisplayName()].Value);
+                        if (u.PriorityChanged) titles.Add(L["Timeline.PriorityChanged", u.OldPriority!.Value.GetDisplayName(), u.NewPriority!.Value.GetDisplayName()].Value);
+                        if (u.AssignedTo != null) titles.Add(L["Timeline.Assigned", u.AssignedTo].Value);
+                        if (titles.Count == 0) titles.Add(L["Timeline.CommentAdded"].Value);
                         <div class="cf-timeline__item">
                             <div class="cf-timeline__dot cf-timeline__dot--@u.NewStatus.PillModifier()"></div>
                             <div class="cf-timeline__content">
-                                <p class="cf-timeline__title">@(u.OldStatus == u.NewStatus
-                                    ? L["Timeline.CommentAdded"].Value
-                                    : L["Timeline.StatusChanged", u.OldStatus.GetDisplayName(), u.NewStatus.GetDisplayName()].Value)</p>
-                                <p class="cf-timeline__time">@u.ChangedAt.ToDateTime()@(Model.IsStaff && u.ChangedBy != null ? $" · {u.ChangedBy.FirstName} {u.ChangedBy.LastName}".TrimEnd() : "")</p>
+                                @foreach (var title in titles)
+                                {
+                                    <p class="cf-timeline__title">@title</p>
+                                }
+                                <p class="cf-timeline__time">@u.ChangedAt.ToDateTime()@(Model.IsStaff && u.ChangedBy != null ? $" · {u.ChangedBy.FullName}" : "")</p>
                                 @if (!string.IsNullOrWhiteSpace(u.Comment))
                                 {
                                     <p class="cf-timeline__comment">@u.Comment</p>
@@ -116,28 +165,46 @@
             </div>
         </div>
 
-        @if (Model.IsStaff)
+        @if (d.CanProcess)
         {
-            <div class="cf-modal__foot">
-                <form class="cf-update-panel" asp-controller="Appeals" asp-action="UpdateStatus" method="post">
+            <div class="cf-modal__foot cf-stack-4">
+                @if (updateError != null)
+                {
+                    <div class="cf-alert" role="alert">@updateError</div>
+                }
+                <form class="cf-update-panel" asp-controller="Appeals" asp-action="Process" method="post">
                     <h3 class="cf-update-panel__title">@L["Update.Title"]</h3>
-                    @if (updateError != null)
-                    {
-                        <div class="cf-alert" role="alert">@updateError</div>
-                    }
                     <input type="hidden" name="appealId" value="@a.Id" />
+                    <input type="hidden" name="expectedStatus" value="@a.Status" />
                     <input type="hidden" name="returnUrl" value="@currentUrl" />
-                    <div>
-                        <label class="cf-label cf-label--muted" for="update-status">@L["Field.Status"]</label>
-                        <div class="cf-select app-control-gap">
-                            <select id="update-status" name="status">
-                                @foreach (var item in Html.GetEnumSelectList<AppealStatus>())
-                                {
-                                    <option value="@(Enum.Parse<AppealStatus>(item.Value))" selected="@(item.Value == ((int)keptStatus).ToString())">@item.Text</option>
-                                }
-                            </select>
+                    <div class="cf-form-grid">
+                        <div>
+                            <label class="cf-label cf-label--muted" for="update-status">@L["Field.Status"]</label>
+                            <div class="cf-select app-control-gap">
+                                <select id="update-status" name="status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        <option value="@status" selected="@(status == keptStatus)">@status.GetDisplayName()</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="cf-label cf-label--muted" for="update-priority">@L["Field.Priority"]</label>
+                            <div class="cf-select app-control-gap">
+                                <select id="update-priority" name="priority">
+                                    @foreach (var priority in Enum.GetValues<AppealPriority>())
+                                    {
+                                        <option value="@priority" selected="@(priority == keptPriority)">@priority.GetDisplayName()</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
                     </div>
+                    @if (AppealWorkflow.IsFinal(a.Status))
+                    {
+                        <p class="cf-help">@L["Update.FinalHint"]</p>
+                    }
                     <div>
                         <label class="cf-label cf-label--muted" for="update-comment">@L["Update.Comment"]</label>
                         <textarea id="update-comment" name="comment" class="cf-textarea app-control-gap" rows="4" maxlength="1000" placeholder="@L["Update.CommentPlaceholder"]">@keptComment</textarea>
@@ -145,6 +212,34 @@
                     </div>
                     <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
                 </form>
+
+                @if (d.CanAssign)
+                {
+                    <form class="cf-update-panel" asp-controller="Appeals" asp-action="Assign" method="post">
+                        <h3 class="cf-update-panel__title">@L["Assign.Title"]</h3>
+                        <input type="hidden" name="appealId" value="@a.Id" />
+                        <input type="hidden" name="returnUrl" value="@currentUrl" />
+                        <div>
+                            <label class="cf-label cf-label--muted" for="assign-responsible">@L["Field.Responsible"]</label>
+                            <div class="cf-select app-control-gap">
+                                <select id="assign-responsible" name="responsible">
+                                    @if (a.Acab != null)
+                                    {
+                                        <option value="@AppealFilter.ResponsibleAcab" selected="@(responsibleValue == AppealFilter.ResponsibleAcab)">@L["Responsible.Acab", a.Acab.Name]</option>
+                                    }
+                                    <optgroup label="@L["Responsible.Services"]">
+                                        @foreach (var r in Model.Lookups.Recipients)
+                                        {
+                                            <option value="@r.Id" selected="@(responsibleValue == r.Id.ToString())">@r.Name</option>
+                                        }
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <p class="cf-help">@L["Assign.Hint"]</p>
+                        </div>
+                        <button type="submit" class="cf-btn cf-btn--outline cf-btn--block">@L["Assign.Submit"]</button>
+                    </form>
+                }
             </div>
         }
     </div>

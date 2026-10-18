@@ -1,16 +1,41 @@
-@model Acab
+@model AcabFormViewModel
 @{
     ViewData["Title"] = L["Acabs.Edit"].Value;
+    var codes = new[]
+    {
+        (Kind: AcabCodeKind.Resident, Label: "Field.ResidentCode", Hint: "Acabs.ResidentCodeHint", Value: Model.ResidentCode),
+        (Kind: AcabCodeKind.Head, Label: "Field.HeadCode", Hint: "Acabs.HeadCodeHint", Value: Model.HeadCode)
+    };
 }
-<div class="cf-form-page">
-    <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Acabs.Back"]</a>
-    <h1 class="cf-form-page__title">@L["Acabs.Edit"]</h1>
-    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="cf-form-card">
-        <input type="hidden" asp-for="Id" />
-        <partial name="_Form" />
-        <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
-        <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
-    </form>
+<div class="cf-form-page cf-stack-6">
+    <div>
+        <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Acabs.Back"]</a>
+        <h1 class="cf-form-page__title">@L["Acabs.Edit"]</h1>
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="cf-form-card">
+            <input type="hidden" asp-for="Id" />
+            <partial name="_Form" />
+            <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
+            <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
+        </form>
+    </div>
+
+    @* Invitation codes: generated, unique, and replaced here when one leaks. *@
+    <div class="cf-form-card">
+        <h2 class="cf-card__h cf-card__h--lg">@L["Acabs.Codes"]</h2>
+        @foreach (var code in codes)
+        {
+            <div class="app-code-row">
+                <div>
+                    <div class="cf-label">@L[code.Label]</div>
+                    <code class="app-code">@code.Value</code>
+                    <p class="cf-field__hint">@L[code.Hint]</p>
+                </div>
+                <form asp-action="RegenerateCode" asp-route-id="@Model.Id" asp-route-kind="@code.Kind" method="post">
+                    <button type="submit" class="cf-btn cf-btn--outline cf-btn--sm">@L["Acabs.Regenerate"]</button>
+                </form>
+            </div>
+        }
+    </div>
 </div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

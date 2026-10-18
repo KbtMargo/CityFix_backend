@@ -6,34 +6,24 @@ using CityFix_backend.ViewModels;
 namespace CityFix_backend.Controllers
 {
     // Builds the appeal list + detail modal model shared by Dashboard/Index and Appeals/Index.
+    // An appealId the user may not open ends in 404 / 403 through ServiceExceptionFilter.
     internal static class AppealListFactory
     {
         public static async Task<AppealListViewModel> BuildAsync(
-            IAppealService appeals, AppealFilter filter, int? appealId, User user, string controller)
+            IAppealService appeals, ILookupService lookups, AppealFilter filter, int? appealId, User actor, string controller)
         {
-            Appeal? selected = null;
-            if (appealId != null)
-            {
-                try
-                {
-                    selected = await appeals.GetByIdAsync(appealId.Value, user.Id);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // Treated like a missing appeal: the caller answers 404.
-                }
-            }
+            var selected = appealId != null ? await appeals.GetDetailsAsync(appealId.Value, actor) : null;
+            var page = await appeals.GetFilteredAsync(filter, actor);
 
             return new AppealListViewModel
             {
-                Page = await appeals.GetFilteredAsync(filter, user.Id),
+                Page = page.Page,
+                PossibleDuplicates = page.PossibleDuplicates,
                 Filter = filter,
-                Lookups = await appeals.GetLookupsAsync(),
+                Lookups = await lookups.GetAsync(),
                 Controller = controller,
-                IsStaff = user.Role != UserRole.Resident,
-                IsAdministrator = user.Role == UserRole.Administrator,
-                Selected = selected,
-                CanEditSelected = selected != null
+                Actor = actor,
+                Selected = selected
             };
         }
     }

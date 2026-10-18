@@ -1,4 +1,4 @@
-@model Acab
+@model AcabFormViewModel
 @{
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
 }
@@ -11,9 +11,4 @@
     <label class="cf-label" asp-for="Address">@L["Field.AddressOptional"]</label>
     <label class="cf-field"><input asp-for="Address" class="@InputClass("Address")" /></label>
     <span asp-validation-for="Address" class="cf-field__error"></span>
-</div>
-<div>
-    <label class="cf-label" asp-for="InvitationCode"></label>
-    <label class="cf-field"><input asp-for="InvitationCode" class="@InputClass("InvitationCode")" autocomplete="off" spellcheck="false" /><span class="cf-field__hint">@L["Acabs.CodeHint"]</span></label>
-    <span asp-validation-for="InvitationCode" class="cf-field__error"></span>
 </div>

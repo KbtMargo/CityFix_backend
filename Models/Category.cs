@@ -7,10 +7,8 @@ namespace CityFix_backend.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Validation.Required")]
+        [StringLength(100, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.Name")]
-        public string Name { get; set; }
-
-        [Display(Name = "Field.Icon")]
-        public string? Icon { get; set; }
+        public string Name { get; set; } = "";
     }
 }

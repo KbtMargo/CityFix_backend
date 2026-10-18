@@ -2,24 +2,27 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CityFix_backend.Models
 {
+    // A condominium association (ОСББ). It has two invitation codes: the residents' code links a new
+    // account to the association as a Resident; the head code (issued by an administrator) makes it its head.
     public class Acab
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Validation.Required")]
         [Display(Name = "Field.Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [Display(Name = "Field.Address")]
         public string? Address { get; set; }
 
-        [Required(ErrorMessage = "Validation.Required")]
-        [Display(Name = "Field.InvitationCode")]
-        public string InvitationCode { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 8);
+        [Display(Name = "Field.ResidentCode")]
+        public string ResidentCode { get; set; } = "";
+
+        [Display(Name = "Field.HeadCode")]
+        public string HeadCode { get; set; } = "";
 
         [Display(Name = "Field.CreatedAt")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
         [Display(Name = "Field.UpdatedAt")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; }
     }
 }

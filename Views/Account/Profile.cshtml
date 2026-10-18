@@ -1,8 +1,8 @@
 @model ProfileViewModel
 @{
     var user = Model.User;
-    var fullName = $"{user.FirstName} {user.LastName}".Trim();
     ViewData["Title"] = L["Profile.Title"].Value;
+    string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
 }
 <div>
     <h1 class="cf-page-title">@L["Profile.Title"]</h1>
@@ -11,16 +11,50 @@
 
 <div class="cf-card">
     <div class="cf-card__head">
-        <div class="cf-card__title">@fullName</div>
+        <div class="cf-card__title">@user.FullName</div>
         <div class="cf-card__desc"><span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span></div>
     </div>
     <div class="cf-card__body">
         <div class="cf-form-grid">
-            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Email"]</div><p class="cf-fact__value">@user.Email</p></div>
-            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Phone"]</div><p class="cf-fact__value">@(user.Phone ?? L["Common.NotSpecified"].Value)</p></div>
             <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">@(user.Acab?.Name ?? L["Common.NotSpecified"].Value)</p></div>
             <div class="cf-fact"><div class="cf-fact__label">@L["Profile.MemberSince"]</div><p class="cf-fact__value">@user.CreatedAt.ToDate()</p></div>
         </div>
+    </div>
+</div>
+
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Profile.EditTitle"]</div>
+        <div class="cf-card__desc">@L["Profile.EditHint"]</div>
+    </div>
+    <div class="cf-card__body">
+        <form asp-action="UpdateProfile" method="post" class="cf-stack-6">
+            <div class="cf-form-grid">
+                <div>
+                    <label class="cf-label" asp-for="Profile.FirstName"></label>
+                    <label class="cf-field"><input asp-for="Profile.FirstName" class="@InputClass("Profile.FirstName")" autocomplete="given-name" /></label>
+                    <span asp-validation-for="Profile.FirstName" class="cf-field__error"></span>
+                </div>
+                <div>
+                    <label class="cf-label" asp-for="Profile.LastName"></label>
+                    <label class="cf-field"><input asp-for="Profile.LastName" class="@InputClass("Profile.LastName")" autocomplete="family-name" /></label>
+                    <span asp-validation-for="Profile.LastName" class="cf-field__error"></span>
+                </div>
+            </div>
+            <div class="cf-form-grid">
+                <div>
+                    <label class="cf-label" asp-for="Profile.Email"></label>
+                    <label class="cf-field"><input asp-for="Profile.Email" class="@InputClass("Profile.Email")" autocomplete="email" /></label>
+                    <span asp-validation-for="Profile.Email" class="cf-field__error"></span>
+                </div>
+                <div>
+                    <label class="cf-label" asp-for="Profile.Phone">@L["Field.PhoneOptional"]</label>
+                    <label class="cf-field"><input asp-for="Profile.Phone" class="@InputClass("Profile.Phone")" type="tel" autocomplete="tel" placeholder="+380..." /></label>
+                    <span asp-validation-for="Profile.Phone" class="cf-field__error"></span>
+                </div>
+            </div>
+            <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
+        </form>
     </div>
 </div>
 
@@ -54,7 +88,7 @@
 </div>
 
 <form asp-action="Logout" method="post">
-    <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
+    <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
 </form>
 
 @section Scripts {

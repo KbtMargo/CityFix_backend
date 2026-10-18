@@ -16,7 +16,7 @@ namespace CityFix_backend.Data
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder.UseNpgsql(connectionString, o => o.UseNetTopologySuite());
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

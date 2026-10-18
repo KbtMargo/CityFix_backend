@@ -1,6 +1,5 @@
 using CityFix_backend.Models;
 using CityFix_backend.Services;
-using CityFix_backend.Services.Interfaces;
 
 namespace CityFix_backend.ViewModels
 {
@@ -8,6 +7,7 @@ namespace CityFix_backend.ViewModels
     public class AppealListViewModel
     {
         public PagedResult<Appeal> Page { get; init; } = new();
+        public IReadOnlySet<int> PossibleDuplicates { get; init; } = new HashSet<int>();
         public AppealFilter Filter { get; init; } = new();
         public AppealLookups Lookups { get; init; } = null!;
 
@@ -15,12 +15,12 @@ namespace CityFix_backend.ViewModels
         public string Controller { get; init; } = "Appeals";
         public string Action { get; init; } = "Index";
 
-        public bool IsStaff { get; init; }
-        public bool IsAdministrator { get; init; }
+        public User Actor { get; init; } = null!;
+        public bool IsStaff => Actor.IsStaff;
+        public bool IsAdministrator => Actor.Role == UserRole.Administrator;
 
         // The appeal shown in the ReportDetailModal, if any.
-        public Appeal? Selected { get; init; }
-        public bool CanEditSelected { get; init; }
+        public AppealDetails? Selected { get; init; }
     }
 
     public class DashboardViewModel
@@ -29,12 +29,21 @@ namespace CityFix_backend.ViewModels
         public AppealListViewModel List { get; init; } = null!;
     }
 
-    // Admin DataTable pages: one page of rows plus a per-row count (appeals, members, ...).
+    // Admin DataTable pages: one page of rows, a per-row count (appeals, members, ...) and the search text.
     public class TablePageViewModel<T>
     {
         public PagedResult<T> Page { get; init; } = new();
         public IReadOnlyDictionary<int, int> Counts { get; init; } = new Dictionary<int, int>();
+        public string? Q { get; init; }
         public int Count(int id) => Counts.TryGetValue(id, out var n) ? n : 0;
+    }
+
+    public class UsersIndexViewModel
+    {
+        public UsersPage Data { get; init; } = null!;
+        public string? Q { get; init; }
+        public bool IsAdministrator { get; init; }
+        public int CurrentUserId { get; init; }
     }
 
     // The Pagination bar: "Showing x–y of N" plus Previous / Page x of y / Next.
@@ -46,7 +55,7 @@ namespace CityFix_backend.ViewModels
         public int To { get; init; }
         public int TotalCount { get; init; }
 
-        // Route values to keep (filters); "page" is added per link.
+        // Route values to keep (filters, search); "page" is added per link.
         public IDictionary<string, string> Route { get; init; } = new Dictionary<string, string>();
 
         public static PaginationModel For<T>(PagedResult<T> page, IDictionary<string, string>? route = null) => new()
@@ -58,6 +67,10 @@ namespace CityFix_backend.ViewModels
             TotalCount = page.TotalCount,
             Route = route ?? new Dictionary<string, string>()
         };
+
+        // Keeps the admin tables' search text in the page links.
+        public static PaginationModel For<T>(PagedResult<T> page, string? q) =>
+            For(page, string.IsNullOrWhiteSpace(q) ? null : new Dictionary<string, string> { ["q"] = q });
 
         public IDictionary<string, string> RouteFor(int page)
         {

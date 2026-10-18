@@ -1,14 +1,188 @@
 // Small progressive enhancements. Every page works without them.
 
-// Overlays (detail modal, delete dialog): clicking the backdrop or pressing Escape closes them,
-// by going to the same URL the close button links to.
+// Sidebar: on desktop its own button (or Ctrl+B) collapses it to an icon rail, remembered in the
+// cf_sidebar cookie so _Layout renders the right width on the next page. On phones the topbar menu
+// button opens it as a drawer, and the sidebar's button, the scrim or Escape close it.
+(function () {
+    var shell = document.querySelector('[data-app-shell]');
+    var toggle = document.querySelector('[data-sidebar-toggle]');
+    var opener = document.querySelector('[data-sidebar-open]');
+    if (!shell || !toggle) return;
+    var sidebar = document.getElementById(toggle.getAttribute('aria-controls'));
+    var mobile = matchMedia('(max-width: 767px)');
+
+    function label(key) {
+        var text = toggle.getAttribute('data-label-' + key);
+        toggle.setAttribute('aria-label', text);
+        toggle.title = mobile.matches ? text : text + ' (Ctrl+B)';
+    }
+
+    function sync() {
+        if (mobile.matches) {
+            var open = shell.classList.contains('is-open');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (opener) opener.setAttribute('aria-expanded', open ? 'true' : 'false');
+            label('close');
+        } else {
+            var collapsed = shell.classList.contains('is-collapsed');
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            label(collapsed ? 'expand' : 'collapse');
+        }
+    }
+
+    function setDrawer(open) {
+        shell.classList.toggle('is-open', open);
+        sync();
+        if (open) {
+            var first = sidebar.querySelector('[aria-current="page"], a');
+            if (first) first.focus();
+        } else if (opener) {
+            opener.focus();
+        }
+    }
+
+    if (opener) opener.addEventListener('click', function () { setDrawer(true); });
+
+    function toggleRail() {
+        var collapsed = shell.classList.toggle('is-collapsed');
+        document.cookie = 'cf_sidebar=' + (collapsed ? 'collapsed' : 'expanded') + '; path=/; max-age=31536000; samesite=lax';
+        hideTip();
+        sync();
+    }
+
+    toggle.addEventListener('click', function () {
+        if (mobile.matches) setDrawer(false);
+        else toggleRail();
+    });
+
+    document.querySelectorAll('[data-sidebar-close]').forEach(function (el) {
+        el.addEventListener('click', function () { setDrawer(false); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && shell.classList.contains('is-open')) {
+            e.stopImmediatePropagation();
+            setDrawer(false);
+        } else if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'b' && !mobile.matches) {
+            if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+            e.preventDefault();
+            toggleRail();
+        }
+    }, true);
+
+    mobile.addEventListener('change', function () { shell.classList.remove('is-open'); hideTip(); sync(); });
+
+    // Rail tooltips: the label of the hovered or focused item, next to it.
+    var tip = document.createElement('div');
+    tip.className = 'app-tip';
+    tip.setAttribute('aria-hidden', 'true');
+    tip.hidden = true;
+    document.body.appendChild(tip);
+
+    function hideTip() { tip.hidden = true; }
+
+    function showTip(target) {
+        if (mobile.matches || !shell.classList.contains('is-collapsed')) return;
+        var r = target.getBoundingClientRect();
+        tip.textContent = target.getAttribute('data-tip');
+        tip.style.left = (r.right + 8) + 'px';
+        tip.style.top = (r.top + r.height / 2) + 'px';
+        tip.hidden = false;
+    }
+
+    sidebar.querySelectorAll('[data-tip]').forEach(function (el) {
+        el.addEventListener('mouseenter', function () { showTip(el); });
+        el.addEventListener('mouseleave', hideTip);
+        el.addEventListener('focus', function () { showTip(el); });
+        el.addEventListener('blur', hideTip);
+    });
+    sidebar.addEventListener('scroll', hideTip);
+
+    sync();
+})();
+
+// Theme toggle: light / dark, remembered in localStorage (read by _ThemeScript before first paint).
+document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
+    function sync() {
+        var dark = document.documentElement.dataset.theme === 'dark';
+        var text = button.getAttribute(dark ? 'data-label-light' : 'data-label-dark');
+        button.setAttribute('aria-label', text);
+        button.title = text;
+    }
+    button.hidden = false;
+    sync();
+    button.addEventListener('click', function () {
+        var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('cf-theme', next); } catch (e) { }
+        document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.dispatchEvent(new Event('cf:theme')); });
+    });
+    button.addEventListener('cf:theme', sync);
+});
+
+// Overlays (detail modal, delete dialog): focus moves into the dialog; clicking the backdrop or pressing
+// Escape closes it, by going to the same URL the close button links to.
 (function () {
     var overlay = document.querySelector('[data-close-href]');
     if (!overlay) return;
     var href = overlay.getAttribute('data-close-href');
+    var dialog = overlay.querySelector('[role="dialog"]');
+    if (dialog) {
+        dialog.setAttribute('tabindex', '-1');
+        dialog.focus();
+    }
     overlay.addEventListener('click', function (e) { if (e.target === overlay) location.href = href; });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') location.href = href; });
 })();
+
+// Flash messages can be dismissed.
+document.querySelectorAll('[data-flash]').forEach(function (flash) {
+    var close = flash.querySelector('[data-flash-close]');
+    if (!close) return;
+    close.hidden = false;
+    close.addEventListener('click', function () { flash.remove(); });
+});
+
+// POST forms: one submission only, with a spinner in the button, so a slow save is not sent twice.
+// Runs after jQuery validation, which cancels the event when the form is invalid.
+document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || (form.method || '').toLowerCase() !== 'post') return;
+    if (form.dataset.submitting) { e.preventDefault(); return; }
+    form.dataset.submitting = 'true';
+    var button = e.submitter;
+    // Named buttons (the UA/EN switch) carry their value; leave them alone.
+    if (button && !button.name && (button.classList.contains('cf-btn') || button.classList.contains('cf-auth__submit'))) {
+        button.setAttribute('aria-disabled', 'true');
+        button.setAttribute('aria-busy', 'true');
+        var spinner = document.createElement('span');
+        spinner.className = 'cf-spinner app-btn-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        button.prepend(spinner);
+    }
+});
+
+// Coming back with the browser's Back button restores the page from cache: re-enable its forms.
+window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll('form[data-submitting]').forEach(function (form) { delete form.dataset.submitting; });
+    document.querySelectorAll('[aria-busy="true"]').forEach(function (button) {
+        button.removeAttribute('aria-busy');
+        button.removeAttribute('aria-disabled');
+        var spinner = button.querySelector('.app-btn-spinner');
+        if (spinner) spinner.remove();
+    });
+});
+
+// Edit and create forms warn before leaving with unsaved changes.
+document.querySelectorAll('form.cf-form-card').forEach(function (form) {
+    var dirty = false;
+    form.addEventListener('input', function () { dirty = true; });
+    form.addEventListener('change', function () { dirty = true; });
+    window.addEventListener('beforeunload', function (e) {
+        if (dirty && !form.dataset.submitting) { e.preventDefault(); e.returnValue = ''; }
+    });
+});
 
 // The close (×) button inside the filters popover closes its <details>.
 document.querySelectorAll('[data-close-details]').forEach(function (button) {

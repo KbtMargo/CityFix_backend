@@ -13,6 +13,8 @@
     </div>
 </div>
 
+<partial name="_TableSearch" model="Model.Q" />
+
 <div class="cf-table-card">
     <div class="cf-table-scroll">
         <table class="cf-table">
@@ -26,7 +28,7 @@
             <tbody>
                 @if (Model.Page.Items.Count == 0)
                 {
-                    <tr><td colspan="3" class="cf-table__empty">@L["Recipients.Empty"]</td></tr>
+                    <tr><td colspan="3" class="cf-table__empty">@L[string.IsNullOrWhiteSpace(Model.Q) ? "Recipients.Empty" : "Empty.Filtered"]</td></tr>
                 }
                 @foreach (var r in Model.Page.Items)
                 {
@@ -58,5 +60,5 @@
             </tbody>
         </table>
     </div>
-    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page)" />
+    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page, Model.Q)" />
 </div>

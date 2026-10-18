@@ -10,12 +10,11 @@ namespace CityFix_backend.Controllers
     public class NotificationsController : AppController
     {
         private readonly INotificationService _notifications;
-        private readonly IStringLocalizer<SharedResource> _l;
 
-        public NotificationsController(INotificationService notifications, IStringLocalizer<SharedResource> localizer)
+        public NotificationsController(INotificationService notifications, IUserService users, IStringLocalizer<SharedResource> localizer)
+            : base(users, localizer)
         {
             _notifications = notifications;
-            _l = localizer;
         }
 
         // GET: Notifications?tab=unread|all
@@ -51,7 +50,7 @@ namespace CityFix_backend.Controllers
         public async Task<IActionResult> MarkAllRead()
         {
             await _notifications.MarkAllReadAsync(CurrentUserId);
-            FlashSuccess(_l["Notifications.AllRead"]);
+            FlashSuccess(L["Notifications.AllRead"]);
             return RedirectToAction(nameof(Index));
         }
     }

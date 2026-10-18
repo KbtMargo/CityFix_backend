@@ -66,11 +66,12 @@ namespace CityFix_backend.Helpers
 
         public static string ToDateTime(this DateTime utc) => utc.ToKyiv().ToString("dd.MM.yyyy, HH:mm:ss", CultureInfo.InvariantCulture);
 
-        // "Щойно" / "N год тому" / "N д тому", then the date.
+        // "Щойно" / "N хв тому" / "N год тому" / "N д тому", then the date.
         public static string TimeAgo(this DateTime utc)
         {
             var span = DateTime.UtcNow - DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-            if (span < TimeSpan.FromHours(1)) return SharedText.Get("Time.JustNow");
+            if (span < TimeSpan.FromMinutes(1)) return SharedText.Get("Time.JustNow");
+            if (span < TimeSpan.FromHours(1)) return SharedText.Format("Time.MinutesAgo", (int)span.TotalMinutes);
             if (span < TimeSpan.FromDays(1)) return SharedText.Format("Time.HoursAgo", (int)span.TotalHours);
             if (span < TimeSpan.FromDays(7)) return SharedText.Format("Time.DaysAgo", (int)span.TotalDays);
             return utc.ToDate();

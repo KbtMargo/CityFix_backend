@@ -8,7 +8,9 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.FirstName")]
         public string FirstName { get; set; } = "";
 
+        // Required when registering (explanatory note, 1.1); accounts added by an administrator may omit it.
         [Required(ErrorMessage = "Validation.Required")]
+        [StringLength(100, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.LastName")]
         public string LastName { get; set; } = "";
 

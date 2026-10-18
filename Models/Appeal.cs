@@ -1,58 +1,62 @@
 using System.ComponentModel.DataAnnotations;
+using NetTopologySuite.Geometries;
 
 namespace CityFix_backend.Models
 {
+    // Who handles an appeal: the appeal's own association, or one of the recipients (city services).
+    public enum ResponsibleKind
+    {
+        [Display(Name = "Enum.ResponsibleKind.Association")] Association,
+        [Display(Name = "Enum.ResponsibleKind.Recipient")] Recipient
+    }
+
+    // A citizen's appeal. The class only holds data: the rules (who may see, edit or process it, which
+    // status transitions are allowed) live in the service layer (AppealService, AppealPolicy, AppealWorkflow).
     public class Appeal
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Validation.Required")]
-        [StringLength(100, MinimumLength = 5, ErrorMessage = "Validation.Length")]
-        [Display(Name = "Field.Title")]
+        [MaxLength(100)]
         public string Title { get; set; } = "";
 
-        [StringLength(1000, ErrorMessage = "Validation.MaxLength")]
-        [Display(Name = "Field.Description")]
+        [MaxLength(1000)]
         public string? Description { get; set; }
 
-        // Optional: set by the map picker. Without a point the address is required (checked in AppealService).
-        [Display(Name = "Field.Latitude")]
-        [Range(-90, 90, ErrorMessage = "Validation.Range")]
+        // Entered on the map as two numbers (invariant culture, decimal dot).
         public decimal? Lat { get; set; }
-
-        [Display(Name = "Field.Longitude")]
-        [Range(-180, 180, ErrorMessage = "Validation.Range")]
         public decimal? Lng { get; set; }
 
-        [StringLength(300, ErrorMessage = "Validation.MaxLength")]
-        [Display(Name = "Field.Address")]
+        // geography(Point, 4326), computed by PostgreSQL from Lat/Lng and covered by a GiST index:
+        // the 500 m similar-appeals search runs on it (ST_DWithin). Never written by the app.
+        public Point? Location { get; set; }
+
+        [MaxLength(300)]
         public string? Address { get; set; }
 
-        [Display(Name = "Field.Status")]
         public AppealStatus Status { get; set; } = AppealStatus.New;
-
-        [Display(Name = "Field.Priority")]
         public AppealPriority Priority { get; set; } = AppealPriority.Normal;
 
-        [Display(Name = "Field.Author")]
         public int AuthorId { get; set; }
         public User? Author { get; set; }
 
-        [Required(ErrorMessage = "Validation.Choose")]
-        [Display(Name = "Field.Category")]
+        // The author's association when the appeal was created; it stays with the appeal if the author moves.
+        public int? AcabId { get; set; }
+        public Acab? Acab { get; set; }
+
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
 
-        // Nullable in the database (a deleted recipient leaves its appeals unassigned), but required on the form.
-        [Required(ErrorMessage = "Validation.Choose")]
-        [Display(Name = "Field.Recipient")]
+        // Responsible party: the association (RecipientId is null) or a recipient.
+        public ResponsibleKind ResponsibleKind { get; set; } = ResponsibleKind.Recipient;
         public int? RecipientId { get; set; }
         public Recipient? Recipient { get; set; }
 
-        [Display(Name = "Field.CreatedAt")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        [Display(Name = "Field.UpdatedAt")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        // PostgreSQL's xmin: two staff members saving the same appeal at once get a concurrency error.
+        [Timestamp]
+        public uint Version { get; set; }
 
         public List<AppealUpdate> Updates { get; set; } = new();
         public List<AppealFile> Files { get; set; } = new();

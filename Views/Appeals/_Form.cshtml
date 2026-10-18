@@ -1,10 +1,7 @@
-@model Appeal
+@model AppealFormViewModel
 @{
-    var isStaff = ViewData["IsStaff"] as bool? == true;
-    var isEdit = Model.Id > 0;
-    var attached = Model.Files.Count;
-    var hasPoint = Model.Lat != null && Model.Lng != null;
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
+    var hasPoint = Model.Lat != null && Model.Lng != null;
 }
 
 <div>
@@ -19,42 +16,67 @@
     <span asp-validation-for="Description" class="cf-field__error"></span>
 </div>
 
-<div class="cf-stack-2" data-cf-map-picker data-coords-template="@L["Form.CoordsChosen"]" data-locate-error="@L["Form.LocateFailed"]">
+<div>
+    <label class="cf-label" asp-for="CategoryId"></label>
+    <div class="cf-select app-control-gap">
+        <select asp-for="CategoryId" data-similar-category>
+            <option value="">@L["Form.ChooseCategory"]</option>
+            @foreach (var c in Model.Lookups.Categories)
+            {
+                <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.Name</option>
+            }
+        </select>
+    </div>
+    <span asp-validation-for="CategoryId" class="cf-field__error"></span>
+</div>
+
+@* The point is required; the address is filled from it (Nominatim) and can be typed or searched by hand. *@
+<div class="cf-stack-2" data-cf-map-picker data-coords-template="@L["Form.CoordsChosen"]" data-locate-error="@L["Form.LocateFailed"]"
+     data-search-failed="@L["Form.SearchFailed"]" data-reverse-url="@Url.Action("Reverse", "Geo")" data-search-url="@Url.Action("Search", "Geo")">
     <label class="cf-label" for="Address">@L["Form.Location"]</label>
     <p class="cf-help">@L["Form.LocationHelp"]</p>
     <div class="cf-toolbar app-toolbar-tight">
-        <div class="cf-toolbar__grow"><input asp-for="Address" class="@InputClass("Address")" placeholder="@L["Form.AddressPlaceholder"]" /></div>
+        <div class="cf-toolbar__grow"><input asp-for="Address" class="@InputClass("Address")" placeholder="@L["Form.AddressPlaceholder"]" autocomplete="off" /></div>
+        <button type="button" class="cf-btn cf-btn--outline cf-btn--icon" data-map-search hidden aria-label="@L["Form.FindAddress"]" title="@L["Form.FindAddress"]"><span class="cf-icon cf-icon--search cf-icon--4" aria-hidden="true"></span></button>
         <button type="button" class="cf-btn cf-btn--outline cf-btn--icon" data-map-locate aria-label="@L["Form.Locate"]" title="@L["Form.Locate"]"><span class="cf-icon cf-icon--locate-fixed cf-icon--4" aria-hidden="true"></span></button>
     </div>
     <span asp-validation-for="Address" class="cf-field__error"></span>
-    <p class="cf-success-text" data-map-coords @(hasPoint ? "" : "hidden")>@(hasPoint ? L["Form.CoordsChosen", Model.Lat.Coordinate(), Model.Lng.Coordinate()].Value : "")</p>
+    <p class="cf-success-text" data-map-coords role="status" @(hasPoint ? "" : "hidden")>@(hasPoint ? L["Form.CoordsChosen", Model.Lat.Coordinate(), Model.Lng.Coordinate()].Value : "")</p>
     <div class="cf-map" id="map" role="application" aria-label="@L["Form.MapLabel"]"></div>
     <input type="hidden" asp-for="Lat" value="@Model.Lat.Coordinate()" /><input type="hidden" asp-for="Lng" value="@Model.Lng.Coordinate()" />
 </div>
 
-<div>
-    <label class="cf-label" asp-for="CategoryId"></label>
-    <div class="cf-select app-control-gap"><select asp-for="CategoryId" asp-items="ViewBag.CategoryId"><option value="">@L["Form.ChooseCategory"]</option></select></div>
-    <span asp-validation-for="CategoryId" class="cf-field__error"></span>
+@* Advisory only: open appeals of the same category within the search radius (filled by similar-appeals.js). *@
+<div class="app-similar" data-similar-appeals data-url="@Url.Action("Similar", "Appeals")" data-exclude="@(Model.Id > 0 ? Model.Id : "")" hidden role="status">
+    <p class="app-similar__title"><span class="cf-icon cf-icon--alert cf-icon--4" aria-hidden="true"></span>@L["Similar.Warning"]</p>
+    <p class="app-similar__text">@L["Similar.WarningText"]</p>
+    <ul class="app-similar__list" data-similar-list></ul>
 </div>
 
 <div>
-    <label class="cf-label" asp-for="RecipientId"></label>
-    <div class="cf-select app-control-gap"><select asp-for="RecipientId" asp-items="ViewBag.RecipientId"><option value="">@L["Form.ChooseRecipient"]</option></select></div>
-    <span asp-validation-for="RecipientId" class="cf-field__error"></span>
-</div>
-
-@if (isStaff && isEdit)
-{
-    <div>
-        <label class="cf-label" asp-for="Priority"></label>
-        <div class="cf-select app-control-gap"><select asp-for="Priority" asp-items="Html.GetEnumSelectList<AppealPriority>()"></select></div>
+    <label class="cf-label" asp-for="Responsible"></label>
+    <div class="cf-select app-control-gap">
+        <select asp-for="Responsible">
+            <option value="">@L["Form.ChooseResponsible"]</option>
+            @if (Model.AcabName != null)
+            {
+                <option value="@AppealFilter.ResponsibleAcab" selected="@(Model.Responsible == AppealFilter.ResponsibleAcab)">@L["Responsible.Acab", Model.AcabName]</option>
+            }
+            <optgroup label="@L["Responsible.Services"]">
+                @foreach (var r in Model.Lookups.Recipients)
+                {
+                    <option value="@r.Id" selected="@(Model.Responsible == r.Id.ToString())">@r.Name</option>
+                }
+            </optgroup>
+        </select>
     </div>
-}
+    <p class="cf-field__hint">@L[Model.AcabName != null ? "Form.ResponsibleHint" : "Form.ResponsibleHintNoAcab"]</p>
+    <span asp-validation-for="Responsible" class="cf-field__error"></span>
+</div>
 
 <div>
-    <label class="cf-label" for="Photos">@L["Form.Photos", FileService.MaxPhotos - attached]</label>
-    @if (attached > 0)
+    <label class="cf-label" for="Photos">@L["Form.Photos", Model.RemainingPhotos]</label>
+    @if (Model.Files.Count > 0)
     {
         <div class="cf-previews app-control-gap">
             @foreach (var file in Model.Files)
@@ -63,9 +85,9 @@
             }
         </div>
     }
-    @if (attached < FileService.MaxPhotos)
+    @if (Model.RemainingPhotos > 0)
     {
-        <label class="cf-dropzone" for="Photos" data-cf-dropzone="#photo-previews" data-max-files="@(FileService.MaxPhotos - attached)" data-remove-label="@L["Form.RemoveFile"]">
+        <label class="cf-dropzone" for="Photos" data-cf-dropzone="#photo-previews" data-max-files="@Model.RemainingPhotos" data-remove-label="@L["Form.RemoveFile"]">
             <div class="cf-dropzone__inner">
                 <span class="cf-icon cf-icon--upload cf-icon--12 cf-dropzone__icon" aria-hidden="true"></span>
                 <p class="cf-dropzone__text"><span class="cf-dropzone__link">@L["Form.DropzoneClick"]</span> @L["Form.DropzoneDrag"]</p>

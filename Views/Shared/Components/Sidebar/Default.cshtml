@@ -1,16 +1,27 @@
+@* The sidebar. Collapsed (desktop) it becomes an icon rail: the .app-sidebar__label parts are only
+   visually hidden, so every link keeps its accessible name, and data-tip feeds the hover tooltip. *@
 @model CityFix_backend.ViewComponents.SidebarModel
-<div class="cf-sidebar">
-    <div class="cf-sidebar__head"><partial name="_Logo" /></div>
-    <div class="cf-sidebar__body">
-        <div class="cf-box cf-stats-box">
-            <div class="cf-stats-box__row"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span>@L["Stats.Open"]</span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
-            <div class="cf-stats-box__row"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span>@L["Stats.Closed"]</span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
+<div class="cf-sidebar app-sidebar">
+    <div class="cf-sidebar__head app-sidebar__head">
+        <partial name="_Logo" />
+        @* Desktop: collapse to the icon rail and back (also Ctrl+B). Mobile drawer: close it. *@
+        <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon app-sidebar__toggle" data-sidebar-toggle aria-controls="app-sidebar"
+                aria-expanded="@(Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "false" : "true")"
+                aria-label="@L[Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "Shell.Expand" : "Shell.Collapse"]"
+                data-label-collapse="@L["Shell.Collapse"]" data-label-expand="@L["Shell.Expand"]" data-label-close="@L["Shell.Close"]">
+            <span class="cf-icon cf-icon--panel-left cf-icon--5" aria-hidden="true"></span>
+        </button>
+    </div>
+    <div class="cf-sidebar__body app-sidebar__body">
+        <div class="cf-box cf-stats-box app-sidebar__stats">
+            <div class="cf-stats-box__row" data-tip="@L["Stats.Open"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span><span class="app-sidebar__label">@L["Stats.Open"]</span></span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
+            <div class="cf-stats-box__row" data-tip="@L["Stats.Closed"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span><span class="app-sidebar__label">@L["Stats.Closed"]</span></span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
         </div>
         <nav class="cf-sidebar__nav" aria-label="@L["Nav.Label"]">
             @foreach (var item in Model.Items)
             {
-                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)">
-                    <span class="cf-nav-item__main"><span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@item.Icon" aria-hidden="true"></span></span><span class="cf-nav-item__text"><span class="cf-nav-item__label">@L[item.LabelKey]</span><span class="cf-nav-item__sub">@L[item.SubKey]</span></span></span>
+                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)" data-tip="@L[item.LabelKey]">
+                    <span class="cf-nav-item__main"><span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@item.Icon" aria-hidden="true"></span></span><span class="cf-nav-item__text app-sidebar__label"><span class="cf-nav-item__label">@L[item.LabelKey]</span><span class="cf-nav-item__sub">@L[item.SubKey]</span></span></span>
                     @if (item.Count is int count)
                     {
                         <span class="cf-count"><span class="cf-sr-only">@L["Nav.Unread"]: </span>@count</span>
@@ -19,8 +30,16 @@
             }
         </nav>
     </div>
-    <div class="cf-sidebar__foot cf-stack-4">
-        <partial name="_CultureSwitch" />
-        <div class="cf-box cf-help-box"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+    <div class="cf-sidebar__foot cf-stack-4 app-sidebar__foot">
+        <div class="cf-box cf-help-box app-sidebar__help"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+        <div class="app-user">
+            <a class="app-user__main" asp-controller="Account" asp-action="Profile" aria-current="@(Model.ProfileActive ? "page" : null)" data-tip="@L["Nav.Profile"]">
+                <span class="app-user__avatar" aria-hidden="true">@Model.Initials</span>
+                <span class="app-user__text app-sidebar__label"><span class="app-user__name">@Model.UserName</span><span class="app-user__role">@Model.Role.GetDisplayName()</span></span>
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="cf-btn cf-btn--ghost cf-btn--icon app-user__logout" aria-label="@L["Profile.Logout"]" data-tip="@L["Profile.Logout"]"><span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span></button>
+            </form>
+        </div>
     </div>
 </div>

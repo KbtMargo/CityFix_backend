@@ -10,11 +10,12 @@
         (Key: AppealFilter.TabClosed, Label: "Tabs.Closed")
     };
 }
-<div class="cf-tabs" role="tablist" aria-label="@L["Tabs.Label"]">
+@* Links that reload the list, so a nav with aria-current rather than ARIA tabs. *@
+<nav class="cf-tabs" aria-label="@L["Tabs.Label"]">
     @foreach (var tab in tabs)
     {
         var route = Model.Filter.ToRouteValues(includeTab: false);
         if (tab.Key != AppealFilter.TabAll) { route["tab"] = tab.Key; }
-        <a class="cf-tab" role="tab" aria-selected="@(current == tab.Key ? "true" : "false")" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">@L[tab.Label]</a>
+        <a class="cf-tab @(current == tab.Key ? "is-active" : "")" aria-current="@(current == tab.Key ? "true" : null)" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">@L[tab.Label]</a>
     }
-</div>
+</nav>

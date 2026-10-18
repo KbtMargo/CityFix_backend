@@ -8,25 +8,42 @@ namespace CityFix_backend.Services
     public class NotificationService : INotificationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly TimeProvider _clock;
 
-        public NotificationService(ApplicationDbContext context)
+        public NotificationService(ApplicationDbContext context, TimeProvider clock)
         {
             _context = context;
+            _clock = clock;
         }
 
-        public async Task NotifyStatusChangeAsync(Appeal appeal, AppealStatus? newStatus, string? comment = null)
+        // The text is rendered from Type + NewStatus in the reader's language; only free text is stored.
+        public void AddStatusChanged(Appeal appeal, AppealStatus? newStatus, string? comment) =>
+            Add(appeal.AuthorId, appeal, NotificationType.StatusChanged, newStatus, comment);
+
+        public async Task AddNewAppealAsync(Appeal appeal)
         {
-            // The text is rendered from Type + NewStatus in the reader's language; only the comment is stored as text.
-            _context.Notifications.Add(new Notification
+            foreach (var headId in await HeadsOfAsync(appeal.AcabId))
             {
-                UserId = appeal.AuthorId,
-                AppealId = appeal.Id,
-                Type = NotificationType.StatusChanged,
-                NewStatus = newStatus,
-                Message = comment?.Trim() ?? "",
-                CreatedAt = DateTime.UtcNow
-            });
-            await _context.SaveChangesAsync();
+                if (headId != appeal.AuthorId)
+                {
+                    Add(headId, appeal, NotificationType.NewAppeal, null, null);
+                }
+            }
+        }
+
+        public async Task AddAssignedAsync(Appeal appeal, string responsibleName, int actorId)
+        {
+            var recipients = new HashSet<int> { appeal.AuthorId };
+            if (appeal.ResponsibleKind == ResponsibleKind.Association)
+            {
+                recipients.UnionWith(await HeadsOfAsync(appeal.AcabId));
+            }
+            recipients.Remove(actorId);
+
+            foreach (var userId in recipients)
+            {
+                Add(userId, appeal, NotificationType.Assigned, null, responsibleName);
+            }
         }
 
         public Task<List<Notification>> GetForUserAsync(int userId, bool unreadOnly)
@@ -59,5 +76,23 @@ namespace CityFix_backend.Services
             _context.Notifications
                 .Where(n => n.UserId == userId && !n.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+
+        private void Add(int userId, Appeal appeal, NotificationType type, AppealStatus? newStatus, string? message) =>
+            _context.Notifications.Add(new Notification
+            {
+                UserId = userId,
+                AppealId = appeal.Id,
+                Type = type,
+                NewStatus = newStatus,
+                Message = message?.Trim() ?? "",
+                CreatedAt = _clock.GetUtcNow().UtcDateTime
+            });
+
+        private async Task<List<int>> HeadsOfAsync(int? acabId) => acabId == null
+            ? new List<int>()
+            : await _context.Users
+                .Where(u => u.AcabId == acabId && u.Role == UserRole.AcabAdmin && !u.IsBlocked)
+                .Select(u => u.Id)
+                .ToListAsync();
     }
 }

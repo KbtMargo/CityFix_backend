@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using CityFix_backend.ViewModels;
@@ -11,28 +12,25 @@ namespace CityFix_backend.Controllers
     public class DashboardController : AppController
     {
         private readonly IAppealService _appeals;
+        private readonly ILookupService _lookups;
         private readonly IAnalyticsService _analytics;
 
-        public DashboardController(IAppealService appeals, IAnalyticsService analytics)
+        public DashboardController(IAppealService appeals, ILookupService lookups, IAnalyticsService analytics,
+            IUserService users, IStringLocalizer<SharedResource> localizer) : base(users, localizer)
         {
             _appeals = appeals;
+            _lookups = lookups;
             _analytics = analytics;
         }
 
         // GET: Dashboard  (?appealId= opens the detail modal)
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
-            var user = await _appeals.GetUserAsync(CurrentUserId);
-            var list = await AppealListFactory.BuildAsync(_appeals, filter, appealId, user, "Dashboard");
-            if (appealId != null && list.Selected == null)
-            {
-                return NotFound();
-            }
-
+            var actor = await GetActorAsync();
             return View(new DashboardViewModel
             {
-                Kpis = await _analytics.GetDashboardKpisAsync(user.Id),
-                List = list
+                Kpis = await _analytics.GetDashboardKpisAsync(actor),
+                List = await AppealListFactory.BuildAsync(_appeals, _lookups, filter, appealId, actor, "Dashboard")
             });
         }
     }

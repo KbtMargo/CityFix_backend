@@ -1,4 +1,4 @@
-@model Acab
+@model AcabFormViewModel
 @{
     ViewData["Title"] = L["Acabs.Add"].Value;
 }
@@ -7,6 +7,7 @@
     <h1 class="cf-form-page__title">@L["Acabs.Add"]</h1>
     <form asp-action="Create" method="post" class="cf-form-card">
         <partial name="_Form" />
+        <p class="cf-help">@L["Acabs.CodesGenerated"]</p>
         <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
         <button type="submit" class="cf-btn cf-btn--block">@L["Acabs.Add"]</button>
     </form>

@@ -1,4 +1,4 @@
-@model TablePageViewModel<Acab>
+@model TablePageViewModel<AcabRow>
 @{
     ViewData["Title"] = L["Acabs.Title"].Value;
 }
@@ -13,26 +13,29 @@
     </div>
 </div>
 
+<partial name="_TableSearch" model="Model.Q" />
+
 <div class="cf-table-card">
     <div class="cf-table-scroll">
         <table class="cf-table">
             <thead>
                 <tr>
                     <th scope="col">@L["Field.Name"]</th>
-                    <th scope="col">@L["Field.InvitationCode"]</th>
+                    <th scope="col">@L["Field.ResidentCode"]</th>
+                    <th scope="col">@L["Field.HeadCode"]</th>
                     <th scope="col">@L["Acabs.Col.Members"]</th>
-                    <th scope="col">@L["Field.CreatedAt"]</th>
+                    <th scope="col">@L["Users.Col.Appeals"]</th>
                     <th scope="col" class="cf-center">@L["Table.Actions"]</th>
                 </tr>
             </thead>
             <tbody>
                 @if (Model.Page.Items.Count == 0)
                 {
-                    <tr><td colspan="5" class="cf-table__empty">@L["Acabs.Empty"]</td></tr>
+                    <tr><td colspan="6" class="cf-table__empty">@L[string.IsNullOrWhiteSpace(Model.Q) ? "Acabs.Empty" : "Empty.Filtered"]</td></tr>
                 }
-                @foreach (var a in Model.Page.Items)
+                @foreach (var row in Model.Page.Items)
                 {
-                    var members = Model.Count(a.Id);
+                    var a = row.Acab;
                     <tr>
                         <td class="cf-strong">
                             <div class="cf-table__name">@a.Name</div>
@@ -41,13 +44,14 @@
                                 <div class="cf-table__sub">@a.Address</div>
                             }
                         </td>
-                        <td><code>@a.InvitationCode</code></td>
-                        <td><span class="cf-tag @(members > 0 ? "cf-tag--count" : "cf-tag--zero")">@members</span></td>
-                        <td>@a.CreatedAt.ToDate()</td>
+                        <td><code>@a.ResidentCode</code></td>
+                        <td><code>@a.HeadCode</code></td>
+                        <td><span class="cf-tag @(row.MemberCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.MemberCount</span></td>
+                        <td><span class="cf-tag @(row.AppealCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.AppealCount</span></td>
                         <td>
                             <div class="cf-row-actions">
                                 <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@a.Id" aria-label="@L["Common.EditItem", a.Name]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
-                                @if (members > 0)
+                                @if (!row.CanDelete)
                                 {
                                     <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", a.Name]" title="@L["Acabs.CannotDelete"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
                                 }
@@ -62,5 +66,5 @@
             </tbody>
         </table>
     </div>
-    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page)" />
+    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page, Model.Q)" />
 </div>

@@ -2,44 +2,39 @@ using CityFix_backend.Models;
 
 namespace CityFix_backend.Services.Interfaces
 {
-    // Reference data for the appeal form and the filters popover.
-    public record AppealLookups(
-        IReadOnlyList<Category> Categories,
-        IReadOnlyList<Recipient> Recipients,
-        IReadOnlyList<Acab> Acabs);
-
-    // Sidebar stats box: open = New + InProgress, closed = Done + Rejected.
-    public record AppealStats(int Open, int Closed);
-
-    // Access rules (enforced here, not only in controllers):
-    //  - Resident: sees and manages only appeals they authored.
-    //  - AcabAdmin: also appeals authored by members of their own association.
-    //  - Administrator: everything.
-    // Only AcabAdmin/Administrator ("staff") change Status (UpdateStatusAsync) and Priority (UpdateAsync).
-    // Methods taking an appeal id throw UnauthorizedAccessException when the user may not access it.
+    // Appeals. Access rules come from AppealPolicy and are enforced here, not only in controllers.
+    // Methods taking an appeal id throw NotFoundException / ForbiddenException, and
+    // ServiceValidationException when a business rule is broken.
     public interface IAppealService
     {
-        Task<PagedResult<Appeal>> GetFilteredAsync(AppealFilter filter, int userId);
+        Task<AppealPage> GetFilteredAsync(AppealFilter filter, User actor);
 
-        // With author, category, recipient, photos and status history. Null if it doesn't exist.
-        Task<Appeal?> GetByIdAsync(int id, int userId);
+        // The appeal with author, category, responsible party, photos and history, plus what the actor may do.
+        Task<AppealDetails> GetDetailsAsync(int id, User actor);
 
-        // The author is always the given user; status starts as New and priority as Normal.
-        Task<Appeal> CreateAsync(Appeal appeal, int userId);
+        // For the edit form: only when the actor may edit it.
+        Task<Appeal> GetForEditAsync(int id, User actor);
 
-        // Copies the fields this user may edit; false if the appeal doesn't exist.
-        Task<bool> UpdateAsync(Appeal appeal, int userId);
+        // The author is the actor, the association is the author's; status New, priority Normal.
+        // The appeal, its photos and the heads' notifications are saved in one transaction.
+        Task<Appeal> CreateAsync(AppealInput input, IReadOnlyCollection<IFormFile> photos, User actor);
 
-        // Records an AppealUpdate and notifies the author. Moving to Done requires a comment
-        // (ServiceValidationException on "Comment"). Staff only.
-        Task UpdateStatusAsync(int appealId, AppealStatus newStatus, string? comment, int changedByUserId);
+        Task UpdateAsync(int id, AppealInput input, IReadOnlyCollection<IFormFile> photos, User actor);
 
-        Task DeleteAsync(int id, int userId);
+        // Status (AppealWorkflow), priority and comment, recorded as one AppealUpdate; the author is notified.
+        Task ProcessAsync(int id, AppealProcessInput input, User actor);
 
-        Task<AppealStats> GetStatsAsync(int userId);
+        // Makes the association or a recipient responsible; the author (and the heads) are notified.
+        Task AssignAsync(int id, ResponsibleKind responsible, int? recipientId, User actor);
 
-        Task<User> GetUserAsync(int userId);
+        Task DeleteAsync(int id, User actor);
 
-        Task<AppealLookups> GetLookupsAsync();
+        Task<AppealStats> GetStatsAsync(User actor);
+
+        // Open appeals of the category within the search radius of the point (the create form's warning).
+        Task<IReadOnlyList<SimilarAppeal>> FindSimilarAsync(double lat, double lng, int categoryId, int? excludeId, User actor);
+
+        // Every appeal matching the filter (no paging), for the CSV / JSON export.
+        Task<IReadOnlyList<AppealExportRow>> ExportAsync(AppealFilter filter, User actor);
     }
 }

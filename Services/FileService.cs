@@ -1,15 +1,12 @@
 using CityFix_backend.Data;
 using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
     public class FileService : IFileService
     {
-        public const int MaxPhotos = 5;
-        public const long MaxBytes = 10 * 1024 * 1024;
-
         // Extension per accepted type, plus the file signature the content must start with.
         private static readonly Dictionary<string, (string Extension, byte[][] Signatures)> Accepted = new()
         {
@@ -21,25 +18,31 @@ namespace CityFix_backend.Services
 
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly UploadOptions _options;
+        private readonly TimeProvider _clock;
 
-        public FileService(ApplicationDbContext context, IWebHostEnvironment env)
+        public FileService(ApplicationDbContext context, IWebHostEnvironment env, IOptions<UploadOptions> options, TimeProvider clock)
         {
             _context = context;
             _env = env;
+            _options = options.Value;
+            _clock = clock;
         }
+
+        public int MaxPhotos => _options.MaxPhotos;
 
         public void ValidatePhotos(IReadOnlyCollection<IFormFile> photos, int alreadyAttached = 0)
         {
-            if (photos.Count + alreadyAttached > MaxPhotos)
+            if (photos.Count + alreadyAttached > _options.MaxPhotos)
             {
-                throw new ServiceValidationException("Photos", "Validation.PhotosTooMany");
+                throw new ServiceValidationException("Photos", "Validation.PhotosTooMany", _options.MaxPhotos);
             }
 
             foreach (var photo in photos)
             {
-                if (photo.Length == 0 || photo.Length > MaxBytes)
+                if (photo.Length == 0 || photo.Length > _options.MaxBytes)
                 {
-                    throw new ServiceValidationException("Photos", "Validation.PhotoTooLarge");
+                    throw new ServiceValidationException("Photos", "Validation.PhotoTooLarge", _options.MaxBytes / (1024 * 1024));
                 }
                 if (DetectType(photo) == null)
                 {
@@ -48,51 +51,56 @@ namespace CityFix_backend.Services
             }
         }
 
-        public async Task<List<AppealFile>> SaveAppealPhotosAsync(int appealId, IReadOnlyCollection<IFormFile> photos)
+        public async Task<IReadOnlyList<string>> WriteAppealPhotosAsync(Appeal appeal, IReadOnlyCollection<IFormFile> photos)
         {
-            ValidatePhotos(photos, await CountAppealPhotosAsync(appealId));
+            var written = new List<string>();
+            if (photos.Count == 0) return written;
 
-            var folder = Path.Combine(_env.WebRootPath, "uploads", "appeals", appealId.ToString());
+            var folder = FolderOf(appeal.Id);
             Directory.CreateDirectory(folder);
 
-            var saved = new List<AppealFile>();
             foreach (var photo in photos)
             {
                 // Never use the client's file name or content type on disk: both come from the browser.
                 var contentType = DetectType(photo)!;
-                var extension = Accepted[contentType].Extension;
-                var storedName = $"{Guid.NewGuid():N}{extension}";
-                await using (var stream = File.Create(Path.Combine(folder, storedName)))
+                var storedName = $"{Guid.NewGuid():N}{Accepted[contentType].Extension}";
+                var fullPath = Path.Combine(folder, storedName);
+                await using (var stream = File.Create(fullPath))
                 {
                     await photo.CopyToAsync(stream);
                 }
+                written.Add(fullPath);
 
-                saved.Add(new AppealFile
+                _context.AppealFiles.Add(new AppealFile
                 {
-                    AppealId = appealId,
+                    AppealId = appeal.Id,
                     FileName = Path.GetFileName(photo.FileName),
-                    FilePath = $"uploads/appeals/{appealId}/{storedName}",
+                    FilePath = $"uploads/appeals/{appeal.Id}/{storedName}",
                     ContentType = contentType,
-                    UploadedAt = DateTime.UtcNow
+                    UploadedAt = _clock.GetUtcNow().UtcDateTime
                 });
             }
-
-            _context.AppealFiles.AddRange(saved);
-            await _context.SaveChangesAsync();
-            return saved;
+            return written;
         }
 
-        public Task<int> CountAppealPhotosAsync(int appealId) =>
-            _context.AppealFiles.CountAsync(f => f.AppealId == appealId);
+        public void DeleteFiles(IEnumerable<string> paths)
+        {
+            foreach (var path in paths)
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
 
         public void DeleteAppealFolder(int appealId)
         {
-            var folder = Path.Combine(_env.WebRootPath, "uploads", "appeals", appealId.ToString());
+            var folder = FolderOf(appealId);
             if (Directory.Exists(folder))
             {
                 Directory.Delete(folder, recursive: true);
             }
         }
+
+        private string FolderOf(int appealId) => Path.Combine(_env.WebRootPath, "uploads", "appeals", appealId.ToString());
 
         // The real image type, from the file's first bytes; null if it isn't a PNG/JPEG/GIF/WebP.
         private static string? DetectType(IFormFile photo)

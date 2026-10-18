@@ -31,7 +31,7 @@
             <a href="#roles">@L["Landing.Nav.Roles"]</a>
         </nav>
         <div class="app-landing-header__actions">
-            <div class="app-landing-header__lang"><partial name="_CultureSwitch" /></div>
+            <div class="app-landing-header__lang"><partial name="_ThemeToggle" /><partial name="_CultureSwitch" /></div>
             <a class="cf-applink cf-applink--soft app-landing-header__login" asp-controller="Account" asp-action="Login">@L["Auth.Login.Submit"]</a>
             <a class="cf-applink" asp-controller="Account" asp-action="Register">@L["Auth.Register.Submit"]</a>
         </div>

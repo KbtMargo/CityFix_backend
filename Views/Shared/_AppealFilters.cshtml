@@ -44,13 +44,28 @@
                     </div>
                 </div>
                 <div class="cf-popover__field">
-                    <label class="cf-label" for="filter-recipient">@L["Field.Recipient"]</label>
+                    <label class="cf-label" for="filter-responsible">@L["Field.Responsible"]</label>
                     <div class="cf-select">
-                        <select id="filter-recipient" name="recipientId">
-                            <option value="">@L["Filters.AllRecipients"]</option>
-                            @foreach (var r in Model.Lookups.Recipients)
+                        <select id="filter-responsible" name="responsible">
+                            <option value="">@L["Filters.AllResponsible"]</option>
+                            <option value="@AppealFilter.ResponsibleAcab" selected="@f.ResponsibleIsAcab">@L["Responsible.AnyAcab"]</option>
+                            <optgroup label="@L["Responsible.Services"]">
+                                @foreach (var r in Model.Lookups.Recipients)
+                                {
+                                    <option value="@r.Id" selected="@(f.ResponsibleRecipientId == r.Id)">@r.Name</option>
+                                }
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div class="cf-popover__field">
+                    <label class="cf-label" for="filter-priority">@L["Field.Priority"]</label>
+                    <div class="cf-select">
+                        <select id="filter-priority" name="priority">
+                            <option value="">@L["Filters.AllPriorities"]</option>
+                            @foreach (var p in Enum.GetValues<AppealPriority>())
                             {
-                                <option value="@r.Id" selected="@(f.RecipientId == r.Id)">@r.Name</option>
+                                <option value="@p" selected="@(f.Priority == p)">@p.GetDisplayName()</option>
                             }
                         </select>
                     </div>

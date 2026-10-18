@@ -21,7 +21,10 @@
                 <div><label class="cf-auth__label" asp-for="Password"></label><input asp-for="Password" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
                 <div><label class="cf-auth__label" asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
             </div>
-            <div><label class="cf-auth__label" asp-for="InvitationCode"></label><input asp-for="InvitationCode" class="cf-auth__input" autocomplete="off" spellcheck="false" placeholder="@L["Auth.Register.CodePlaceholder"]" /></div>
+            <div>
+                <label class="cf-auth__label" asp-for="InvitationCode"></label><input asp-for="InvitationCode" class="cf-auth__input" autocomplete="off" spellcheck="false" placeholder="@L["Auth.Register.CodePlaceholder"]" aria-describedby="code-hint" />
+                <p class="cf-field__hint" id="code-hint">@L["Auth.Register.CodeHint"]</p>
+            </div>
             @if (error != null)
             {
                 <p class="cf-auth__error" role="alert">@error</p>

@@ -4,6 +4,7 @@ using CityFix_backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -20,6 +21,7 @@ namespace CityFix_backend.Migrations
                 .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("CityFix_backend.Models.Acab", b =>
@@ -36,18 +38,30 @@ namespace CityFix_backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("InvitationCode")
+                    b.Property<string>("HeadCode")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ResidentCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HeadCode")
+                        .IsUnique();
+
+                    b.HasIndex("ResidentCode")
+                        .IsUnique();
 
                     b.ToTable("Acabs");
                 });
@@ -59,6 +73,9 @@ namespace CityFix_backend.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AcabId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Address")
                         .HasMaxLength(300)
@@ -78,15 +95,25 @@ namespace CityFix_backend.Migrations
                         .HasColumnType("character varying(1000)");
 
                     b.Property<decimal?>("Lat")
-                        .HasColumnType("numeric");
+                        .HasPrecision(8, 5)
+                        .HasColumnType("numeric(8,5)");
 
                     b.Property<decimal?>("Lng")
-                        .HasColumnType("numeric");
+                        .HasPrecision(8, 5)
+                        .HasColumnType("numeric(8,5)");
+
+                    b.Property<Point>("Location")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("geography (point, 4326)")
+                        .HasComputedColumnSql("ST_SetSRID(ST_MakePoint(\"Lng\"::double precision, \"Lat\"::double precision), 4326)::geography", true);
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 
                     b.Property<int?>("RecipientId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ResponsibleKind")
                         .HasColumnType("integer");
 
                     b.Property<int>("Status")
@@ -100,13 +127,27 @@ namespace CityFix_backend.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Location");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "gist");
+
                     b.HasIndex("RecipientId");
+
+                    b.HasIndex("AcabId", "Status");
 
                     b.ToTable("Appeals");
                 });
@@ -155,6 +196,9 @@ namespace CityFix_backend.Migrations
                     b.Property<int>("AppealId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AssignedTo")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -164,7 +208,13 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("Comment")
                         .HasColumnType("text");
 
+                    b.Property<int?>("NewPriority")
+                        .HasColumnType("integer");
+
                     b.Property<int>("NewStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("OldPriority")
                         .HasColumnType("integer");
 
                     b.Property<int>("OldStatus")
@@ -187,12 +237,10 @@ namespace CityFix_backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Icon")
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -247,11 +295,13 @@ namespace CityFix_backend.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ContactInfo")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
@@ -279,6 +329,9 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .HasColumnType("text");
@@ -308,22 +361,29 @@ namespace CityFix_backend.Migrations
 
             modelBuilder.Entity("CityFix_backend.Models.Appeal", b =>
                 {
+                    b.HasOne("CityFix_backend.Models.Acab", "Acab")
+                        .WithMany()
+                        .HasForeignKey("AcabId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CityFix_backend.Models.User", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CityFix_backend.Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CityFix_backend.Models.Recipient", "Recipient")
                         .WithMany()
                         .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Acab");
 
                     b.Navigation("Author");
 
@@ -384,7 +444,8 @@ namespace CityFix_backend.Migrations
                 {
                     b.HasOne("CityFix_backend.Models.Acab", "Acab")
                         .WithMany()
-                        .HasForeignKey("AcabId");
+                        .HasForeignKey("AcabId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Acab");
                 });

@@ -10,24 +10,31 @@ namespace CityFix_backend.Services
     public class AnalyticsService : IAnalyticsService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IAppealService _appeals;
+        private readonly TimeProvider _clock;
 
-        public AnalyticsService(ApplicationDbContext context, IAppealService appeals)
+        public AnalyticsService(ApplicationDbContext context, TimeProvider clock)
         {
             _context = context;
-            _appeals = appeals;
+            _clock = clock;
         }
 
-        private record Row(int Id, DateTime CreatedAt, AppealStatus Status, AppealPriority Priority, string Category);
+        private record Row(int Id, DateTime CreatedAt, AppealStatus Status);
 
         private record Change(int AppealId, AppealStatus OldStatus, AppealStatus NewStatus, DateTime ChangedAt);
 
-        public async Task<DashboardKpis> GetDashboardKpisAsync(int userId)
+        public async Task<DashboardKpis> GetDashboardKpisAsync(User actor)
         {
-            var (rows, changes) = await LoadAsync(userId);
-            var now = DateTime.UtcNow;
-            var todayKyiv = now.ToKyiv().Date;
+            var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
+            var rows = await visible.Select(a => new Row(a.Id, a.CreatedAt, a.Status)).ToListAsync();
 
+            // Only real status changes count: a comment or a priority change is not a response.
+            var changes = await _context.AppealUpdates.AsNoTracking()
+                .Where(u => u.OldStatus != u.NewStatus && visible.Any(a => a.Id == u.AppealId))
+                .Select(u => new Change(u.AppealId, u.OldStatus, u.NewStatus, u.ChangedAt))
+                .ToListAsync();
+
+            var now = _clock.GetUtcNow().UtcDateTime;
+            var todayKyiv = now.ToKyiv().Date;
             return new DashboardKpis(
                 ActiveKpi(rows, changes, now, todayKyiv),
                 ClosedThisMonthKpi(changes, todayKyiv),
@@ -35,46 +42,33 @@ namespace CityFix_backend.Services
                 AvgResponseKpi(rows, changes, now));
         }
 
-        public async Task<AnalyticsData> GetAnalyticsAsync(int userId)
+        // The charts are grouped by the database; only the last 30 days of creation dates are loaded.
+        public async Task<AnalyticsData> GetAnalyticsAsync(User actor)
         {
-            var (rows, _) = await LoadAsync(userId);
-            var todayKyiv = DateTime.UtcNow.ToKyiv().Date;
+            var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
 
-            var byCategory = rows.GroupBy(r => r.Category)
-                .OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
-                .ToList();
+            var byStatus = await visible.GroupBy(a => a.Status).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
+            var byPriority = await visible.GroupBy(a => a.Priority).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
+            var byCategory = await visible.GroupBy(a => a.Category!.Name).Select(g => new { Name = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count).ThenBy(x => x.Name).ToListAsync();
 
+            var todayKyiv = _clock.GetUtcNow().UtcDateTime.ToKyiv().Date;
             var days = Enumerable.Range(0, 30).Select(i => todayKyiv.AddDays(i - 29)).ToList();
-            var perDay = days.Select(d => rows.Count(r => r.CreatedAt.ToKyiv().Date == d)).ToList();
+            var fromUtc = UiFormat.KyivDayStartUtc(days[0]);
+            var recent = await visible.Where(a => a.CreatedAt >= fromUtc).Select(a => a.CreatedAt).ToListAsync();
+            var perDay = days.Select(d => recent.Count(c => c.ToKyiv().Date == d)).ToList();
 
             var statuses = Enum.GetValues<AppealStatus>();
             var priorities = Enum.GetValues<AppealPriority>();
+            int Status(AppealStatus s) => byStatus.GetValueOrDefault(s);
 
             return new AnalyticsData(
-                rows.Count,
-                rows.Count(r => r.Status == AppealStatus.New),
-                rows.Count(r => r.Status == AppealStatus.InProgress),
-                rows.Count(r => r.Status == AppealStatus.Done),
-                rows.Count(r => r.Status == AppealStatus.Rejected),
-                new ChartData(byCategory.Select(g => g.Key).ToList(), byCategory.Select(g => g.Count()).ToList()),
+                byStatus.Values.Sum(),
+                Status(AppealStatus.New), Status(AppealStatus.InProgress), Status(AppealStatus.Done), Status(AppealStatus.Rejected),
+                new ChartData(byCategory.Select(c => c.Name).ToList(), byCategory.Select(c => c.Count).ToList()),
                 new ChartData(days.Select(d => d.ToString("dd.MM", CultureInfo.InvariantCulture)).ToList(), perDay),
-                new ChartData(statuses.Select(s => s.GetDisplayName()).ToList(), statuses.Select(s => rows.Count(r => r.Status == s)).ToList()),
-                new ChartData(priorities.Select(p => p.GetDisplayName()).ToList(), priorities.Select(p => rows.Count(r => r.Priority == p)).ToList()));
-        }
-
-        private async Task<(List<Row> Rows, List<Change> Changes)> LoadAsync(int userId)
-        {
-            var actor = await _appeals.GetUserAsync(userId);
-            var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
-
-            var rows = await visible
-                .Select(a => new Row(a.Id, a.CreatedAt, a.Status, a.Priority, a.Category!.Name))
-                .ToListAsync();
-            var changes = await _context.AppealUpdates.AsNoTracking()
-                .Where(u => visible.Any(a => a.Id == u.AppealId))
-                .Select(u => new Change(u.AppealId, u.OldStatus, u.NewStatus, u.ChangedAt))
-                .ToListAsync();
-            return (rows, changes);
+                new ChartData(statuses.Select(s => s.GetDisplayName()).ToList(), statuses.Select(Status).ToList()),
+                new ChartData(priorities.Select(p => p.GetDisplayName()).ToList(), priorities.Select(p => byPriority.GetValueOrDefault(p)).ToList()));
         }
 
         // Active appeals now vs a week ago; fewer is good. Sparkline: open count at the end of each of the last 7 days.

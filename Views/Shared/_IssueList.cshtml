@@ -28,16 +28,25 @@ else
             var route = Model.Filter.ToRouteValues(includePage: true);
             route["appealId"] = a.Id.ToString();
             var photo = a.Files.FirstOrDefault();
+            var responsible = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.Name : a.Recipient?.Name;
             <a class="cf-issue cf-card" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">
                 <div class="cf-issue__row">
                     <div class="cf-issue__main">
                         <h4 class="cf-issue__title">@a.Title</h4>
-                        <div class="cf-issue__tags"><span class="cf-pill cf-pill--neutral">@a.Category?.Name</span></div>
+                        <div class="cf-issue__tags">
+                            <partial name="_StatusPill" model="a.Status" />
+                            <partial name="_PriorityPill" model="a.Priority" />
+                            <span class="cf-pill cf-pill--neutral">@a.Category?.Name</span>
+                            @if (Model.PossibleDuplicates.Contains(a.Id))
+                            {
+                                <span class="cf-badge cf-badge--warning" title="@L["Similar.DuplicateHint"]">@L["Similar.Duplicate"]</span>
+                            }
+                        </div>
                         <p class="cf-issue__excerpt">@(a.Description ?? L["Appeal.NoDescription"].Value)</p>
                         <div class="cf-issue__meta">
                             <span><span class="cf-icon cf-icon--pin cf-icon--4" aria-hidden="true"></span>@(a.Address ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</span>
                             <span><span class="cf-icon cf-icon--clock cf-icon--4" aria-hidden="true"></span>@a.CreatedAt.ToDate()</span>
-                            <span><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span>@(a.Recipient?.Name ?? L["Appeal.NoRecipient"].Value)</span>
+                            <span><span class="cf-icon cf-icon--wrench cf-icon--4" aria-hidden="true"></span>@(responsible ?? L["Appeal.NoResponsible"].Value)</span>
                         </div>
                     </div>
                     @if (photo != null)

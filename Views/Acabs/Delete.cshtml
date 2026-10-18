@@ -1,14 +1,13 @@
-@model Acab
+@model DeleteCheck
 @{
     ViewData["Title"] = L["Acabs.DeleteTitle"].Value;
-    var members = ViewData["MemberCount"] as int? ?? 0;
     var dialog = new DeleteDialogModel(
         Model.Id,
         L["Acabs.DeleteTitle"],
         L["Common.CannotUndo"],
         L["Common.Delete"],
         "Index",
-        BlockedTitle: members > 0 ? L["Acabs.CannotDeleteTitle"].Value : null,
-        BlockedText: members > 0 ? L["Acabs.CannotDeleteText", members].Value : null);
+        BlockedTitle: Model.Blocked ? L["Acabs.CannotDeleteTitle"].Value : null,
+        BlockedText: Model.Blocked ? L[Model.BlockedKey!, Model.UsageCount].Value : null);
 }
 <partial name="_DeleteDialog" model="dialog" />

@@ -17,6 +17,15 @@ namespace CityFix_backend.Services
         public int From => TotalCount == 0 ? 0 : (PageNumber - 1) * PageSize + 1;
         public int To => Math.Min(PageNumber * PageSize, TotalCount);
 
+        // The same page with every item converted (e.g. entities to table rows).
+        public PagedResult<TOut> Map<TOut>(Func<T, TOut> convert) => new()
+        {
+            Items = Items.Select(convert).ToList(),
+            PageNumber = PageNumber,
+            PageSize = PageSize,
+            TotalCount = TotalCount
+        };
+
         // Clamps the requested page into 1..TotalPages for the given total.
         public static int ClampPage(int page, int totalCount, int pageSize = DefaultPageSize)
         {

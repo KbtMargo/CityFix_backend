@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using CityFix_backend.Services.Interfaces;
 
 namespace CityFix_backend.Controllers
@@ -10,7 +11,8 @@ namespace CityFix_backend.Controllers
     {
         private readonly IAnalyticsService _analytics;
 
-        public AnalyticsController(IAnalyticsService analytics)
+        public AnalyticsController(IAnalyticsService analytics, IUserService users, IStringLocalizer<SharedResource> localizer)
+            : base(users, localizer)
         {
             _analytics = analytics;
         }
@@ -18,7 +20,7 @@ namespace CityFix_backend.Controllers
         // GET: Analytics
         public async Task<IActionResult> Index()
         {
-            return View(await _analytics.GetAnalyticsAsync(CurrentUserId));
+            return View(await _analytics.GetAnalyticsAsync(await GetActorAsync()));
         }
     }
 }

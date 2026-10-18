@@ -1,16 +1,41 @@
-@model User
+@model UserFormViewModel
 @{
     ViewData["Title"] = L["Users.Edit"].Value;
 }
-<div class="cf-form-page">
-    <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Users.Back"]</a>
-    <h1 class="cf-form-page__title">@L["Users.Edit"]</h1>
-    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="cf-form-card">
-        <input type="hidden" asp-for="Id" />
-        <partial name="_Form" />
-        <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
-        <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
-    </form>
+<div class="cf-form-page cf-stack-6">
+    <div>
+        <a class="cf-back-link" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Users.Back"]</a>
+        <h1 class="cf-form-page__title">@L["Users.Edit"]</h1>
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="cf-form-card">
+            <input type="hidden" asp-for="Id" />
+            <partial name="_Form" />
+            <div asp-validation-summary="ModelOnly" class="cf-auth__error"></div>
+            <button type="submit" class="cf-btn cf-btn--block">@L["Common.SaveChanges"]</button>
+        </form>
+    </div>
+
+    @* Account access: a temporary password, and blocking (signs the user out at their next request). *@
+    <div class="cf-form-card">
+        <h2 class="cf-card__h cf-card__h--lg">@L["Users.Access"]</h2>
+        <div class="app-code-row">
+            <div>
+                <div class="cf-label">@L["Users.ResetPassword"]</div>
+                <p class="cf-field__hint">@L["Users.ResetPasswordHint"]</p>
+            </div>
+            <form asp-action="ResetPassword" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="cf-btn cf-btn--outline cf-btn--sm">@L["Users.ResetPassword"]</button>
+            </form>
+        </div>
+        <div class="app-code-row">
+            <div>
+                <div class="cf-label">@L[Model.IsBlocked ? "Users.BlockedState" : "Users.ActiveState"]</div>
+                <p class="cf-field__hint">@L[Model.IsBlocked ? "Users.UnblockHint" : "Users.BlockHint"]</p>
+            </div>
+            <form asp-action="SetBlocked" asp-route-id="@Model.Id" asp-route-blocked="@(!Model.IsBlocked)" method="post">
+                <button type="submit" class="cf-btn @(Model.IsBlocked ? "cf-btn--outline" : "cf-btn--destructive") cf-btn--sm">@L[Model.IsBlocked ? "Users.Unblock" : "Users.Block"]</button>
+            </form>
+        </div>
+    </div>
 </div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -1,14 +1,13 @@
-@model Category
+@model DeleteCheck
 @{
     ViewData["Title"] = L["Categories.DeleteTitle"].Value;
-    var appeals = ViewData["AppealCount"] as int? ?? 0;
     var dialog = new DeleteDialogModel(
         Model.Id,
         L["Categories.DeleteTitle"],
         L["Common.CannotUndo"],
         L["Common.Delete"],
         "Index",
-        BlockedTitle: appeals > 0 ? L["Categories.CannotDeleteTitle"].Value : null,
-        BlockedText: appeals > 0 ? L["Common.HasAppealsText", appeals].Value : null);
+        BlockedTitle: Model.Blocked ? L["Categories.CannotDeleteTitle"].Value : null,
+        BlockedText: Model.Blocked ? L[Model.BlockedKey!, Model.UsageCount].Value : null);
 }
 <partial name="_DeleteDialog" model="dialog" />

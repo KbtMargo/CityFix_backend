@@ -86,7 +86,7 @@
   <data name="Empty.Filtered" xml:space="preserve"><value>Нічого не знайдено за поточними фільтрами.</value></data>
   <data name="Empty.NoAppealsYet" xml:space="preserve"><value>Ви ще не створювали жодного звернення.</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Тут поки порожньо</value></data>
-  <data name="Empty.StaffText" xml:space="preserve"><value>Нові звернення мешканців з&apos;являться тут.</value></data>
+  <data name="Empty.StaffText" xml:space="preserve"><value>Нові звернення мешканців з'являться тут.</value></data>
   <data name="Appeal.NoDescription" xml:space="preserve"><value>Без опису</value></data>
   <data name="Appeal.Coordinates" xml:space="preserve"><value>Координати: {0}, {1}</value></data>
   <data name="Appeal.NoRecipient" xml:space="preserve"><value>Отримувача не вказано</value></data>
@@ -123,13 +123,13 @@
   <data name="Update.Title" xml:space="preserve"><value>Оновити звернення</value></data>
   <data name="Update.Comment" xml:space="preserve"><value>Коментар (опційно)</value></data>
   <data name="Update.CommentPlaceholder" xml:space="preserve"><value>Додайте коментар про зміну...</value></data>
-  <data name="Update.CommentHint" xml:space="preserve"><value>Для статусу «Виконано» коментар обов&apos;язковий.</value></data>
+  <data name="Update.CommentHint" xml:space="preserve"><value>Для статусу «Виконано» коментар обов'язковий.</value></data>
   <data name="Form.TitlePlaceholder" xml:space="preserve"><value>Коротко опишіть проблему</value></data>
   <data name="Form.TitleHint" xml:space="preserve"><value>Від 5 до 100 символів</value></data>
   <data name="Form.DescriptionLabel" xml:space="preserve"><value>Детальний опис (опційно)</value></data>
   <data name="Form.DescriptionPlaceholder" xml:space="preserve"><value>Додайте більше деталей про проблему...</value></data>
   <data name="Form.Location" xml:space="preserve"><value>Місцезнаходження</value></data>
-  <data name="Form.LocationHelp" xml:space="preserve"><value>Введіть адресу, використайте геолокацію, або оберіть точку на карті.</value></data>
+  <data name="Form.LocationHelp" xml:space="preserve"><value>Позначте місце на карті або знайдіть його за адресою — адреса підставиться автоматично. Якщо пошук адреси недоступний, введіть її вручну.</value></data>
   <data name="Form.AddressPlaceholder" xml:space="preserve"><value>Введіть адресу...</value></data>
   <data name="Form.Locate" xml:space="preserve"><value>Визначити поточне місцезнаходження</value></data>
   <data name="Form.LocateFailed" xml:space="preserve"><value>Не вдалося визначити місцезнаходження. Оберіть точку на карті.</value></data>
@@ -153,7 +153,7 @@
   <data name="Analytics.ByStatus" xml:space="preserve"><value>Звернення за статусом</value></data>
   <data name="Analytics.ByPriority" xml:space="preserve"><value>Звернення за пріоритетом</value></data>
   <data name="Analytics.EmptyTitle" xml:space="preserve"><value>Даних поки немає</value></data>
-  <data name="Analytics.EmptyText" xml:space="preserve"><value>Графіки з&apos;являться після перших звернень.</value></data>
+  <data name="Analytics.EmptyText" xml:space="preserve"><value>Графіки з'являться після перших звернень.</value></data>
   <data name="Notifications.Title" xml:space="preserve"><value>Сповіщення</value></data>
   <data name="Notifications.Sub" xml:space="preserve"><value>Слідкуйте за оновленнями по вашим зверненням</value></data>
   <data name="Notifications.MarkAll" xml:space="preserve"><value>Позначити всі як прочитані</value></data>
@@ -235,9 +235,9 @@
   <data name="Acabs.Empty" xml:space="preserve"><value>ОСББ ще не додано.</value></data>
   <data name="Acabs.Col.Members" xml:space="preserve"><value>Мешканців</value></data>
   <data name="Acabs.CodeHint" xml:space="preserve"><value>Хто зареєструється з цим кодом, стане головою ОСББ.</value></data>
-  <data name="Acabs.CannotDelete" xml:space="preserve"><value>Є мешканці, видалення недоступне</value></data>
+  <data name="Acabs.CannotDelete" xml:space="preserve"><value>Є мешканці або звернення, видалення недоступне</value></data>
   <data name="Acabs.CannotDeleteTitle" xml:space="preserve"><value>Неможливо видалити ОСББ</value></data>
-  <data name="Acabs.CannotDeleteText" xml:space="preserve"><value>До ОСББ прив&apos;язано користувачів: {0}. Спочатку змініть їм ОСББ.</value></data>
+  <data name="Acabs.CannotDeleteText" xml:space="preserve"><value>До ОСББ прив'язано користувачів: {0}. Спочатку змініть їм ОСББ.</value></data>
   <data name="Acabs.DeleteTitle" xml:space="preserve"><value>Видалити ОСББ?</value></data>
   <data name="Categories.Title" xml:space="preserve"><value>Категорії</value></data>
   <data name="Categories.Total" xml:space="preserve"><value>Всього категорій</value></data>
@@ -277,8 +277,8 @@
   <data name="Field.CurrentPassword" xml:space="preserve"><value>Поточний пароль</value></data>
   <data name="Field.NewPassword" xml:space="preserve"><value>Новий пароль</value></data>
   <data name="Field.ConfirmNewPassword" xml:space="preserve"><value>Підтвердіть новий пароль</value></data>
-  <data name="Field.RememberMe" xml:space="preserve"><value>Запам&apos;ятати мене</value></data>
-  <data name="Field.FirstName" xml:space="preserve"><value>Ім&apos;я</value></data>
+  <data name="Field.RememberMe" xml:space="preserve"><value>Запам'ятати мене</value></data>
+  <data name="Field.FirstName" xml:space="preserve"><value>Ім'я</value></data>
   <data name="Field.LastName" xml:space="preserve"><value>Прізвище</value></data>
   <data name="Field.Phone" xml:space="preserve"><value>Телефон</value></data>
   <data name="Field.PhoneOptional" xml:space="preserve"><value>Номер телефону (опційно)</value></data>
@@ -302,6 +302,14 @@
   <data name="Enum.UserRole.AcabAdmin" xml:space="preserve"><value>Голова ОСББ</value></data>
   <data name="Enum.UserRole.Administrator" xml:space="preserve"><value>Адміністратор</value></data>
   <data name="Time.JustNow" xml:space="preserve"><value>Щойно</value></data>
+  <data name="Time.MinutesAgo" xml:space="preserve"><value>{0} хв тому</value></data>
+  <data name="Shell.Skip" xml:space="preserve"><value>Перейти до вмісту</value></data>
+  <data name="Shell.Collapse" xml:space="preserve"><value>Згорнути меню</value></data>
+  <data name="Shell.Expand" xml:space="preserve"><value>Розгорнути меню</value></data>
+  <data name="Shell.Open" xml:space="preserve"><value>Відкрити меню</value></data>
+  <data name="Shell.Close" xml:space="preserve"><value>Закрити меню</value></data>
+  <data name="Theme.ToDark" xml:space="preserve"><value>Увімкнути темну тему</value></data>
+  <data name="Theme.ToLight" xml:space="preserve"><value>Увімкнути світлу тему</value></data>
   <data name="Time.HoursAgo" xml:space="preserve"><value>{0} год тому</value></data>
   <data name="Time.DaysAgo" xml:space="preserve"><value>{0} д тому</value></data>
   <data name="Validation.Required" xml:space="preserve"><value>Заповніть поле «{0}».</value></data>
@@ -317,8 +325,8 @@
   <data name="Validation.LocationRequired" xml:space="preserve"><value>Вкажіть адресу або оберіть точку на карті.</value></data>
   <data name="Validation.DoneNeedsComment" xml:space="preserve"><value>Щоб позначити звернення виконаним, додайте коментар.</value></data>
   <data name="Validation.NothingChanged" xml:space="preserve"><value>Змініть статус або додайте коментар.</value></data>
-  <data name="Validation.PhotosTooMany" xml:space="preserve"><value>Можна додати не більше 5 фото.</value></data>
-  <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Кожне фото має бути не більше 10 MB.</value></data>
+  <data name="Validation.PhotosTooMany" xml:space="preserve"><value>Можна додати не більше {0} фото.</value></data>
+  <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Кожне фото має бути не більше {0} MB.</value></data>
   <data name="Validation.PhotoType" xml:space="preserve"><value>Підтримуються лише зображення PNG, JPG, GIF або WebP.</value></data>
   <data name="Landing.Title" xml:space="preserve"><value>Звернення мешканців до ОСББ</value></data>
   <data name="Landing.Nav.Features" xml:space="preserve"><value>Можливості</value></data>
@@ -329,7 +337,7 @@
   <data name="Landing.Hero.Text" xml:space="preserve"><value>Повідомте про несправність за хвилину: фото, місце на карті й категорія. Голова ОСББ отримає звернення, а ви бачитимете кожну зміну статусу.</value></data>
   <data name="Landing.Hero.Cta" xml:space="preserve"><value>Створити акаунт</value></data>
   <data name="Landing.Hero.Secondary" xml:space="preserve"><value>Я вже маю акаунт</value></data>
-  <data name="Landing.Hero.Note" xml:space="preserve"><value>Для реєстрації потрібен код запрошення від вашого ОСББ.</value></data>
+  <data name="Landing.Hero.Note" xml:space="preserve"><value>Щоб приєднатися до свого ОСББ, введіть під час реєстрації код запрошення.</value></data>
   <data name="Landing.Preview.Title" xml:space="preserve"><value>Не працює освітлення в під'їзді №2</value></data>
   <data name="Landing.Preview.Category" xml:space="preserve"><value>Освітлення</value></data>
   <data name="Landing.Preview.Text" xml:space="preserve"><value>Третій день не горять лампи на 3–5 поверхах, увечері на сходах зовсім темно.</value></data>
@@ -355,7 +363,7 @@
   <data name="Landing.How.Title" xml:space="preserve"><value>Від проблеми до рішення</value></data>
   <data name="Landing.How.Sub" xml:space="preserve"><value>Чотири кроки — і ваше звернення вже в роботі.</value></data>
   <data name="Landing.Step.Code.Title" xml:space="preserve"><value>Отримайте код</value></data>
-  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Голова вашого ОСББ надасть код запрошення до вашого будинку.</value></data>
+  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Голова вашого ОСББ надасть код для мешканців вашого будинку.</value></data>
   <data name="Landing.Step.Register.Title" xml:space="preserve"><value>Зареєструйтеся</value></data>
   <data name="Landing.Step.Register.Text" xml:space="preserve"><value>Створіть акаунт із кодом — і ви одразу підключені до свого ОСББ.</value></data>
   <data name="Landing.Step.Report.Title" xml:space="preserve"><value>Повідомте про проблему</value></data>
@@ -378,4 +386,76 @@
   <data name="Landing.Role.Administrator.Point3" xml:space="preserve"><value>Загальна статистика звернень</value></data>
   <data name="Landing.Cta.Title" xml:space="preserve"><value>Почніть із першого звернення</value></data>
   <data name="Landing.Cta.Text" xml:space="preserve"><value>Зареєструйтеся з кодом свого ОСББ і повідомте про проблему вже сьогодні.</value></data>
+  <data name="Acabs.Codes" xml:space="preserve"><value>Коди запрошення</value></data>
+  <data name="Acabs.CodesGenerated" xml:space="preserve"><value>Код для мешканців і код голови буде згенеровано автоматично.</value></data>
+  <data name="Acabs.Created" xml:space="preserve"><value>ОСББ створено. Передайте коди мешканцям і голові.</value></data>
+  <data name="Acabs.ResidentCodeHint" xml:space="preserve"><value>Мешканці вводять його під час реєстрації й приєднуються до ОСББ.</value></data>
+  <data name="Acabs.HeadCodeHint" xml:space="preserve"><value>Дає роль голови ОСББ. Передавайте лише голові.</value></data>
+  <data name="Acabs.Regenerate" xml:space="preserve"><value>Згенерувати новий</value></data>
+  <data name="Acabs.ResidentCodeRegenerated" xml:space="preserve"><value>Код для мешканців оновлено. Старий більше не діє.</value></data>
+  <data name="Acabs.HeadCodeRegenerated" xml:space="preserve"><value>Код голови оновлено. Старий більше не діє.</value></data>
+  <data name="Appeal.Assigned" xml:space="preserve"><value>Відповідального призначено.</value></data>
+  <data name="Appeal.Distance" xml:space="preserve"><value>{0} м</value></data>
+  <data name="Appeal.NoResponsible" xml:space="preserve"><value>Не призначено</value></data>
+  <data name="Assign.Title" xml:space="preserve"><value>Відповідальний</value></data>
+  <data name="Assign.Hint" xml:space="preserve"><value>ОСББ, якщо проблема стосується будинку, або комунальна служба. Автор отримає сповіщення.</value></data>
+  <data name="Assign.Submit" xml:space="preserve"><value>Призначити</value></data>
+  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Необов'язково. Код для мешканців приєднує вас до ОСББ, код голови дає роль голови ОСББ.</value></data>
+  <data name="Enum.ResponsibleKind.Association" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Enum.ResponsibleKind.Recipient" xml:space="preserve"><value>Служба</value></data>
+  <data name="Field.ResidentCode" xml:space="preserve"><value>Код для мешканців</value></data>
+  <data name="Field.HeadCode" xml:space="preserve"><value>Код голови</value></data>
+  <data name="Field.IsBlocked" xml:space="preserve"><value>Заблоковано</value></data>
+  <data name="Field.Responsible" xml:space="preserve"><value>Відповідальний</value></data>
+  <data name="Filters.AllPriorities" xml:space="preserve"><value>Усі пріоритети</value></data>
+  <data name="Filters.AllResponsible" xml:space="preserve"><value>Усі відповідальні</value></data>
+  <data name="Form.ChooseResponsible" xml:space="preserve"><value>Оберіть відповідального</value></data>
+  <data name="Form.FindAddress" xml:space="preserve"><value>Знайти адресу на карті</value></data>
+  <data name="Form.SearchFailed" xml:space="preserve"><value>Адресу не знайдено. Позначте місце на карті.</value></data>
+  <data name="Form.ResponsibleHint" xml:space="preserve"><value>Ваше ОСББ — якщо проблема стосується будинку чи двору; інакше — відповідна служба. Голова ОСББ може змінити вибір.</value></data>
+  <data name="Form.ResponsibleHintNoAcab" xml:space="preserve"><value>Оберіть службу, яка відповідає за проблему. Адміністратор може змінити вибір.</value></data>
+  <data name="Notifications.AssignedText" xml:space="preserve"><value>«{0}»: відповідальний — {1}.</value></data>
+  <data name="Profile.EditTitle" xml:space="preserve"><value>Особисті дані</value></data>
+  <data name="Profile.EditHint" xml:space="preserve"><value>Ім'я, email для входу і телефон.</value></data>
+  <data name="Profile.Saved" xml:space="preserve"><value>Дані профілю збережено.</value></data>
+  <data name="Responsible.Acab" xml:space="preserve"><value>ОСББ «{0}»</value></data>
+  <data name="Responsible.AnyAcab" xml:space="preserve"><value>ОСББ звернення</value></data>
+  <data name="Responsible.Services" xml:space="preserve"><value>Служби</value></data>
+  <data name="Similar.Title" xml:space="preserve"><value>Схожі звернення поруч</value></data>
+  <data name="Similar.Warning" xml:space="preserve"><value>Поруч уже є схожі звернення</value></data>
+  <data name="Similar.WarningText" xml:space="preserve"><value>Можливо, про цю проблему вже повідомили. Перевірте список — ви все одно можете надіслати своє звернення.</value></data>
+  <data name="Similar.Duplicate" xml:space="preserve"><value>Можливий дублікат</value></data>
+  <data name="Similar.DuplicateHint" xml:space="preserve"><value>Раніше поруч подано відкрите звернення тієї ж категорії</value></data>
+  <data name="Table.Search" xml:space="preserve"><value>Пошук</value></data>
+  <data name="Table.SearchPlaceholder" xml:space="preserve"><value>Пошук...</value></data>
+  <data name="Timeline.Assigned" xml:space="preserve"><value>Відповідальний: {0}</value></data>
+  <data name="Timeline.PriorityChanged" xml:space="preserve"><value>Пріоритет змінено: {0} → {1}</value></data>
+  <data name="Update.FinalHint" xml:space="preserve"><value>Звернення закрите: статус більше не змінюється, але можна додати коментар.</value></data>
+  <data name="Users.AcabHint" xml:space="preserve"><value>Обов'язково для голови ОСББ.</value></data>
+  <data name="Users.Access" xml:space="preserve"><value>Доступ до акаунта</value></data>
+  <data name="Users.ActiveState" xml:space="preserve"><value>Акаунт активний</value></data>
+  <data name="Users.BlockedState" xml:space="preserve"><value>Акаунт заблоковано</value></data>
+  <data name="Users.BlockHint" xml:space="preserve"><value>Користувач не зможе увійти, а його поточна сесія завершиться.</value></data>
+  <data name="Users.UnblockHint" xml:space="preserve"><value>Користувач знову зможе увійти.</value></data>
+  <data name="Users.Block" xml:space="preserve"><value>Заблокувати</value></data>
+  <data name="Users.Unblock" xml:space="preserve"><value>Розблокувати</value></data>
+  <data name="Users.Blocked" xml:space="preserve"><value>Користувача заблоковано.</value></data>
+  <data name="Users.Unblocked" xml:space="preserve"><value>Користувача розблоковано.</value></data>
+  <data name="Users.BlockedBadge" xml:space="preserve"><value>Заблоковано</value></data>
+  <data name="Users.CannotBlockSelf" xml:space="preserve"><value>Не можна заблокувати власний акаунт.</value></data>
+  <data name="Users.CannotDeleteSelfText" xml:space="preserve"><value>Не можна видалити власний акаунт.</value></data>
+  <data name="Users.CannotDemoteSelf" xml:space="preserve"><value>Не можна зняти роль адміністратора із себе.</value></data>
+  <data name="Users.LastAdmin" xml:space="preserve"><value>Це останній активний адміністратор: спершу призначте іншого.</value></data>
+  <data name="Users.DeleteText" xml:space="preserve"><value>Акаунт «{0}» буде видалено назавжди.</value></data>
+  <data name="Users.PasswordReset" xml:space="preserve"><value>Новий тимчасовий пароль для {0}: {1}. Його показано лише один раз.</value></data>
+  <data name="Users.ResetPassword" xml:space="preserve"><value>Видати тимчасовий пароль</value></data>
+  <data name="Users.ResetPasswordHint" xml:space="preserve"><value>Поточний пароль перестане діяти. Новий буде показано один раз.</value></data>
+  <data name="Users.ResidentCodeFor" xml:space="preserve"><value>Код для мешканців ОСББ «{0}»</value></data>
+  <data name="Users.ResidentCodeHint" xml:space="preserve"><value>Передайте його мешканцям: з ним вони зареєструються як члени вашого ОСББ.</value></data>
+  <data name="Validation.AppealClosed" xml:space="preserve"><value>Звернення закрите, відповідального змінити не можна.</value></data>
+  <data name="Validation.ChangedMeanwhile" xml:space="preserve"><value>Поки ви працювали, звернення змінив хтось інший. Перегляньте його та повторіть.</value></data>
+  <data name="Validation.HeadNeedsAcab" xml:space="preserve"><value>Голова ОСББ має бути прив'язаний до ОСББ.</value></data>
+  <data name="Validation.NoAcab" xml:space="preserve"><value>Ви не належите до ОСББ — оберіть службу.</value></data>
+  <data name="Validation.PointRequired" xml:space="preserve"><value>Позначте місце проблеми на карті.</value></data>
+  <data name="Validation.TransitionNotAllowed" xml:space="preserve"><value>Статус «{0}» не можна змінити на «{1}».</value></data>
 </root>

@@ -15,6 +15,11 @@
     string TextFor(Notification n)
     {
         var title = n.Appeal?.Title ?? "";
+        if (n.Type == NotificationType.Assigned)
+        {
+            // Message holds the responsible party's name.
+            return L["Notifications.AssignedText", title, n.Message].Value;
+        }
         var text = n.NewStatus is AppealStatus status
             ? L["Notifications.StatusText", title, status.GetDisplayName()].Value
             : L["Notifications.GenericText", title].Value;
@@ -34,10 +39,10 @@
     </div>
 
     <div class="cf-utabs">
-        <nav class="cf-utabs__nav" role="tablist" aria-label="@L["Notifications.Title"]">
-            <a class="cf-utab" role="tab" aria-selected="@(Model.UnreadTab ? "true" : "false")" asp-action="Index" asp-route-tab="unread">@L["Notifications.Unread"]@if (Model.UnreadCount > 0)
+        <nav class="cf-utabs__nav" aria-label="@L["Notifications.Title"]">
+            <a class="cf-utab @(Model.UnreadTab ? "is-active" : "")" aria-current="@(Model.UnreadTab ? "true" : null)" asp-action="Index" asp-route-tab="unread">@L["Notifications.Unread"]@if (Model.UnreadCount > 0)
                 {<span class="cf-utab__count">@Model.UnreadCount</span>}</a>
-            <a class="cf-utab" role="tab" aria-selected="@(Model.UnreadTab ? "false" : "true")" asp-action="Index" asp-route-tab="all">@L["Notifications.All"]</a>
+            <a class="cf-utab @(Model.UnreadTab ? "" : "is-active")" aria-current="@(Model.UnreadTab ? null : "true")" asp-action="Index" asp-route-tab="all">@L["Notifications.All"]</a>
         </nav>
     </div>
 

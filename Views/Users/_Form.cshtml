@@ -1,5 +1,5 @@
 @* Profile fields only. Passwords are never typed here. *@
-@model User
+@model UserFormViewModel
 @{
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
 }
@@ -29,9 +29,20 @@
     <div>
         <label class="cf-label" asp-for="Role"></label>
         <div class="cf-select app-control-gap"><select asp-for="Role" asp-items="Html.GetEnumSelectList<UserRole>()"></select></div>
+        <span asp-validation-for="Role" class="cf-field__error"></span>
     </div>
     <div>
         <label class="cf-label" asp-for="AcabId"></label>
-        <div class="cf-select app-control-gap"><select asp-for="AcabId" asp-items="ViewBag.AcabId"><option value="">@L["Common.NotSpecified"]</option></select></div>
+        <div class="cf-select app-control-gap">
+            <select asp-for="AcabId">
+                <option value="">@L["Common.NotSpecified"]</option>
+                @foreach (var a in Model.Acabs)
+                {
+                    <option value="@a.Id" selected="@(Model.AcabId == a.Id)">@a.Name</option>
+                }
+            </select>
+        </div>
+        <p class="cf-field__hint">@L["Users.AcabHint"]</p>
+        <span asp-validation-for="AcabId" class="cf-field__error"></span>
     </div>
 </div>

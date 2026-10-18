@@ -2,6 +2,8 @@
     var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     // Residents get the 320px white sidebar; association heads and administrators the 280px admin shell.
     var staff = User.IsInRole(nameof(UserRole.Administrator)) || User.IsInRole(nameof(UserRole.AcabAdmin));
+    // The collapsed rail is remembered in a cookie (site.js), so the first paint already has the right width.
+    var collapsed = Context.Request.Cookies["cf_sidebar"] == "collapsed";
 }
 <!DOCTYPE html>
 <html lang="@lang">
@@ -9,7 +11,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — @L["App.Name"]</title>
-    <script>document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'</script>
+    <partial name="_ThemeScript" />
     <link rel="icon" href="~/images/cityfix-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/bundle.css" asp-append-version="true" />
@@ -17,10 +19,23 @@
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
-    <div class="@(staff ? "cf-shell cf-shell--admin" : "cf-shell")">
-        <aside class="cf-shell__sidebar">@await Component.InvokeAsync("Sidebar")</aside>
+    <a class="app-skip" href="#content">@L["Shell.Skip"]</a>
+    <div class="@(staff ? "cf-shell cf-shell--admin" : "cf-shell") app-shell @(collapsed ? "is-collapsed" : "")" data-app-shell>
+        <aside class="cf-shell__sidebar" id="app-sidebar" aria-label="@L["Nav.Label"]">@await Component.InvokeAsync("Sidebar")</aside>
+        <div class="app-shell__scrim" data-sidebar-close></div>
         <main class="cf-shell__main">
-            <div class="@(staff ? "cf-stack-6" : "cf-page")">
+            <header class="cf-topbar app-topbar">
+                @* Phones only: opens the sidebar drawer (its own button collapses it on desktop). *@
+                <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon app-topbar__menu" data-sidebar-open aria-controls="app-sidebar"
+                        aria-expanded="false" aria-label="@L["Shell.Open"]" title="@L["Shell.Open"]">
+                    <span class="cf-icon cf-icon--menu cf-icon--5" aria-hidden="true"></span>
+                </button>
+                <div class="app-topbar__end">
+                    <partial name="_ThemeToggle" />
+                    <partial name="_CultureSwitch" />
+                </div>
+            </header>
+            <div class="@(staff ? "cf-stack-6 app-content--admin" : "cf-page") app-content" id="content" tabindex="-1">
                 @* The view body has already run when the layout executes, so the detail modal can claim an error first. *@
                 <partial name="_Flash" />
                 @RenderBody()

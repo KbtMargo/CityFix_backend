@@ -1,128 +1,101 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using CityFix_backend.Data;
-using CityFix_backend.Models;
 using CityFix_backend.Services;
+using CityFix_backend.Services.Interfaces;
 using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // Condominium associations (ОСББ). The entity stays "Acab" in code and in the database.
+    // Condominium associations (ОСББ) and their invitation codes. The entity stays "Acab" in code and in the database.
     [Authorize(Roles = "Administrator")]
     public class AcabsController : AppController
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IStringLocalizer<SharedResource> _l;
+        private readonly IAcabService _acabs;
 
-        public AcabsController(ApplicationDbContext context, IStringLocalizer<SharedResource> localizer)
+        public AcabsController(IAcabService acabs, IUserService users, IStringLocalizer<SharedResource> localizer)
+            : base(users, localizer)
         {
-            _context = context;
-            _l = localizer;
+            _acabs = acabs;
         }
 
-        // GET: Acabs
-        public async Task<IActionResult> Index(int page = 1)
+        // GET: Acabs?q=
+        public async Task<IActionResult> Index(string? q, int page = 1)
         {
-            var result = await _context.Acabs.AsNoTracking().OrderBy(a => a.Name).ThenBy(a => a.Id).ToPagedResultAsync(page);
-            var ids = result.Items.Select(a => a.Id).ToList();
-            var members = await _context.Users.Where(u => u.AcabId != null && ids.Contains(u.AcabId.Value))
-                .GroupBy(u => u.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Key, x => x.Count);
-            return View(new TablePageViewModel<Acab> { Page = result, Counts = members });
+            return View(new TablePageViewModel<AcabRow> { Page = await _acabs.GetPageAsync(q, page), Q = q });
         }
 
         // GET: Acabs/Create
-        public IActionResult Create()
-        {
-            return View(new Acab());
-        }
+        public IActionResult Create() => View(new AcabFormViewModel());
 
-        // POST: Acabs/Create
+        // POST: Acabs/Create  (both codes are generated)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Address,InvitationCode")] Acab acab)
+        public async Task<IActionResult> Create([Bind("Name,Address")] AcabFormViewModel form)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                acab.CreatedAt = DateTime.UtcNow;
-                acab.UpdatedAt = acab.CreatedAt;
-                _context.Add(acab);
-                await _context.SaveChangesAsync();
-                FlashSuccess(_l["Common.Saved"]);
-                return RedirectToAction(nameof(Index));
+                return View(form);
             }
-            return View(acab);
+
+            var acab = await _acabs.CreateAsync(form.ToInput());
+            FlashSuccess(L["Acabs.Created"]);
+            return RedirectToAction(nameof(Edit), new { id = acab.Id });
         }
 
         // GET: Acabs/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var acab = await _context.Acabs.FindAsync(id);
-            return acab == null ? NotFound() : View(acab);
-        }
+        public async Task<IActionResult> Edit(int id) => View(AcabFormViewModel.From(await _acabs.GetAsync(id)));
 
         // POST: Acabs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,InvitationCode")] Acab acab)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address")] AcabFormViewModel form)
         {
-            if (id != acab.Id)
+            if (id != form.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var existing = await _context.Acabs.FindAsync(id);
-                if (existing == null)
-                {
-                    return NotFound();
-                }
-
-                // Copy the editable fields so CreatedAt keeps its stored value.
-                existing.Name = acab.Name;
-                existing.Address = acab.Address;
-                existing.InvitationCode = acab.InvitationCode;
-                existing.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-                FlashSuccess(_l["Common.Saved"]);
-                return RedirectToAction(nameof(Index));
+                var stored = await _acabs.GetAsync(id);
+                (form.ResidentCode, form.HeadCode) = (stored.ResidentCode, stored.HeadCode);
+                return View(form);
             }
-            return View(acab);
+
+            await _acabs.UpdateAsync(id, form.ToInput());
+            FlashSuccess(L["Common.Saved"]);
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Acabs/Delete/5  (blocked while users are linked: Users.AcabId has no ON DELETE rule)
-        public async Task<IActionResult> Delete(int id)
+        // POST: Acabs/RegenerateCode/5?kind=Resident|Head  (a leaked code is replaced)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegenerateCode(int id, AcabCodeKind kind)
         {
-            var acab = await _context.Acabs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
-            if (acab == null)
-            {
-                return NotFound();
-            }
-            ViewData["MemberCount"] = await _context.Users.CountAsync(u => u.AcabId == id);
-            return View(acab);
+            await _acabs.RegenerateCodeAsync(id, kind);
+            FlashSuccess(L[kind == AcabCodeKind.Head ? "Acabs.HeadCodeRegenerated" : "Acabs.ResidentCodeRegenerated"]);
+            return RedirectToAction(nameof(Edit), new { id });
         }
+
+        // GET: Acabs/Delete/5  (blocked while users or appeals belong to it)
+        public async Task<IActionResult> Delete(int id) => View(await _acabs.CheckDeleteAsync(id));
 
         // POST: Acabs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (await _context.Users.AnyAsync(u => u.AcabId == id))
+            try
+            {
+                await _acabs.DeleteAsync(id);
+                FlashSuccess(L["Common.Deleted"]);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ServiceValidationException)
             {
                 return RedirectToAction(nameof(Delete), new { id });
             }
-
-            var acab = await _context.Acabs.FindAsync(id);
-            if (acab != null)
-            {
-                _context.Acabs.Remove(acab);
-                await _context.SaveChangesAsync();
-                FlashSuccess(_l["Common.Deleted"]);
-            }
-            return RedirectToAction(nameof(Index));
         }
     }
 }

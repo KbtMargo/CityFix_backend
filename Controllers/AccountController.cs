@@ -1,13 +1,12 @@
-using System.Security.Claims;
-using CityFix_backend.Data;
 using CityFix_backend.Models;
+using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using CityFix_backend.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 
 namespace CityFix_backend.Controllers
@@ -15,14 +14,11 @@ namespace CityFix_backend.Controllers
     public class AccountController : AppController
     {
         private readonly IAuthService _auth;
-        private readonly ApplicationDbContext _context;
-        private readonly IStringLocalizer<SharedResource> _l;
 
-        public AccountController(IAuthService auth, ApplicationDbContext context, IStringLocalizer<SharedResource> localizer)
+        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer)
+            : base(users, localizer)
         {
             _auth = auth;
-            _context = context;
-            _l = localizer;
         }
 
         // GET: Account/Register
@@ -35,9 +31,10 @@ namespace CityFix_backend.Controllers
             return View(new RegisterViewModel());
         }
 
-        // POST: Account/Register
+        // POST: Account/Register  (rate-limited: invitation codes cannot be guessed by brute force)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -52,13 +49,13 @@ namespace CityFix_backend.Controllers
             {
                 foreach (var (field, messageKey) in result.Errors)
                 {
-                    ModelState.AddModelError(field, _l[messageKey]);
+                    ModelState.AddModelError(field, L[messageKey]);
                 }
                 return View(model);
             }
 
             await SignInAsync(result.User!, persistent: false);
-            FlashSuccess(_l["Auth.Welcome"]);
+            FlashSuccess(L["Auth.Welcome"]);
             return RedirectToAction("Index", "Dashboard");
         }
 
@@ -75,6 +72,7 @@ namespace CityFix_backend.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -85,17 +83,13 @@ namespace CityFix_backend.Controllers
             var user = await _auth.LoginAsync(model.Email, model.Password);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, _l["Auth.LoginFailed"]);
+                // One message for a wrong password, an unknown email and a blocked account.
+                ModelState.AddModelError(string.Empty, L["Auth.LoginFailed"]);
                 return View(model);
             }
 
             await SignInAsync(user, model.RememberMe);
-
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-            {
-                return LocalRedirect(model.ReturnUrl);
-            }
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToLocal(model.ReturnUrl, () => RedirectToAction("Index", "Dashboard"));
         }
 
         // POST: Account/Logout
@@ -111,6 +105,7 @@ namespace CityFix_backend.Controllers
         // GET: Account/AccessDenied
         public IActionResult AccessDenied()
         {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
             return View();
         }
 
@@ -118,16 +113,32 @@ namespace CityFix_backend.Controllers
         [Authorize]
         public async Task<IActionResult> Profile()
         {
-            var user = await _context.Users.Include(u => u.Acab)
-                .FirstOrDefaultAsync(u => u.Id == CurrentUserId);
-            if (user == null)
+            var user = await Users.GetAsync(CurrentUserId);
+            return View(new ProfileViewModel { User = user, Profile = ProfileFormViewModel.From(user) });
+        }
+
+        // POST: Account/Profile  (name, email, phone)
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile([Bind(Prefix = "Profile")] ProfileFormViewModel model)
+        {
+            if (ModelState.IsValid)
             {
-                // The account was deleted while this cookie was still valid.
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return RedirectToAction(nameof(Login));
+                try
+                {
+                    await Users.UpdateProfileAsync(CurrentUserId, model.ToInput());
+                    FlashSuccess(L["Profile.Saved"]);
+                    return RedirectToAction(nameof(Profile));
+                }
+                catch (ServiceValidationException ex)
+                {
+                    AddModelError(ex, "Profile.");
+                }
             }
 
-            return View(new ProfileViewModel { User = user });
+            var user = await Users.GetAsync(CurrentUserId);
+            return View(nameof(Profile), new ProfileViewModel { User = user, Profile = model });
         }
 
         // POST: Account/ChangePassword
@@ -138,19 +149,18 @@ namespace CityFix_backend.Controllers
         {
             if (ModelState.IsValid && !await _auth.ChangePasswordAsync(CurrentUserId, model.CurrentPassword, model.NewPassword))
             {
-                ModelState.AddModelError("ChangePassword.CurrentPassword", _l["Profile.WrongPassword"]);
+                ModelState.AddModelError("ChangePassword.CurrentPassword", L["Profile.WrongPassword"]);
             }
 
             if (!ModelState.IsValid)
             {
-                var user = await _context.Users.Include(u => u.Acab).FirstAsync(u => u.Id == CurrentUserId);
-                return View(nameof(Profile), new ProfileViewModel { User = user, ChangePassword = model });
+                var user = await Users.GetAsync(CurrentUserId);
+                return View(nameof(Profile), new ProfileViewModel { User = user, Profile = ProfileFormViewModel.From(user), ChangePassword = model });
             }
 
-            FlashSuccess(_l["Profile.PasswordChanged"]);
+            FlashSuccess(L["Profile.PasswordChanged"]);
             return RedirectToAction(nameof(Profile));
         }
-
 
         private Task SignInAsync(User user, bool persistent)
         {

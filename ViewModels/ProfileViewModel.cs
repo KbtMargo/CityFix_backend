@@ -6,6 +6,8 @@ namespace CityFix_backend.ViewModels
     {
         public User User { get; set; } = null!;
 
+        public ProfileFormViewModel Profile { get; set; } = new();
+
         public ChangePasswordViewModel ChangePassword { get; set; } = new();
     }
 }

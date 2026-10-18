@@ -1,10 +1,10 @@
-@model Appeal
+@model DeleteCheck
 @{
     ViewData["Title"] = L["Appeals.DeleteTitle"].Value;
     var dialog = new DeleteDialogModel(
         Model.Id,
         L["Appeals.DeleteTitle"],
-        L["Appeals.DeleteText", Model.Title],
+        L["Appeals.DeleteText", Model.Name],
         L["Common.Delete"],
         "Index");
 }
