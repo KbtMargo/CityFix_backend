@@ -320,4 +320,62 @@
   <data name="Validation.PhotosTooMany" xml:space="preserve"><value>Можна додати не більше 5 фото.</value></data>
   <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Кожне фото має бути не більше 10 MB.</value></data>
   <data name="Validation.PhotoType" xml:space="preserve"><value>Підтримуються лише зображення PNG, JPG, GIF або WebP.</value></data>
+  <data name="Landing.Title" xml:space="preserve"><value>Звернення мешканців до ОСББ</value></data>
+  <data name="Landing.Nav.Features" xml:space="preserve"><value>Можливості</value></data>
+  <data name="Landing.Nav.How" xml:space="preserve"><value>Як це працює</value></data>
+  <data name="Landing.Nav.Roles" xml:space="preserve"><value>Для кого</value></data>
+  <data name="Landing.Hero.Badge" xml:space="preserve"><value>Для мешканців та ОСББ</value></data>
+  <data name="Landing.Hero.Title" xml:space="preserve"><value>Проблеми вашого будинку — під контролем</value></data>
+  <data name="Landing.Hero.Text" xml:space="preserve"><value>Повідомте про несправність за хвилину: фото, місце на карті й категорія. Голова ОСББ отримає звернення, а ви бачитимете кожну зміну статусу.</value></data>
+  <data name="Landing.Hero.Cta" xml:space="preserve"><value>Створити акаунт</value></data>
+  <data name="Landing.Hero.Secondary" xml:space="preserve"><value>Я вже маю акаунт</value></data>
+  <data name="Landing.Hero.Note" xml:space="preserve"><value>Для реєстрації потрібен код запрошення від вашого ОСББ.</value></data>
+  <data name="Landing.Preview.Title" xml:space="preserve"><value>Не працює освітлення в під'їзді №2</value></data>
+  <data name="Landing.Preview.Category" xml:space="preserve"><value>Освітлення</value></data>
+  <data name="Landing.Preview.Text" xml:space="preserve"><value>Третій день не горять лампи на 3–5 поверхах, увечері на сходах зовсім темно.</value></data>
+  <data name="Landing.Preview.Address" xml:space="preserve"><value>вул. Шевченка, 12</value></data>
+  <data name="Landing.Preview.Time" xml:space="preserve"><value>Сьогодні</value></data>
+  <data name="Landing.Preview.Comment" xml:space="preserve"><value>Електрик замінить лампи сьогодні до 18:00.</value></data>
+  <data name="Landing.Preview.NoteTitle" xml:space="preserve"><value>Звернення взято в роботу</value></data>
+  <data name="Landing.Preview.NoteText" xml:space="preserve"><value>Голова ОСББ залишив коментар</value></data>
+  <data name="Landing.Features.Title" xml:space="preserve"><value>Усе, щоб дім і двір були в порядку</value></data>
+  <data name="Landing.Features.Sub" xml:space="preserve"><value>Один простий інструмент для мешканців, голів ОСББ і служб, які виконують роботу.</value></data>
+  <data name="Landing.Feature.Photos.Title" xml:space="preserve"><value>Фото проблеми</value></data>
+  <data name="Landing.Feature.Photos.Text" xml:space="preserve"><value>Додайте до 5 фото — виконавцю одразу зрозуміло, що сталося і де саме.</value></data>
+  <data name="Landing.Feature.Map.Title" xml:space="preserve"><value>Точка на карті</value></data>
+  <data name="Landing.Feature.Map.Text" xml:space="preserve"><value>Вкажіть адресу або позначте місце на карті — навіть якщо це двір чи дитячий майданчик.</value></data>
+  <data name="Landing.Feature.Status.Title" xml:space="preserve"><value>Прозорий статус</value></data>
+  <data name="Landing.Feature.Status.Text" xml:space="preserve"><value>Нове, В роботі, Виконано: повна історія змін і коментарі відповідальних.</value></data>
+  <data name="Landing.Feature.Notifications.Title" xml:space="preserve"><value>Сповіщення</value></data>
+  <data name="Landing.Feature.Notifications.Text" xml:space="preserve"><value>Дізнавайтеся першими про кожну відповідь і зміну статусу ваших звернень.</value></data>
+  <data name="Landing.Feature.Analytics.Title" xml:space="preserve"><value>Аналітика</value></data>
+  <data name="Landing.Feature.Analytics.Text" xml:space="preserve"><value>Графіки за категоріями, статусами й днями показують, як змінюється ситуація в будинку.</value></data>
+  <data name="Landing.Feature.Management.Title" xml:space="preserve"><value>Керування ОСББ</value></data>
+  <data name="Landing.Feature.Management.Text" xml:space="preserve"><value>Будинки, категорії, отримувачі звернень і користувачі — в одній панелі.</value></data>
+  <data name="Landing.How.Title" xml:space="preserve"><value>Від проблеми до рішення</value></data>
+  <data name="Landing.How.Sub" xml:space="preserve"><value>Чотири кроки — і ваше звернення вже в роботі.</value></data>
+  <data name="Landing.Step.Code.Title" xml:space="preserve"><value>Отримайте код</value></data>
+  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Голова вашого ОСББ надасть код запрошення до вашого будинку.</value></data>
+  <data name="Landing.Step.Register.Title" xml:space="preserve"><value>Зареєструйтеся</value></data>
+  <data name="Landing.Step.Register.Text" xml:space="preserve"><value>Створіть акаунт із кодом — і ви одразу підключені до свого ОСББ.</value></data>
+  <data name="Landing.Step.Report.Title" xml:space="preserve"><value>Повідомте про проблему</value></data>
+  <data name="Landing.Step.Report.Text" xml:space="preserve"><value>Опишіть ситуацію, оберіть категорію, додайте фото й позначте місце на карті.</value></data>
+  <data name="Landing.Step.Track.Title" xml:space="preserve"><value>Стежте за виконанням</value></data>
+  <data name="Landing.Step.Track.Text" xml:space="preserve"><value>Отримуйте сповіщення, доки звернення не отримає статус «Виконано».</value></data>
+  <data name="Landing.Roles.Title" xml:space="preserve"><value>Для кожного в громаді</value></data>
+  <data name="Landing.Roles.Sub" xml:space="preserve"><value>Кожна роль бачить саме те, що їй потрібно.</value></data>
+  <data name="Landing.Role.Resident.Text" xml:space="preserve"><value>Повідомляє про проблеми свого будинку та стежить за їх вирішенням.</value></data>
+  <data name="Landing.Role.Resident.Point1" xml:space="preserve"><value>Нові звернення з фото й картою</value></data>
+  <data name="Landing.Role.Resident.Point2" xml:space="preserve"><value>Статус та історія кожного звернення</value></data>
+  <data name="Landing.Role.Resident.Point3" xml:space="preserve"><value>Сповіщення про відповіді</value></data>
+  <data name="Landing.Role.AcabAdmin.Text" xml:space="preserve"><value>Отримує звернення мешканців свого ОСББ і керує їх виконанням.</value></data>
+  <data name="Landing.Role.AcabAdmin.Point1" xml:space="preserve"><value>Усі звернення будинку в одному списку</value></data>
+  <data name="Landing.Role.AcabAdmin.Point2" xml:space="preserve"><value>Зміна статусу з коментарем</value></data>
+  <data name="Landing.Role.AcabAdmin.Point3" xml:space="preserve"><value>Аналітика по ОСББ</value></data>
+  <data name="Landing.Role.Administrator.Text" xml:space="preserve"><value>Налаштовує платформу для всієї громади.</value></data>
+  <data name="Landing.Role.Administrator.Point1" xml:space="preserve"><value>Користувачі та ролі</value></data>
+  <data name="Landing.Role.Administrator.Point2" xml:space="preserve"><value>ОСББ, категорії й отримувачі</value></data>
+  <data name="Landing.Role.Administrator.Point3" xml:space="preserve"><value>Загальна статистика звернень</value></data>
+  <data name="Landing.Cta.Title" xml:space="preserve"><value>Почніть із першого звернення</value></data>
+  <data name="Landing.Cta.Text" xml:space="preserve"><value>Зареєструйтеся з кодом свого ОСББ і повідомте про проблему вже сьогодні.</value></data>
 </root>

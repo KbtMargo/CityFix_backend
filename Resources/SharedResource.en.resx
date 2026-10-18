@@ -320,4 +320,62 @@
   <data name="Validation.PhotosTooMany" xml:space="preserve"><value>You can attach up to 5 photos.</value></data>
   <data name="Validation.PhotoTooLarge" xml:space="preserve"><value>Each photo must be 10 MB or smaller.</value></data>
   <data name="Validation.PhotoType" xml:space="preserve"><value>Only PNG, JPG, GIF or WebP images are supported.</value></data>
+  <data name="Landing.Title" xml:space="preserve"><value>Resident appeals to housing associations</value></data>
+  <data name="Landing.Nav.Features" xml:space="preserve"><value>Features</value></data>
+  <data name="Landing.Nav.How" xml:space="preserve"><value>How it works</value></data>
+  <data name="Landing.Nav.Roles" xml:space="preserve"><value>Who it&apos;s for</value></data>
+  <data name="Landing.Hero.Badge" xml:space="preserve"><value>For residents and housing associations</value></data>
+  <data name="Landing.Hero.Title" xml:space="preserve"><value>Your building&apos;s problems, under control</value></data>
+  <data name="Landing.Hero.Text" xml:space="preserve"><value>Report an issue in a minute: a photo, a pin on the map and a category. Your association head receives the appeal, and you see every status change.</value></data>
+  <data name="Landing.Hero.Cta" xml:space="preserve"><value>Create an account</value></data>
+  <data name="Landing.Hero.Secondary" xml:space="preserve"><value>I already have an account</value></data>
+  <data name="Landing.Hero.Note" xml:space="preserve"><value>You need an invitation code from your housing association to sign up.</value></data>
+  <data name="Landing.Preview.Title" xml:space="preserve"><value>Stairwell lights out in entrance 2</value></data>
+  <data name="Landing.Preview.Category" xml:space="preserve"><value>Lighting</value></data>
+  <data name="Landing.Preview.Text" xml:space="preserve"><value>The lamps on floors 3–5 have been out for three days; the stairs are pitch dark in the evening.</value></data>
+  <data name="Landing.Preview.Address" xml:space="preserve"><value>12 Shevchenka St</value></data>
+  <data name="Landing.Preview.Time" xml:space="preserve"><value>Today</value></data>
+  <data name="Landing.Preview.Comment" xml:space="preserve"><value>The electrician will replace the lamps today before 6 pm.</value></data>
+  <data name="Landing.Preview.NoteTitle" xml:space="preserve"><value>Your appeal is in progress</value></data>
+  <data name="Landing.Preview.NoteText" xml:space="preserve"><value>The association head left a comment</value></data>
+  <data name="Landing.Features.Title" xml:space="preserve"><value>Everything to keep your home and yard in order</value></data>
+  <data name="Landing.Features.Sub" xml:space="preserve"><value>One simple tool for residents, association heads and the services that do the work.</value></data>
+  <data name="Landing.Feature.Photos.Title" xml:space="preserve"><value>Photos of the problem</value></data>
+  <data name="Landing.Feature.Photos.Text" xml:space="preserve"><value>Attach up to 5 photos so the contractor sees exactly what happened and where.</value></data>
+  <data name="Landing.Feature.Map.Title" xml:space="preserve"><value>A pin on the map</value></data>
+  <data name="Landing.Feature.Map.Text" xml:space="preserve"><value>Enter an address or drop a pin, even if it&apos;s the yard or the playground.</value></data>
+  <data name="Landing.Feature.Status.Title" xml:space="preserve"><value>Transparent status</value></data>
+  <data name="Landing.Feature.Status.Text" xml:space="preserve"><value>New, In progress, Done: the full history of changes and comments from the people in charge.</value></data>
+  <data name="Landing.Feature.Notifications.Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Landing.Feature.Notifications.Text" xml:space="preserve"><value>Be the first to know about every reply and status change on your appeals.</value></data>
+  <data name="Landing.Feature.Analytics.Title" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Landing.Feature.Analytics.Text" xml:space="preserve"><value>Charts by category, status and day show how things change in your building.</value></data>
+  <data name="Landing.Feature.Management.Title" xml:space="preserve"><value>Association management</value></data>
+  <data name="Landing.Feature.Management.Text" xml:space="preserve"><value>Buildings, categories, appeal recipients and users, all in one panel.</value></data>
+  <data name="Landing.How.Title" xml:space="preserve"><value>From problem to fix</value></data>
+  <data name="Landing.How.Sub" xml:space="preserve"><value>Four steps and your appeal is already being handled.</value></data>
+  <data name="Landing.Step.Code.Title" xml:space="preserve"><value>Get a code</value></data>
+  <data name="Landing.Step.Code.Text" xml:space="preserve"><value>Your association head gives you an invitation code for your building.</value></data>
+  <data name="Landing.Step.Register.Title" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Landing.Step.Register.Text" xml:space="preserve"><value>Create an account with the code and you&apos;re connected to your association right away.</value></data>
+  <data name="Landing.Step.Report.Title" xml:space="preserve"><value>Report a problem</value></data>
+  <data name="Landing.Step.Report.Text" xml:space="preserve"><value>Describe it, choose a category, add photos and mark the spot on the map.</value></data>
+  <data name="Landing.Step.Track.Title" xml:space="preserve"><value>Follow the progress</value></data>
+  <data name="Landing.Step.Track.Text" xml:space="preserve"><value>Get notified until your appeal is marked “Done”.</value></data>
+  <data name="Landing.Roles.Title" xml:space="preserve"><value>For everyone in the community</value></data>
+  <data name="Landing.Roles.Sub" xml:space="preserve"><value>Every role sees exactly what it needs.</value></data>
+  <data name="Landing.Role.Resident.Text" xml:space="preserve"><value>Reports problems in their building and follows how they get fixed.</value></data>
+  <data name="Landing.Role.Resident.Point1" xml:space="preserve"><value>New appeals with photos and a map</value></data>
+  <data name="Landing.Role.Resident.Point2" xml:space="preserve"><value>Status and history of every appeal</value></data>
+  <data name="Landing.Role.Resident.Point3" xml:space="preserve"><value>Notifications about replies</value></data>
+  <data name="Landing.Role.AcabAdmin.Text" xml:space="preserve"><value>Receives appeals from the association&apos;s residents and manages the work.</value></data>
+  <data name="Landing.Role.AcabAdmin.Point1" xml:space="preserve"><value>All the building&apos;s appeals in one list</value></data>
+  <data name="Landing.Role.AcabAdmin.Point2" xml:space="preserve"><value>Status changes with a comment</value></data>
+  <data name="Landing.Role.AcabAdmin.Point3" xml:space="preserve"><value>Analytics for the association</value></data>
+  <data name="Landing.Role.Administrator.Text" xml:space="preserve"><value>Sets up the platform for the whole community.</value></data>
+  <data name="Landing.Role.Administrator.Point1" xml:space="preserve"><value>Users and roles</value></data>
+  <data name="Landing.Role.Administrator.Point2" xml:space="preserve"><value>Associations, categories and recipients</value></data>
+  <data name="Landing.Role.Administrator.Point3" xml:space="preserve"><value>Overall appeal statistics</value></data>
+  <data name="Landing.Cta.Title" xml:space="preserve"><value>Start with your first appeal</value></data>
+  <data name="Landing.Cta.Text" xml:space="preserve"><value>Sign up with your association&apos;s code and report a problem today.</value></data>
 </root>

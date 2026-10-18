@@ -1,0 +1,297 @@
+/* CityFix landing page (Views/Home/Index.cshtml). Load AFTER tokens.css, bundle.css and site.css.
+   Built on the design system's tokens and cf- patterns; classes use the app- prefix like site.css.
+   The only new size is the page container width; everything else is a token value. */
+
+:root {
+  --app-landing-w: 1152px;
+  --app-landing-header-h: 72px;
+}
+
+html { scroll-padding-top: var(--app-landing-header-h); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+.app-landing__container {
+  width: 100%;
+  max-width: var(--app-landing-w);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+.app-landing__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.app-landing__actions--center { justify-content: center; }
+.app-landing__cta { height: var(--control-h-lg); padding: 0 var(--space-5); font-weight: 500; }
+
+/* ───────────── Header ───────────── */
+.app-landing-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--topbar-line);
+  background: color-mix(in oklab, var(--page) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.app-landing-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  height: var(--app-landing-header-h);
+}
+
+.app-landing-header__nav { display: none; gap: var(--space-1); }
+.app-landing-header__nav a {
+  padding: var(--space-1\.5) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--tab-ink);
+  transition: all 150ms;
+}
+.app-landing-header__nav a:hover { background: var(--tab-hover); color: var(--ink-strong); }
+
+.app-landing-header__actions { display: flex; align-items: center; gap: var(--space-3); }
+.app-landing-header__login { display: none; }
+
+/* Narrow phones: the language switch moves to the footer, the logo drops its tagline. */
+@media (max-width: 479px) {
+  .app-landing__container { padding: 0 var(--space-4); }
+  .app-landing-header__lang, .app-landing-header .cf-logo__tag { display: none; }
+}
+@media (min-width: 640px) { .app-landing-header__login { display: inline-flex; } }
+@media (min-width: 960px) { .app-landing-header__nav { display: flex; } }
+
+/* ───────────── Hero ───────────── */
+.app-landing-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--space-12) 0;
+}
+
+/* A faint street-grid behind the hero, fading out from the centre. */
+.app-landing-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: .6;
+  -webkit-mask-image: radial-gradient(ellipse at 70% 40%, #000 0%, transparent 65%);
+  mask-image: radial-gradient(ellipse at 70% 40%, #000 0%, transparent 65%);
+}
+
+.app-landing-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-12); align-items: center; }
+@media (min-width: 1024px) {
+  .app-landing-hero { padding: 96px 0; }
+  .app-landing-hero__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+.app-landing-hero__copy > * + * { margin-top: var(--space-6); }
+.app-landing-hero__dot { margin-right: var(--space-2); }
+
+.app-landing-hero__title {
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink-strong);
+}
+@media (min-width: 640px) { .app-landing-hero__title { font-size: 48px; line-height: 1.1; letter-spacing: -0.035em; } }
+
+.app-landing-hero__text { max-width: 36rem; font-size: 18px; line-height: 28px; color: var(--ink-secondary); }
+
+.app-landing-hero__note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+
+/* ───────────── Hero preview (static product shot) ───────────── */
+.app-landing-preview { position: relative; padding-bottom: var(--space-12); }
+
+.app-landing-preview__window {
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-xl), 0 0 0 1px var(--line);
+}
+
+.app-landing-preview__thumb {
+  display: grid;
+  place-items: center;
+  background: var(--surface-tile);
+  color: var(--ink-placeholder);
+}
+
+.app-landing-preview__timeline {
+  margin: 0 var(--space-5);
+  padding: var(--space-2) 0 var(--space-5);
+  border-top: 1px solid var(--line);
+}
+
+.app-landing-preview__kpi {
+  width: 260px;
+  margin: var(--space-4) 0 0 auto;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line);
+}
+
+.app-landing-preview__note {
+  display: none;
+  position: absolute;
+  top: calc(-1 * var(--space-6));
+  right: calc(-1 * var(--space-4));
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 260px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xl);
+  border-left: 4px solid var(--gray-600);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line);
+}
+.app-landing-preview__note-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-lg);
+  background: var(--inverse);
+  color: var(--on-inverse);
+}
+.app-landing-preview__note-title { display: block; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--notif-title); }
+.app-landing-preview__note-text { display: block; font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+
+@media (min-width: 640px) {
+  .app-landing-preview__kpi { position: absolute; left: calc(-1 * var(--space-6)); bottom: 0; margin: 0; }
+  .app-landing-preview { padding-top: var(--space-12); padding-bottom: 150px; }
+  .app-landing-preview__note { display: flex; top: 0; }
+}
+@media (min-width: 640px) and (max-width: 1279px) {
+  .app-landing-preview__kpi { left: var(--space-4); }
+  .app-landing-preview__note { right: var(--space-4); }
+}
+
+/* ───────────── Sections ───────────── */
+.app-landing-section { padding: 80px 0; }
+.app-landing-section--muted { background: var(--surface-muted); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.app-landing-section--tight { padding-top: var(--space-12); }
+
+.app-landing-section__head { max-width: 40rem; margin: 0 auto var(--space-12); text-align: center; }
+.app-landing-section__head > * + * { margin-top: var(--space-3); }
+.app-landing-section__eyebrow { font-size: 14px; line-height: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); }
+.app-landing-section__title { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink-strong); }
+.app-landing-section__sub { font-size: 18px; line-height: 28px; color: var(--ink-secondary); }
+
+/* Features: KpiCards with a tile, a title and a line of text. */
+.app-landing-features { display: grid; gap: var(--space-4); }
+@media (min-width: 768px) { .app-landing-features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .app-landing-features { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); } }
+
+.app-landing-feature { gap: var(--space-3); padding: var(--space-6); }
+.app-landing-feature:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover), 0 0 0 1px var(--line); }
+.app-landing-feature .cf-kpi-card__tile { width: 48px; height: 48px; margin-bottom: var(--space-2); }
+.app-landing-feature__title { font-size: 18px; line-height: 28px; font-weight: 600; }
+.app-landing-feature__text { font-size: 14px; line-height: 22px; color: var(--ink-muted); }
+
+/* How it works: numbered steps joined by a line on wide screens. */
+.app-landing-steps { display: grid; gap: var(--space-8); counter-reset: none; }
+@media (min-width: 768px) { .app-landing-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .app-landing-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); } }
+
+.app-landing-step { position: relative; }
+.app-landing-step > * + * { margin-top: var(--space-3); }
+.app-landing-step__num {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-xl);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: 0 0 0 6px var(--surface-muted), var(--shadow-md);
+}
+.app-landing-step__title { font-size: 18px; line-height: 28px; font-weight: 600; }
+.app-landing-step__text { font-size: 14px; line-height: 22px; color: var(--ink-muted); }
+@media (min-width: 1024px) {
+  .app-landing-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 56px;
+    right: calc(-1 * var(--space-6) + var(--space-3));
+    border-top: 2px dashed var(--line-strong);
+  }
+}
+
+/* Roles */
+.app-landing-roles { display: grid; gap: var(--space-4); }
+@media (min-width: 1024px) { .app-landing-roles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); } }
+
+.app-landing-role { padding: var(--space-6); box-shadow: 0 0 0 1px var(--line); }
+.app-landing-role:hover { box-shadow: var(--shadow-card-hover), 0 0 0 1px var(--line); }
+.app-landing-role > * + * { margin-top: var(--space-4); }
+.app-landing-role__head { display: flex; align-items: center; justify-content: space-between; }
+.app-landing-role__text { color: var(--ink-secondary); }
+.app-landing-role__list { padding-top: var(--space-4); border-top: 1px solid var(--line); }
+.app-landing-role__list > * + * { margin-top: var(--space-2\.5); }
+.app-landing-role__list li { display: flex; align-items: center; gap: var(--space-2); font-size: 14px; line-height: 20px; }
+.app-landing-role__list .cf-icon { color: var(--emerald-600); }
+
+/* Closing call to action: the inverse surface of the active nav tile. */
+.app-landing-cta {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-12) var(--space-6);
+  border-radius: var(--radius-3xl);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+}
+.app-landing-cta > * + * { margin-top: var(--space-4); }
+.app-landing-cta .app-landing__actions { margin-top: var(--space-8); }
+.app-landing-cta__mark { margin: 0 auto; width: 48px; height: 48px; box-shadow: 0 0 0 1px color-mix(in oklab, var(--on-inverse) 20%, transparent); }
+.app-landing-cta__title { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -0.025em; }
+.app-landing-cta__text { max-width: 36rem; margin-left: auto; margin-right: auto; font-size: 18px; line-height: 28px; opacity: .75; }
+.app-landing-cta__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-h-lg);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--on-inverse);
+  color: var(--inverse);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  transition: all 150ms;
+}
+.app-landing-cta__btn:hover { opacity: .9; }
+.app-landing-cta__btn--soft { background: transparent; color: var(--on-inverse); box-shadow: 0 0 0 1px color-mix(in oklab, var(--on-inverse) 35%, transparent); }
+.app-landing-cta__btn--soft:hover { opacity: 1; background: color-mix(in oklab, var(--on-inverse) 10%, transparent); }
+@media (min-width: 640px) { .app-landing-cta { padding: 64px var(--space-12); } .app-landing-cta__title { font-size: 36px; line-height: 40px; } }
+
+/* ───────────── Footer ───────────── */
+.app-landing-footer { padding: var(--space-10) 0; border-top: 1px solid var(--line); background: var(--surface); }
+.app-landing-footer__inner { display: grid; gap: var(--space-6); align-items: center; }
+.app-landing-footer__end { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+.app-landing-footer__copy { font-size: 14px; line-height: 20px; color: var(--ink-muted); }
+@media (min-width: 768px) {
+  .app-landing-footer__inner { grid-template-columns: auto 1fr auto; }
+  .app-landing-footer__end { align-items: flex-end; }
+  .app-landing-footer__help { justify-self: center; text-align: center; }
+}

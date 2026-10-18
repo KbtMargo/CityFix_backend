@@ -1,0 +1,200 @@
+@* Landing page for signed-out visitors, built from the design system's own patterns
+   (Logo, AppLink, KpiCard, IssueListItem, Pill, Timeline, Tag). *@
+@{
+    Layout = "_LandingLayout";
+    ViewData["Title"] = L["Landing.Title"].Value;
+
+    // Same tones as the dashboard KpiCards, so the landing reads like the app.
+    var features = new[]
+    {
+        (Tone: "orange", Icon: "camera", Key: "Photos"),
+        (Tone: "emerald", Icon: "map-pin", Key: "Map"),
+        (Tone: "slate", Icon: "clock", Key: "Status"),
+        (Tone: "purple", Icon: "bell-lucide", Key: "Notifications"),
+        (Tone: "emerald", Icon: "chart-bar", Key: "Analytics"),
+        (Tone: "orange", Icon: "apartment", Key: "Management")
+    };
+    var steps = new[] { "Code", "Register", "Report", "Track" };
+    var roles = new[]
+    {
+        (Role: UserRole.Resident, Tag: "resident", Icon: "users"),
+        (Role: UserRole.AcabAdmin, Tag: "head", Icon: "apartment"),
+        (Role: UserRole.Administrator, Tag: "admin", Icon: "shield")
+    };
+}
+<header class="app-landing-header">
+    <div class="app-landing__container app-landing-header__inner">
+        <partial name="_Logo" />
+        <nav class="app-landing-header__nav" aria-label="@L["Nav.Label"]">
+            <a href="#features">@L["Landing.Nav.Features"]</a>
+            <a href="#how">@L["Landing.Nav.How"]</a>
+            <a href="#roles">@L["Landing.Nav.Roles"]</a>
+        </nav>
+        <div class="app-landing-header__actions">
+            <div class="app-landing-header__lang"><partial name="_CultureSwitch" /></div>
+            <a class="cf-applink cf-applink--soft app-landing-header__login" asp-controller="Account" asp-action="Login">@L["Auth.Login.Submit"]</a>
+            <a class="cf-applink" asp-controller="Account" asp-action="Register">@L["Auth.Register.Submit"]</a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="app-landing-hero">
+        <div class="app-landing__container app-landing-hero__grid">
+            <div class="app-landing-hero__copy">
+                <span class="cf-badge cf-badge--success"><span class="cf-dot cf-dot--closed app-landing-hero__dot"></span>@L["Landing.Hero.Badge"]</span>
+                <h1 class="app-landing-hero__title">@L["Landing.Hero.Title"]</h1>
+                <p class="app-landing-hero__text">@L["Landing.Hero.Text"]</p>
+                <div class="app-landing__actions">
+                    <a class="cf-applink app-landing__cta" asp-controller="Account" asp-action="Register">@L["Landing.Hero.Cta"]<span class="cf-icon cf-icon--arrow-right cf-icon--4" aria-hidden="true"></span></a>
+                    <a class="cf-applink cf-applink--soft app-landing__cta" asp-controller="Account" asp-action="Login">@L["Landing.Hero.Secondary"]</a>
+                </div>
+                <p class="app-landing-hero__note"><span class="cf-icon cf-icon--shield cf-icon--4" aria-hidden="true"></span>@L["Landing.Hero.Note"]</p>
+            </div>
+
+            @* A static preview of the resident's view: one appeal card with its timeline, plus a KpiCard. *@
+            <div class="app-landing-preview" aria-hidden="true">
+                <div class="app-landing-preview__window">
+                    <div class="cf-issue__row">
+                        <div class="cf-issue__main">
+                            <h4 class="cf-issue__title">@L["Landing.Preview.Title"]</h4>
+                            <div class="cf-issue__tags">
+                                <span class="cf-pill cf-pill--neutral">@L["Landing.Preview.Category"]</span>
+                                <partial name="_StatusPill" model="AppealStatus.InProgress" />
+                            </div>
+                            <p class="cf-issue__excerpt">@L["Landing.Preview.Text"]</p>
+                            <div class="cf-issue__meta">
+                                <span><span class="cf-icon cf-icon--pin cf-icon--4"></span>@L["Landing.Preview.Address"]</span>
+                                <span><span class="cf-icon cf-icon--clock cf-icon--4"></span>@L["Landing.Preview.Time"]</span>
+                            </div>
+                        </div>
+                        <div class="cf-issue__thumb app-landing-preview__thumb"><span class="cf-icon cf-icon--camera cf-icon--6"></span></div>
+                    </div>
+                    <div class="app-landing-preview__timeline">
+                        <div class="cf-timeline">
+                            <div class="cf-timeline__item">
+                                <div class="cf-timeline__dot"><span class="cf-icon cf-icon--file-text cf-icon--3"></span></div>
+                                <div class="cf-timeline__content"><p class="cf-timeline__title">@L["Timeline.Submitted"]</p><p class="cf-timeline__time">09:14</p></div>
+                            </div>
+                            <div class="cf-timeline__item">
+                                <div class="cf-timeline__dot cf-timeline__dot--inprogress"></div>
+                                <div class="cf-timeline__content">
+                                    <p class="cf-timeline__title">@L["Timeline.StatusChanged", AppealStatus.New.GetDisplayName(), AppealStatus.InProgress.GetDisplayName()]</p>
+                                    <p class="cf-timeline__time">10:02 · @L["Enum.UserRole.AcabAdmin"]</p>
+                                    <p class="cf-timeline__comment">@L["Landing.Preview.Comment"]</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cf-kpi-card cf-kpi-card--emerald app-landing-preview__kpi">
+                    <div class="cf-kpi-card__top"><span class="cf-kpi-card__label">@L["Kpi.ClosedThisMonth"]</span><span class="cf-kpi-card__tile"><span class="cf-icon cf-icon--check cf-icon--5"></span></span></div>
+                    <div class="cf-kpi-card__value">24</div>
+                    <div class="cf-kpi-card__foot">
+                        <div class="cf-kpi-card__trend"><span class="cf-delta cf-delta--good"><span class="cf-icon cf-icon--arrow-up"></span>18%</span><span>@L["Kpi.ThisMonth"]</span></div>
+                        <partial name="_Sparkline" model="@(new double[] { 3, 5, 4, 7, 6, 9, 11 })" />
+                    </div>
+                </div>
+
+                <div class="app-landing-preview__note">
+                    <span class="app-landing-preview__note-icon"><span class="cf-icon cf-icon--bell-lucide cf-icon--4"></span></span>
+                    <span><span class="app-landing-preview__note-title">@L["Landing.Preview.NoteTitle"]</span><span class="app-landing-preview__note-text">@L["Landing.Preview.NoteText"]</span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="app-landing-section">
+        <div class="app-landing__container">
+            <div class="app-landing-section__head">
+                <p class="app-landing-section__eyebrow">@L["Landing.Nav.Features"]</p>
+                <h2 class="app-landing-section__title">@L["Landing.Features.Title"]</h2>
+                <p class="app-landing-section__sub">@L["Landing.Features.Sub"]</p>
+            </div>
+            <div class="app-landing-features">
+                @foreach (var f in features)
+                {
+                    <article class="cf-kpi-card cf-kpi-card--@f.Tone app-landing-feature">
+                        <span class="cf-kpi-card__tile"><span class="cf-icon cf-icon--@f.Icon cf-icon--5" aria-hidden="true"></span></span>
+                        <h3 class="app-landing-feature__title">@L[$"Landing.Feature.{f.Key}.Title"]</h3>
+                        <p class="app-landing-feature__text">@L[$"Landing.Feature.{f.Key}.Text"]</p>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section id="how" class="app-landing-section app-landing-section--muted">
+        <div class="app-landing__container">
+            <div class="app-landing-section__head">
+                <p class="app-landing-section__eyebrow">@L["Landing.Nav.How"]</p>
+                <h2 class="app-landing-section__title">@L["Landing.How.Title"]</h2>
+                <p class="app-landing-section__sub">@L["Landing.How.Sub"]</p>
+            </div>
+            <ol class="app-landing-steps">
+                @for (var i = 0; i < steps.Length; i++)
+                {
+                    <li class="app-landing-step">
+                        <span class="app-landing-step__num">@(i + 1)</span>
+                        <h3 class="app-landing-step__title">@L[$"Landing.Step.{steps[i]}.Title"]</h3>
+                        <p class="app-landing-step__text">@L[$"Landing.Step.{steps[i]}.Text"]</p>
+                    </li>
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section id="roles" class="app-landing-section">
+        <div class="app-landing__container">
+            <div class="app-landing-section__head">
+                <p class="app-landing-section__eyebrow">@L["Landing.Nav.Roles"]</p>
+                <h2 class="app-landing-section__title">@L["Landing.Roles.Title"]</h2>
+                <p class="app-landing-section__sub">@L["Landing.Roles.Sub"]</p>
+            </div>
+            <div class="app-landing-roles">
+                @foreach (var r in roles)
+                {
+                    <article class="cf-card app-landing-role">
+                        <div class="app-landing-role__head">
+                            <span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@r.Icon" aria-hidden="true"></span></span>
+                            <span class="cf-tag cf-tag--@r.Tag">@r.Role.GetDisplayName()</span>
+                        </div>
+                        <p class="app-landing-role__text">@L[$"Landing.Role.{r.Role}.Text"]</p>
+                        <ul class="app-landing-role__list">
+                            @for (var i = 1; i <= 3; i++)
+                            {
+                                <li><span class="cf-icon cf-icon--check-lucide cf-icon--4" aria-hidden="true"></span>@L[$"Landing.Role.{r.Role}.Point{i}"]</li>
+                            }
+                        </ul>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="app-landing-section app-landing-section--tight">
+        <div class="app-landing__container">
+            <div class="app-landing-cta">
+                <span class="cf-logo__mark app-landing-cta__mark"><partial name="_LogoMark" /></span>
+                <h2 class="app-landing-cta__title">@L["Landing.Cta.Title"]</h2>
+                <p class="app-landing-cta__text">@L["Landing.Cta.Text"]</p>
+                <div class="app-landing__actions app-landing__actions--center">
+                    <a class="app-landing-cta__btn" asp-controller="Account" asp-action="Register">@L["Landing.Hero.Cta"]<span class="cf-icon cf-icon--arrow-right cf-icon--4" aria-hidden="true"></span></a>
+                    <a class="app-landing-cta__btn app-landing-cta__btn--soft" asp-controller="Account" asp-action="Login">@L["Auth.Login.Submit"]</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="app-landing-footer">
+    <div class="app-landing__container app-landing-footer__inner">
+        <partial name="_Logo" />
+        <div class="cf-help-box app-landing-footer__help"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+        <div class="app-landing-footer__end">
+            <partial name="_CultureSwitch" />
+            <p class="app-landing-footer__copy">© @DateTime.Now.Year @L["App.Name"] · @L["App.Tagline"]</p>
+        </div>
+    </div>
+</footer>
