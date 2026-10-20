@@ -1,0 +1,21 @@
+@* After registration or "send again": the letter is on its way; the button sends it once more. *@
+@model ResendConfirmationViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = L["Auth.CheckEmail.Title"].Value;
+}
+<div class="cf-auth cf-auth--login">
+    <div class="cf-auth__card">
+        <div class="cf-auth__head">
+            <h1 class="cf-auth__title">@L["Auth.CheckEmail.Title"]</h1>
+            <p class="cf-auth__sub">@L["Auth.CheckEmail.Sub", Model.Email]</p>
+        </div>
+        <partial name="_Flash" />
+        <p class="cf-field__hint">@L["Auth.CheckEmail.Hint"]</p>
+        <form asp-action="ResendConfirmation" method="post" class="cf-stack-6">
+            <input type="hidden" asp-for="Email" />
+            <div><button type="submit" class="cf-auth__submit">@L["Auth.Resend.Submit"]</button></div>
+        </form>
+        <p class="cf-auth__foot"><a class="cf-auth__link" asp-action="Login">@L["Auth.Register.ToLogin"]</a></p>
+    </div>
+</div>

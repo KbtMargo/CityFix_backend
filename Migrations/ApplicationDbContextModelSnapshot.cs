@@ -35,6 +35,9 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("text");
 
+                    b.Property<string>("AddressEn")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -45,6 +48,9 @@ namespace CityFix_backend.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NameEn")
                         .HasColumnType("text");
 
                     b.Property<string>("ResidentCode")
@@ -81,6 +87,10 @@ namespace CityFix_backend.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<string>("AddressTranslated")
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
+
                     b.Property<int>("AuthorId")
                         .HasColumnType("integer");
 
@@ -93,6 +103,15 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("DescriptionTranslated")
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
 
                     b.Property<decimal?>("Lat")
                         .HasPrecision(8, 5)
@@ -123,6 +142,16 @@ namespace CityFix_backend.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TitleTranslated")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("TranslationAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("TranslationPending")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -199,6 +228,9 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("AssignedTo")
                         .HasColumnType("text");
 
+                    b.Property<string>("AssignedToEn")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -242,6 +274,10 @@ namespace CityFix_backend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
@@ -258,8 +294,17 @@ namespace CityFix_backend.Migrations
                     b.Property<int?>("AppealId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EmailState")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("InApp")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
@@ -268,7 +313,13 @@ namespace CityFix_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("MessageEn")
+                        .HasColumnType("text");
+
                     b.Property<int?>("NewStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SmsState")
                         .HasColumnType("integer");
 
                     b.Property<int>("Type")
@@ -280,6 +331,8 @@ namespace CityFix_backend.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppealId");
+
+                    b.HasIndex("EmailState", "SmsState");
 
                     b.HasIndex("UserId", "IsRead");
 
@@ -300,6 +353,10 @@ namespace CityFix_backend.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NameEn")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
@@ -326,18 +383,40 @@ namespace CityFix_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullNameTranslated")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
+                    b.Property<bool>("NotifyEmail")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotifyInApp")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotifySms")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PendingEmail")
                         .HasColumnType("text");
 
                     b.Property<string>("Phone")

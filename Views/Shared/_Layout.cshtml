@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
-<body>
+<body data-col-resize-label="@L["Table.ResizeColumn"]">
     <a class="app-skip" href="#content">@L["Shell.Skip"]</a>
     <div class="@(staff ? "cf-shell cf-shell--admin" : "cf-shell") app-shell @(collapsed ? "is-collapsed" : "")" data-app-shell>
         <aside class="cf-shell__sidebar" id="app-sidebar" aria-label="@L["Nav.Label"]">@await Component.InvokeAsync("Sidebar")</aside>

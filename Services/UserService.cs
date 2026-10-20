@@ -1,4 +1,5 @@
 using CityFix_backend.Data;
+using CityFix_backend.Helpers;
 using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -79,10 +80,11 @@ namespace CityFix_backend.Services
             EnsureAdministrator(actor);
             await ValidateRoleAsync(input);
             var password = RandomCodes.TemporaryPassword();
-            return (await CreateAccountAsync(input, password), password);
+            // The administrator typed the address in; the account does not wait for a confirmation letter.
+            return (await CreateAccountAsync(input, password, emailConfirmed: true), password);
         }
 
-        public async Task<User> CreateAccountAsync(UserInput input, string password)
+        public async Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk")
         {
             var email = EmailAddress.Normalize(input.Email);
             await EnsureEmailFreeAsync(email, null);
@@ -92,6 +94,8 @@ namespace CityFix_backend.Services
             {
                 Email = email,
                 PasswordHash = _hasher.Hash(password),
+                EmailConfirmed = emailConfirmed,
+                Language = language == "en" ? "en" : "uk",
                 FirstName = input.FirstName.Trim(),
                 LastName = Clean(input.LastName),
                 Phone = Clean(input.Phone),
@@ -135,9 +139,16 @@ namespace CityFix_backend.Services
                 await EnsureAnotherAdministratorAsync(user.Id);
             }
 
+            ResetTranslatedName(user, input.FirstName, input.LastName);
             user.FirstName = input.FirstName.Trim();
             user.LastName = Clean(input.LastName);
-            user.Email = email;
+            if (user.Email != email)
+            {
+                // An address set by an administrator counts as confirmed; a pending change from the profile is dropped.
+                user.Email = email;
+                user.EmailConfirmed = true;
+                user.PendingEmail = null;
+            }
             user.Phone = Clean(input.Phone);
             user.Role = input.Role;
             user.AcabId = input.AcabId;
@@ -187,7 +198,7 @@ namespace CityFix_backend.Services
             var blockedKey = id == actor.Id ? "Users.CannotDeleteSelfText"
                 : appeals > 0 || history ? "Users.CannotDeleteText"
                 : null;
-            return new DeleteCheck(id, user.FullName, appeals, blockedKey);
+            return new DeleteCheck(id, user.DisplayName(), appeals, blockedKey);
         }
 
         public async Task DeleteAsync(int id, User actor)
@@ -200,19 +211,49 @@ namespace CityFix_backend.Services
             await _context.Users.Where(u => u.Id == id).ExecuteDeleteAsync();
         }
 
-        public async Task UpdateProfileAsync(int userId, ProfileInput input)
+        public async Task<string?> UpdateProfileAsync(int userId, ProfileInput input)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new NotFoundException($"User {userId} does not exist.");
             var email = EmailAddress.Normalize(input.Email);
             await EnsureEmailFreeAsync(email, userId);
 
+            // A new address only becomes the login once its confirmation link is followed (AuthService.ConfirmEmailAsync);
+            // typing the current one again cancels a pending change.
+            string? toConfirm = null;
+            if (email == user.Email)
+            {
+                user.PendingEmail = null;
+            }
+            else if (email != user.PendingEmail)
+            {
+                user.PendingEmail = toConfirm = email;
+            }
+
+            ResetTranslatedName(user, input.FirstName, input.LastName);
             user.FirstName = input.FirstName.Trim();
             user.LastName = Clean(input.LastName);
-            user.Email = email;
             user.Phone = Clean(input.Phone);
             user.UpdatedAt = Now;
             await _context.SaveChangesAsync();
+            return toConfirm;
+        }
+
+        public async Task UpdateNotificationSettingsAsync(int userId, NotificationSettings settings)
+        {
+            var updated = await _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.NotifyInApp, settings.InApp)
+                .SetProperty(u => u.NotifyEmail, settings.Email)
+                .SetProperty(u => u.NotifySms, settings.Sms)
+                .SetProperty(u => u.UpdatedAt, Now));
+            if (updated == 0) throw new NotFoundException($"User {userId} does not exist.");
+        }
+
+        public Task SetLanguageAsync(int userId, string language)
+        {
+            var value = language == "en" ? "en" : "uk";
+            return _context.Users.Where(u => u.Id == userId && u.Language != value)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.Language, value));
         }
 
         private static void EnsureAdministrator(User actor)
@@ -259,6 +300,12 @@ namespace CityFix_backend.Services
         // Emails are stored lower-cased, so the unique index is used directly.
         private Task<bool> EmailTakenAsync(string email, int? exceptId) =>
             _context.Users.AnyAsync(u => u.Email == email && u.Id != (exceptId ?? 0));
+
+        // A changed name gets a new transliteration / Ukrainian spelling (TranslationWorker).
+        private static void ResetTranslatedName(User user, string firstName, string? lastName)
+        {
+            if (user.FirstName != firstName.Trim() || user.LastName != Clean(lastName)) user.FullNameTranslated = null;
+        }
 
         private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }

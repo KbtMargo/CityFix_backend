@@ -97,6 +97,10 @@ namespace CityFix_backend.Data
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.UserId, n.IsRead });
+
+            // NotificationDispatcher looks for copies still to be sent.
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => new { n.EmailState, n.SmsState });
         }
     }
 }

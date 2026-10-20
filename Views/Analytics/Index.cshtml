@@ -13,7 +13,8 @@
         byCategory = Model.ByCategory,
         perDay = Model.PerDay,
         byStatus = Model.ByStatus,
-        byPriority = Model.ByPriority
+        byPriority = Model.ByPriority,
+        statusKeys = Model.StatusKeys
     };
 }
 <div class="cf-page-head">
@@ -21,6 +22,12 @@
         <h1 class="cf-page-title">@L["Analytics.Title"]</h1>
         <p class="cf-page-sub">@L["Analytics.Sub"]</p>
     </div>
+    @if (Model.Total > 0)
+    {
+        <div class="cf-toolbar">
+            <partial name="_ExportMenu" model="@(new ExportMenuModel("Analytics", new Dictionary<string, string>(), "xlsx", "pdf"))" />
+        </div>
+    }
 </div>
 
 <div class="cf-grid-4">

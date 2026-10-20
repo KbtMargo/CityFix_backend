@@ -69,7 +69,7 @@
   <data name="Tabs.Label" xml:space="preserve"><value>Appeal status</value></data>
   <data name="Tabs.All" xml:space="preserve"><value>All</value></data>
   <data name="Tabs.New" xml:space="preserve"><value>New</value></data>
-  <data name="Tabs.InProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Tabs.InProgress" xml:space="preserve"><value>Being handled</value></data>
   <data name="Tabs.Closed" xml:space="preserve"><value>Closed</value></data>
   <data name="Filters.Title" xml:space="preserve"><value>Filters</value></data>
   <data name="Filters.Active" xml:space="preserve"><value>Active filters</value></data>
@@ -146,7 +146,7 @@
   <data name="Analytics.Sub" xml:space="preserve"><value>Statistics for the appeals you can see</value></data>
   <data name="Analytics.Total" xml:space="preserve"><value>Total appeals</value></data>
   <data name="Analytics.Waiting" xml:space="preserve"><value>Waiting</value></data>
-  <data name="Analytics.InProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Analytics.InProgress" xml:space="preserve"><value>Being handled</value></data>
   <data name="Analytics.Resolved" xml:space="preserve"><value>Resolved</value></data>
   <data name="Analytics.ByCategory" xml:space="preserve"><value>Most common problems</value></data>
   <data name="Analytics.PerDay" xml:space="preserve"><value>New appeals, last 30 days</value></data>
@@ -295,9 +295,9 @@
   <data name="Enum.AppealStatus.InProgress" xml:space="preserve"><value>In progress</value></data>
   <data name="Enum.AppealStatus.Done" xml:space="preserve"><value>Done</value></data>
   <data name="Enum.AppealStatus.Rejected" xml:space="preserve"><value>Rejected</value></data>
-  <data name="Enum.AppealPriority.Low" xml:space="preserve"><value>low priority</value></data>
-  <data name="Enum.AppealPriority.Normal" xml:space="preserve"><value>medium priority</value></data>
-  <data name="Enum.AppealPriority.Urgent" xml:space="preserve"><value>high priority</value></data>
+  <data name="Enum.AppealPriority.Low" xml:space="preserve"><value>Not urgent</value></data>
+  <data name="Enum.AppealPriority.Normal" xml:space="preserve"><value>Normal priority</value></data>
+  <data name="Enum.AppealPriority.Urgent" xml:space="preserve"><value>Urgent</value></data>
   <data name="Enum.UserRole.Resident" xml:space="preserve"><value>Resident</value></data>
   <data name="Enum.UserRole.AcabAdmin" xml:space="preserve"><value>Association head</value></data>
   <data name="Enum.UserRole.Administrator" xml:space="preserve"><value>Administrator</value></data>
@@ -400,7 +400,7 @@
   <data name="Assign.Title" xml:space="preserve"><value>Responsible</value></data>
   <data name="Assign.Hint" xml:space="preserve"><value>The association if the problem concerns the building, or a city service. The author is notified.</value></data>
   <data name="Assign.Submit" xml:space="preserve"><value>Assign</value></data>
-  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Optional. The residents' code joins you to the association; the head code makes you its head.</value></data>
+  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Your association head gives you this code. It links you to the association so its head sees your appeals.</value></data>
   <data name="Enum.ResponsibleKind.Association" xml:space="preserve"><value>Association</value></data>
   <data name="Enum.ResponsibleKind.Recipient" xml:space="preserve"><value>Service</value></data>
   <data name="Field.ResidentCode" xml:space="preserve"><value>Residents' code</value></data>
@@ -458,4 +458,77 @@
   <data name="Validation.NoAcab" xml:space="preserve"><value>You do not belong to an association; choose a service.</value></data>
   <data name="Validation.PointRequired" xml:space="preserve"><value>Mark the location of the problem on the map.</value></data>
   <data name="Validation.TransitionNotAllowed" xml:space="preserve"><value>Status “{0}” cannot change to “{1}”.</value></data>
+  <data name="Auth.EmailNotConfirmed" xml:space="preserve"><value>Confirm your email: follow the link in the letter we sent after registration.</value></data>
+  <data name="Auth.ResendLink" xml:space="preserve"><value>Send the letter again</value></data>
+  <data name="Auth.EmailConfirmed" xml:space="preserve"><value>Email confirmed.</value></data>
+  <data name="Auth.ConfirmInvalid" xml:space="preserve"><value>The link is invalid or has expired. Send the letter again.</value></data>
+  <data name="Auth.ConfirmSendFailed" xml:space="preserve"><value>The letter could not be sent. Please try again a little later.</value></data>
+  <data name="Auth.CheckEmail.Title" xml:space="preserve"><value>Check your email</value></data>
+  <data name="Auth.CheckEmail.Sub" xml:space="preserve"><value>We sent a confirmation link to {0}.</value></data>
+  <data name="Auth.CheckEmail.Hint" xml:space="preserve"><value>Follow the link in the letter to finish registration. No letter? Check the spam folder or send it again.</value></data>
+  <data name="Auth.Resend.Title" xml:space="preserve"><value>Email confirmation</value></data>
+  <data name="Auth.Resend.Sub" xml:space="preserve"><value>Enter the email you registered with and we will send the link again.</value></data>
+  <data name="Auth.Resend.Submit" xml:space="preserve"><value>Send the letter again</value></data>
+  <data name="Email.Confirm.Subject" xml:space="preserve"><value>Confirm your email for {0}</value></data>
+  <data name="Email.Confirm.Greeting" xml:space="preserve"><value>Hello, {0}!</value></data>
+  <data name="Email.Confirm.Text" xml:space="preserve"><value>To confirm this address for {0}, follow the link:</value></data>
+  <data name="Email.Confirm.Expires" xml:space="preserve"><value>The link is valid for {0} h.</value></data>
+  <data name="Email.Confirm.Ignore" xml:space="preserve"><value>If you did not register, just ignore this letter.</value></data>
+  <data name="Email.NotificationFooter" xml:space="preserve"><value>You can change notification channels in your profile (Profile → Notifications).</value></data>
+  <data name="Profile.EmailPending" xml:space="preserve"><value>We sent a letter to {0}. The address changes once you follow the link.</value></data>
+  <data name="Profile.EmailPendingNote" xml:space="preserve"><value>The new address {0} is waiting for confirmation. Until then {1} is used for signing in and letters.</value></data>
+  <data name="Profile.NotificationsTitle" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Profile.NotificationsHint" xml:space="preserve"><value>Where to send notifications about status changes and other appeal updates.</value></data>
+  <data name="Profile.NotificationsSaved" xml:space="preserve"><value>Notification settings saved.</value></data>
+  <data name="Profile.Notify.InApp" xml:space="preserve"><value>In the app (Notifications page)</value></data>
+  <data name="Profile.Notify.Email" xml:space="preserve"><value>By email</value></data>
+  <data name="Profile.Notify.Sms" xml:space="preserve"><value>By SMS</value></data>
+  <data name="Profile.Notify.EmailTo" xml:space="preserve"><value>Letters will go to {0}.</value></data>
+  <data name="Profile.Notify.EmailUnconfirmed" xml:space="preserve"><value>Your email is not confirmed yet, so no letters are sent.</value></data>
+  <data name="Profile.Notify.SmsTo" xml:space="preserve"><value>SMS will go to {0}.</value></data>
+  <data name="Profile.Notify.SmsNoPhone" xml:space="preserve"><value>Add a phone number in your personal details to receive SMS.</value></data>
+  <data name="Enum.AppealStatus.UnderReview" xml:space="preserve"><value>Under review</value></data>
+  <data name="Enum.AppealStatus.NeedsInfo" xml:space="preserve"><value>Needs details</value></data>
+  <data name="Enum.AppealStatus.OnHold" xml:space="preserve"><value>On hold</value></data>
+  <data name="Enum.AppealStatus.Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="Auth.Register.HasAcab" xml:space="preserve"><value>I live in a building with a homeowners' association</value></data>
+  <data name="Auth.CodeRequired" xml:space="preserve"><value>Enter your association code or untick the box.</value></data>
+  <data name="Translation.Auto" xml:space="preserve"><value>Machine translation</value></data>
+  <data name="Translation.ShowOriginal" xml:space="preserve"><value>show original</value></data>
+  <data name="Field.NameEn" xml:space="preserve"><value>Name in English</value></data>
+  <data name="Field.NameUk" xml:space="preserve"><value>Name in Ukrainian</value></data>
+  <data name="Field.NameEnHint" xml:space="preserve"><value>Optional: leave it empty and the name is translated automatically.</value></data>
+  <data name="Field.AddressEn" xml:space="preserve"><value>Address in English</value></data>
+  <data name="Table.ResizeColumn" xml:space="preserve"><value>Resize column (←/→ arrows, Esc to reset)</value></data>
+  <data name="Export.Title" xml:space="preserve"><value>Export</value></data>
+  <data name="Export.xlsx" xml:space="preserve"><value>Excel (.xlsx)</value></data>
+  <data name="Export.xlsx.Hint" xml:space="preserve"><value>A filterable table to work with in Excel</value></data>
+  <data name="Export.pdf" xml:space="preserve"><value>PDF</value></data>
+  <data name="Export.pdf.Hint" xml:space="preserve"><value>A formatted report to print or send</value></data>
+  <data name="Export.csv" xml:space="preserve"><value>CSV</value></data>
+  <data name="Export.csv.Hint" xml:space="preserve"><value>Raw data for other programs</value></data>
+  <data name="Export.json" xml:space="preserve"><value>JSON</value></data>
+  <data name="Export.json.Hint" xml:space="preserve"><value>Data for integrations</value></data>
+  <data name="Report.Generated" xml:space="preserve"><value>Generated {0} · {1}</value></data>
+  <data name="Report.Page" xml:space="preserve"><value>Page</value></data>
+  <data name="Report.Scope.All" xml:space="preserve"><value>Scope: all appeals</value></data>
+  <data name="Report.Scope.Acab" xml:space="preserve"><value>Scope: appeals of {0}</value></data>
+  <data name="Report.Scope.Mine" xml:space="preserve"><value>Scope: my appeals</value></data>
+  <data name="Report.Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="Report.Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Report.Period" xml:space="preserve"><value>Period</value></data>
+  <data name="Report.Appeals.Title" xml:space="preserve"><value>Appeals report</value></data>
+  <data name="Report.Appeals.Sheet" xml:space="preserve"><value>Appeals</value></data>
+  <data name="Report.Appeals.Count" xml:space="preserve"><value>Appeals in this report: {0}</value></data>
+  <data name="Report.Analytics.Title" xml:space="preserve"><value>Analytics report</value></data>
+  <data name="Report.Analytics.Summary" xml:space="preserve"><value>Summary</value></data>
+  <data name="Report.Analytics.KeyFigures" xml:space="preserve"><value>Key figures</value></data>
+  <data name="Report.Analytics.Totals" xml:space="preserve"><value>Appeals by state</value></data>
+  <data name="Report.Metric" xml:space="preserve"><value>Metric</value></data>
+  <data name="Report.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Report.Change" xml:space="preserve"><value>Change</value></data>
+  <data name="Report.Count" xml:space="preserve"><value>Count</value></data>
+  <data name="Report.Share" xml:space="preserve"><value>Share</value></data>
+  <data name="Report.Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Report.NewAppeals" xml:space="preserve"><value>New appeals</value></data>
 </root>

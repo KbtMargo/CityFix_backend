@@ -29,9 +29,18 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.Longitude")]
         public decimal? Lng { get; set; }
 
+        // Empty English fields are filled by machine translation (TranslationWorker).
+        [StringLength(200, ErrorMessage = "Validation.MaxLength")]
+        [Display(Name = "Field.NameEn")]
+        public string? NameEn { get; set; }
+
         [StringLength(300, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.Address")]
         public string? Address { get; set; }
+
+        [StringLength(300, ErrorMessage = "Validation.MaxLength")]
+        [Display(Name = "Field.AddressEn")]
+        public string? AddressEn { get; set; }
 
         [Required(ErrorMessage = "Validation.Choose")]
         [Display(Name = "Field.Category")]
@@ -134,16 +143,27 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.Address")]
         public string? Address { get; set; }
 
+        // Empty English fields are filled by machine translation (TranslationWorker).
+        [StringLength(200, ErrorMessage = "Validation.MaxLength")]
+        [Display(Name = "Field.NameEn")]
+        public string? NameEn { get; set; }
+
+        [StringLength(300, ErrorMessage = "Validation.MaxLength")]
+        [Display(Name = "Field.AddressEn")]
+        public string? AddressEn { get; set; }
+
         [BindNever, ValidateNever] public string? ResidentCode { get; set; }
         [BindNever, ValidateNever] public string? HeadCode { get; set; }
 
-        public AcabInput ToInput() => new(Name, Address);
+        public AcabInput ToInput() => new(Name, Address, NameEn, AddressEn);
 
         public static AcabFormViewModel From(Acab acab) => new()
         {
             Id = acab.Id,
             Name = acab.Name,
             Address = acab.Address,
+            NameEn = acab.NameEn,
+            AddressEn = acab.AddressEn,
             ResidentCode = acab.ResidentCode,
             HeadCode = acab.HeadCode
         };

@@ -23,10 +23,7 @@ else
             <div class="cf-toolbar">
                 <div class="cf-page-head__meta">@L["Appeals.Total"]: <b>@Model.Page.TotalCount</b></div>
                 @* The export follows the current search, filters and tab. *@
-                @{ exportRoute["format"] = "csv"; }
-                <a class="cf-btn cf-btn--outline cf-btn--sm" asp-action="Export" asp-all-route-data="exportRoute"><span class="cf-icon cf-icon--download cf-icon--4" aria-hidden="true"></span>CSV</a>
-                @{ exportRoute["format"] = "json"; }
-                <a class="cf-btn cf-btn--outline cf-btn--sm" asp-action="Export" asp-all-route-data="exportRoute"><span class="cf-icon cf-icon--download cf-icon--4" aria-hidden="true"></span>JSON</a>
+                <partial name="_ExportMenu" model="@(new ExportMenuModel("Appeals", exportRoute, "xlsx", "pdf", "csv", "json"))" />
             </div>
         </div>
     </div>
@@ -57,11 +54,11 @@ else
                     {
                         var route = Model.Filter.ToRouteValues(includePage: true);
                         route["appealId"] = a.Id.ToString();
-                        var responsible = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.Name : a.Recipient?.Name;
+                        var responsible = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.DisplayName() : a.Recipient?.DisplayName();
                         <tr>
                             <td class="cf-strong">
-                                <div class="cf-table__name"><a asp-action="Index" asp-all-route-data="route">@a.Title</a></div>
-                                <div class="cf-table__sub">@(a.Address ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</div>
+                                <div class="cf-table__name"><a asp-action="Index" asp-all-route-data="route">@a.DisplayTitle()</a></div>
+                                <div class="cf-table__sub">@(a.DisplayAddress() ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</div>
                                 @if (Model.PossibleDuplicates.Contains(a.Id))
                                 {
                                     <span class="cf-badge cf-badge--warning app-table-badge" title="@L["Similar.DuplicateHint"]">@L["Similar.Duplicate"]</span>
@@ -69,9 +66,9 @@ else
                             </td>
                             <td><partial name="_StatusPill" model="a.Status" /></td>
                             <td><partial name="_PriorityPill" model="a.Priority" /></td>
-                            <td>@a.Category?.Name</td>
+                            <td>@a.Category?.DisplayName()</td>
                             <td>@(responsible ?? L["Appeal.NoResponsible"].Value)</td>
-                            <td>@a.Author?.FullName</td>
+                            <td>@a.Author?.DisplayName()</td>
                             <td>@a.CreatedAt.ToDate()</td>
                             <td>
                                 <div class="cf-row-actions">

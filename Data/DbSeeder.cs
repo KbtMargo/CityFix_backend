@@ -36,6 +36,7 @@ namespace CityFix_backend.Data
             {
                 Email = email,
                 PasswordHash = hasher.Hash(password),
+                EmailConfirmed = true,
                 FirstName = "Admin",
                 Role = UserRole.Administrator,
                 CreatedAt = now,

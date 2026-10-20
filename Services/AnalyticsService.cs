@@ -49,8 +49,10 @@ namespace CityFix_backend.Services
 
             var byStatus = await visible.GroupBy(a => a.Status).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
             var byPriority = await visible.GroupBy(a => a.Priority).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count);
-            var byCategory = await visible.GroupBy(a => a.Category!.Name).Select(g => new { Name = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count).ThenBy(x => x.Name).ToListAsync();
+            var byCategory = (await visible.GroupBy(a => new { a.Category!.Name, a.Category.NameEn }).Select(g => new { g.Key.Name, g.Key.NameEn, Count = g.Count() })
+                .ToListAsync())
+                .Select(x => new { Name = Localized.Pick(x.Name, x.NameEn), x.Count })
+                .OrderByDescending(x => x.Count).ThenBy(x => x.Name, StringComparer.CurrentCulture).ToList();
 
             var todayKyiv = _clock.GetUtcNow().UtcDateTime.ToKyiv().Date;
             var days = Enumerable.Range(0, 30).Select(i => todayKyiv.AddDays(i - 29)).ToList();
@@ -58,17 +60,18 @@ namespace CityFix_backend.Services
             var recent = await visible.Where(a => a.CreatedAt >= fromUtc).Select(a => a.CreatedAt).ToListAsync();
             var perDay = days.Select(d => recent.Count(c => c.ToKyiv().Date == d)).ToList();
 
-            var statuses = Enum.GetValues<AppealStatus>();
+            var statuses = AppealWorkflow.Ordered;
             var priorities = Enum.GetValues<AppealPriority>();
             int Status(AppealStatus s) => byStatus.GetValueOrDefault(s);
 
             return new AnalyticsData(
                 byStatus.Values.Sum(),
-                Status(AppealStatus.New), Status(AppealStatus.InProgress), Status(AppealStatus.Done), Status(AppealStatus.Rejected),
+                Status(AppealStatus.New), AppealWorkflow.Active.Sum(Status), Status(AppealStatus.Done), Status(AppealStatus.Rejected),
                 new ChartData(byCategory.Select(c => c.Name).ToList(), byCategory.Select(c => c.Count).ToList()),
                 new ChartData(days.Select(d => d.ToString("dd.MM", CultureInfo.InvariantCulture)).ToList(), perDay),
                 new ChartData(statuses.Select(s => s.GetDisplayName()).ToList(), statuses.Select(Status).ToList()),
-                new ChartData(priorities.Select(p => p.GetDisplayName()).ToList(), priorities.Select(p => byPriority.GetValueOrDefault(p)).ToList()));
+                new ChartData(priorities.Select(p => p.GetDisplayName()).ToList(), priorities.Select(p => byPriority.GetValueOrDefault(p)).ToList()),
+                statuses.Select(s => s.PillModifier()).ToList());
         }
 
         // Active appeals now vs a week ago; fewer is good. Sparkline: open count at the end of each of the last 7 days.

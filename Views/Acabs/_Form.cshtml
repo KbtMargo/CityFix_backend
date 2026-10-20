@@ -3,12 +3,22 @@
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
 }
 <div>
-    <label class="cf-label" asp-for="Name"></label>
+    <label class="cf-label" asp-for="Name">@L["Field.NameUk"]</label>
     <label class="cf-field"><input asp-for="Name" class="@InputClass("Name")" /></label>
     <span asp-validation-for="Name" class="cf-field__error"></span>
+</div>
+<div>
+    <label class="cf-label" asp-for="NameEn"></label>
+    <label class="cf-field"><input asp-for="NameEn" class="@InputClass("NameEn")" /><span class="cf-field__hint">@L["Field.NameEnHint"]</span></label>
+    <span asp-validation-for="NameEn" class="cf-field__error"></span>
 </div>
 <div>
     <label class="cf-label" asp-for="Address">@L["Field.AddressOptional"]</label>
     <label class="cf-field"><input asp-for="Address" class="@InputClass("Address")" /></label>
     <span asp-validation-for="Address" class="cf-field__error"></span>
+</div>
+<div>
+    <label class="cf-label" asp-for="AddressEn"></label>
+    <label class="cf-field"><input asp-for="AddressEn" class="@InputClass("AddressEn")" /><span class="cf-field__hint">@L["Field.NameEnHint"]</span></label>
+    <span asp-validation-for="AddressEn" class="cf-field__error"></span>
 </div>

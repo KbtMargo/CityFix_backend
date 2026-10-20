@@ -8,6 +8,21 @@ namespace CityFix_backend.Services
         public static string Normalize(string? email) => (email ?? "").Trim().ToLowerInvariant();
     }
 
+    // Phones are typed freely ("+380 67 123-45-67", "067 123 45 67"); SMS providers want E.164.
+    public static class PhoneNumber
+    {
+        // +380XXXXXXXXX for a Ukrainian number written without the country code; null when it is not a number.
+        public static string? ToE164(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return null;
+            var digits = new string(phone.Where(char.IsAsciiDigit).ToArray());
+            if (phone.TrimStart().StartsWith('+')) return digits.Length is >= 8 and <= 15 ? "+" + digits : null;
+            if (digits.Length == 10 && digits[0] == '0') return "+38" + digits;
+            if (digits.Length == 12 && digits.StartsWith("380")) return "+" + digits;
+            return null;
+        }
+    }
+
     public interface IPasswordHasher
     {
         string Hash(string password);

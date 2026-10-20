@@ -23,7 +23,7 @@
 {
     <div class="cf-box app-code-row">
         <div>
-            <div class="cf-label">@L["Users.ResidentCodeFor", ownAcab.Name]</div>
+            <div class="cf-label">@L["Users.ResidentCodeFor", ownAcab.DisplayName()]</div>
             <code class="app-code">@ownAcab.ResidentCode</code>
             <p class="cf-field__hint">@L["Users.ResidentCodeHint"]</p>
         </div>
@@ -59,7 +59,7 @@
                     var u = row.User;
                     <tr>
                         <td class="cf-strong">
-                            <div class="cf-table__name">@u.FullName</div>
+                            <div class="cf-table__name">@u.DisplayName()</div>
                             @if (!string.IsNullOrWhiteSpace(u.Phone))
                             {
                                 <div class="cf-table__sub">@u.Phone</div>
@@ -71,21 +71,21 @@
                         </td>
                         <td>@u.Email</td>
                         <td><span class="cf-tag cf-tag--@u.Role.RoleTag()">@u.Role.GetDisplayName()</span></td>
-                        <td>@(u.Acab?.Name ?? L["Common.NotSpecified"].Value)</td>
+                        <td>@(u.Acab?.DisplayName() ?? L["Common.NotSpecified"].Value)</td>
                         <td><span class="cf-tag @(row.AppealCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.AppealCount</span></td>
                         <td>@u.CreatedAt.ToDate()</td>
                         @if (Model.IsAdministrator)
                         {
                             <td>
                                 <div class="cf-row-actions">
-                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@u.Id" aria-label="@L["Common.EditItem", u.FullName]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                    <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@u.Id" aria-label="@L["Common.EditItem", u.DisplayName()]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
                                     @if (!row.CanDelete)
                                     {
-                                        <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", u.FullName]" title="@L[row.DeleteBlockedKey!]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
+                                        <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", u.DisplayName()]" title="@L[row.DeleteBlockedKey!]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
                                     }
                                     else
                                     {
-                                        <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@u.Id" aria-label="@L["Common.DeleteItem", u.FullName]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                        <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@u.Id" aria-label="@L["Common.DeleteItem", u.DisplayName()]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
                                     }
                                 </div>
                             </td>

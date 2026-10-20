@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Security.Claims;
+using CityFix_backend.Services.Interfaces;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,10 +8,17 @@ namespace CityFix_backend.Controllers
 {
     public class CultureController : Controller
     {
+        private readonly IUserService _users;
+
+        public CultureController(IUserService users)
+        {
+            _users = users;
+        }
+
         // POST: Culture/Set  (the UA/EN switch)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Set(string culture, string? returnUrl)
+        public async Task<IActionResult> Set(string culture, string? returnUrl)
         {
             var uiCulture = culture == "en" ? "en" : "uk";
 
@@ -23,6 +32,12 @@ namespace CityFix_backend.Controllers
                     IsEssential = true,
                     SameSite = SameSiteMode.Lax
                 });
+
+            // Emails and SMS to a signed-in user follow the language they last chose.
+            if (int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            {
+                await _users.SetLanguageAsync(userId, uiCulture);
+            }
 
             return LocalRedirect(!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/");
         }

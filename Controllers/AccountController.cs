@@ -1,3 +1,4 @@
+using System.Globalization;
 using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
@@ -13,12 +14,17 @@ namespace CityFix_backend.Controllers
 {
     public class AccountController : AppController
     {
-        private readonly IAuthService _auth;
+        // TempData: the address the confirmation letter went to (CheckEmail page).
+        private const string SentToKey = "ConfirmationSentTo";
 
-        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer)
+        private readonly IAuthService _auth;
+        private readonly ILogger<AccountController> _logger;
+
+        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger)
             : base(users, localizer)
         {
             _auth = auth;
+            _logger = logger;
         }
 
         // GET: Account/Register
@@ -32,18 +38,24 @@ namespace CityFix_backend.Controllers
         }
 
         // POST: Account/Register  (rate-limited: invitation codes cannot be guessed by brute force)
+        // The account can sign in only after the link from the confirmation letter is followed.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            // Someone in a private house has no association; a member must give its code.
+            if (model.HasAssociation && string.IsNullOrWhiteSpace(model.InvitationCode))
+            {
+                ModelState.AddModelError(nameof(model.InvitationCode), L["Auth.CodeRequired"]);
+            }
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
             var result = await _auth.RegisterAsync(new RegisterRequest(
-                model.Email, model.Password, model.FirstName, model.LastName, model.Phone, model.InvitationCode));
+                model.Email, model.Password, model.FirstName, model.LastName, model.Phone, model.HasAssociation ? model.InvitationCode : null));
 
             if (!result.Succeeded)
             {
@@ -54,9 +66,70 @@ namespace CityFix_backend.Controllers
                 return View(model);
             }
 
-            await SignInAsync(result.User!, persistent: false);
-            FlashSuccess(L["Auth.Welcome"]);
-            return RedirectToAction("Index", "Dashboard");
+            var user = result.User!;
+            await TrySendConfirmationAsync(user, user.Email);
+            TempData[SentToKey] = user.Email;
+            return RedirectToAction(nameof(CheckEmail));
+        }
+
+        // GET: Account/CheckEmail  ("we have sent you a letter")
+        public IActionResult CheckEmail()
+        {
+            if (TempData[SentToKey] is not string email)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+            return View(new ResendConfirmationViewModel { Email = email });
+        }
+
+        // GET: Account/ConfirmEmail?token=...  (the link from the letter)
+        public async Task<IActionResult> ConfirmEmail(string? token)
+        {
+            var result = string.IsNullOrEmpty(token)
+                ? EmailConfirmation.Invalid
+                : (await _auth.ConfirmEmailAsync(token)).Result;
+
+            switch (result)
+            {
+                case EmailConfirmation.Confirmed:
+                    FlashSuccess(L["Auth.EmailConfirmed"]);
+                    break;
+                case EmailConfirmation.EmailTaken:
+                    FlashError(L["Auth.EmailTaken"]);
+                    break;
+                default:
+                    FlashError(L["Auth.ConfirmInvalid"]);
+                    break;
+            }
+
+            // The link only confirms the address; it never signs anyone in.
+            return User.Identity?.IsAuthenticated == true
+                ? RedirectToAction(nameof(Profile))
+                : RedirectToAction(nameof(Login));
+        }
+
+        // GET: Account/ResendConfirmation
+        public IActionResult ResendConfirmation(string? email) =>
+            View(new ResendConfirmationViewModel { Email = email ?? "" });
+
+        // POST: Account/ResendConfirmation  (the same answer whether or not such an account exists)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ResendConfirmation(ResendConfirmationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _auth.FindUnconfirmedAsync(model.Email);
+            if (user != null)
+            {
+                await TrySendConfirmationAsync(user, user.Email);
+            }
+            TempData[SentToKey] = EmailAddress.Normalize(model.Email);
+            return RedirectToAction(nameof(CheckEmail));
         }
 
         // GET: Account/Login
@@ -88,7 +161,16 @@ namespace CityFix_backend.Controllers
                 return View(model);
             }
 
+            // Said only after the right password, so it does not reveal which addresses are registered.
+            if (!user.EmailConfirmed)
+            {
+                ModelState.AddModelError(string.Empty, L["Auth.EmailNotConfirmed"]);
+                model.NeedsConfirmation = true;
+                return View(model);
+            }
+
             await SignInAsync(user, model.RememberMe);
+            await Users.SetLanguageAsync(user.Id, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
             return RedirectToLocal(model.ReturnUrl, () => RedirectToAction("Index", "Dashboard"));
         }
 
@@ -113,11 +195,10 @@ namespace CityFix_backend.Controllers
         [Authorize]
         public async Task<IActionResult> Profile()
         {
-            var user = await Users.GetAsync(CurrentUserId);
-            return View(new ProfileViewModel { User = user, Profile = ProfileFormViewModel.From(user) });
+            return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId)));
         }
 
-        // POST: Account/Profile  (name, email, phone)
+        // POST: Account/Profile  (name, email, phone). A new email waits for its confirmation link.
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -127,8 +208,15 @@ namespace CityFix_backend.Controllers
             {
                 try
                 {
-                    await Users.UpdateProfileAsync(CurrentUserId, model.ToInput());
-                    FlashSuccess(L["Profile.Saved"]);
+                    var toConfirm = await Users.UpdateProfileAsync(CurrentUserId, model.ToInput());
+                    if (toConfirm == null)
+                    {
+                        FlashSuccess(L["Profile.Saved"]);
+                    }
+                    else if (await TrySendConfirmationAsync(await Users.GetAsync(CurrentUserId), toConfirm))
+                    {
+                        FlashSuccess(L["Profile.EmailPending", toConfirm]);
+                    }
                     return RedirectToAction(nameof(Profile));
                 }
                 catch (ServiceValidationException ex)
@@ -137,8 +225,35 @@ namespace CityFix_backend.Controllers
                 }
             }
 
+            var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+            view.Profile = model;
+            return View(nameof(Profile), view);
+        }
+
+        // POST: Account/ResendPendingEmail  (the letter for the new address typed in the profile)
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ResendPendingEmail()
+        {
             var user = await Users.GetAsync(CurrentUserId);
-            return View(nameof(Profile), new ProfileViewModel { User = user, Profile = model });
+            if (user.PendingEmail != null && await TrySendConfirmationAsync(user, user.PendingEmail))
+            {
+                FlashSuccess(L["Profile.EmailPending", user.PendingEmail]);
+            }
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // POST: Account/UpdateNotifications  (the channels notifications arrive on)
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateNotifications([Bind(Prefix = "Notifications")] NotificationSettingsViewModel model)
+        {
+            await Users.UpdateNotificationSettingsAsync(CurrentUserId, model.ToSettings());
+            FlashSuccess(L["Profile.NotificationsSaved"]);
+            return RedirectToAction(nameof(Profile));
         }
 
         // POST: Account/ChangePassword
@@ -154,12 +269,31 @@ namespace CityFix_backend.Controllers
 
             if (!ModelState.IsValid)
             {
-                var user = await Users.GetAsync(CurrentUserId);
-                return View(nameof(Profile), new ProfileViewModel { User = user, Profile = ProfileFormViewModel.From(user), ChangePassword = model });
+                var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+                view.ChangePassword = model;
+                return View(nameof(Profile), view);
             }
 
             FlashSuccess(L["Profile.PasswordChanged"]);
             return RedirectToAction(nameof(Profile));
+        }
+
+        // A mail server failure is logged and shown, not thrown: the account or the profile change is
+        // already saved, and the letter can be requested again.
+        private async Task<bool> TrySendConfirmationAsync(User user, string email)
+        {
+            var link = Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) }, Request.Scheme)!;
+            try
+            {
+                await _auth.SendConfirmationAsync(user, email, link);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not send the confirmation letter to {Email}.", email);
+                FlashError(L["Auth.ConfirmSendFailed"]);
+                return false;
+            }
         }
 
         private Task SignInAsync(User user, bool persistent)

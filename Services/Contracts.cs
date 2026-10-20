@@ -71,6 +71,9 @@ namespace CityFix_backend.Services
 
     public record ProfileInput(string FirstName, string? LastName, string Email, string? Phone);
 
+    // Profile → Notifications: the channels the user wants notifications on.
+    public record NotificationSettings(bool InApp, bool Email, bool Sms);
+
     // A row of the users table. DeleteBlockedKey says why the row cannot be deleted (a localization key).
     public record UserRow(User User, int AppealCount, string? DeleteBlockedKey)
     {
@@ -80,7 +83,8 @@ namespace CityFix_backend.Services
     // The users page. OwnAcab is the head's association, so the page can show its residents' code.
     public record UsersPage(PagedResult<UserRow> Page, Acab? OwnAcab);
 
-    public record AcabInput(string Name, string? Address);
+    // Empty English fields are filled by machine translation (TranslationWorker).
+    public record AcabInput(string Name, string? Address, string? NameEn = null, string? AddressEn = null);
 
     public record AcabRow(Acab Acab, int MemberCount, int AppealCount)
     {
@@ -115,6 +119,8 @@ namespace CityFix_backend.Services
         public bool Succeeded => User != null;
     }
 
+    public enum EmailConfirmation { Confirmed, Invalid, EmailTaken }
+
     // ───── Analytics ─────
 
     // Whether a change is good, not which way it goes (KpiCard README).
@@ -136,7 +142,10 @@ namespace CityFix_backend.Services
 
     public record ChartData(IReadOnlyList<string> Labels, IReadOnlyList<int> Values);
 
+    // InProgress counts every active status (under review, needs info, in progress, on hold).
+    // StatusKeys: the status of each ByStatus bar (its pill modifier), so the chart colours match the pills.
     public record AnalyticsData(
         int Total, int New, int InProgress, int Done, int Rejected,
-        ChartData ByCategory, ChartData PerDay, ChartData ByStatus, ChartData ByPriority);
+        ChartData ByCategory, ChartData PerDay, ChartData ByStatus, ChartData ByPriority,
+        IReadOnlyList<string> StatusKeys);
 }

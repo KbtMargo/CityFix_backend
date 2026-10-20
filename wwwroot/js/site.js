@@ -207,3 +207,105 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
         button.addEventListener('click', function () { show(current + parseInt(button.getAttribute('data-gallery-step'), 10)); });
     });
 });
+
+// Tables: drag the right edge of a column header to change the column's width, or focus that edge and use
+// the arrow keys (Shift for bigger steps); a double-click (or Escape) restores the default widths.
+// Widths are remembered per page and table in localStorage. Without script the tables keep their auto layout.
+(function () {
+    var label = document.body.getAttribute('data-col-resize-label') || '';
+    var MIN = 60;
+
+    document.querySelectorAll('table.cf-table').forEach(function (table, index) {
+        var headers = Array.from(table.querySelectorAll('thead th'));
+        if (headers.length < 2) return;
+        var key = 'cf_cols:' + location.pathname.toLowerCase() + ':' + index;
+
+        function apply(widths) {
+            headers.forEach(function (th, i) { th.style.width = widths[i] + 'px'; });
+            table.style.width = widths.reduce(function (sum, w) { return sum + w; }, 0) + 'px';
+            table.classList.add('is-resized');
+        }
+
+        function current() {
+            return headers.map(function (th) { return Math.round(th.getBoundingClientRect().width); });
+        }
+
+        function save() {
+            try { localStorage.setItem(key, JSON.stringify(current())); } catch (e) { /* private mode: not remembered */ }
+        }
+
+        function reset() {
+            headers.forEach(function (th) { th.style.width = ''; });
+            table.style.width = '';
+            table.classList.remove('is-resized');
+            try { localStorage.removeItem(key); } catch (e) { /* nothing stored */ }
+        }
+
+        function resize(i, delta) {
+            var widths = current();
+            widths[i] = Math.max(MIN, widths[i] + delta);
+            apply(widths);
+        }
+
+        try {
+            var saved = JSON.parse(localStorage.getItem(key) || 'null');
+            if (Array.isArray(saved) && saved.length === headers.length) apply(saved);
+        } catch (e) { /* a broken value: keep the default layout */ }
+
+        // Every column but the last gets a handle on its right edge.
+        headers.slice(0, -1).forEach(function (th, i) {
+            var handle = document.createElement('span');
+            handle.className = 'app-col-resize';
+            handle.tabIndex = 0;
+            handle.setAttribute('role', 'separator');
+            handle.setAttribute('aria-orientation', 'vertical');
+            handle.setAttribute('aria-label', label + (th.textContent.trim() ? ': ' + th.textContent.trim() : ''));
+            th.appendChild(handle);
+
+            var startX = 0, startWidths = null;
+            handle.addEventListener('pointerdown', function (e) {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                startX = e.clientX;
+                startWidths = current();
+                apply(startWidths);
+                handle.setPointerCapture(e.pointerId);
+                handle.classList.add('is-active');
+            });
+            handle.addEventListener('pointermove', function (e) {
+                if (!startWidths) return;
+                var widths = startWidths.slice();
+                widths[i] = Math.max(MIN, startWidths[i] + e.clientX - startX);
+                apply(widths);
+            });
+            function stop() {
+                if (!startWidths) return;
+                startWidths = null;
+                handle.classList.remove('is-active');
+                save();
+            }
+            handle.addEventListener('pointerup', stop);
+            handle.addEventListener('pointercancel', stop);
+            handle.addEventListener('dblclick', reset);
+            handle.addEventListener('keydown', function (e) {
+                var step = e.shiftKey ? 50 : 10;
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    resize(i, e.key === 'ArrowRight' ? step : -step);
+                    save();
+                } else if (e.key === 'Escape') {
+                    reset();
+                }
+            });
+        });
+    });
+})();
+
+// Menus in <details data-menu>: an outside click or Escape closes them, picking an item closes them too.
+document.querySelectorAll('details[data-menu]').forEach(function (menu) {
+    document.addEventListener('click', function (e) { if (menu.open && !menu.contains(e.target)) menu.open = false; });
+    menu.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary').focus(); }
+    });
+    menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu.open = false; }); });
+});

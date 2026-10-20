@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using CityFix_backend.Data;
+using CityFix_backend.Helpers;
 using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
 
@@ -17,10 +18,10 @@ namespace CityFix_backend.Controllers
 
         protected override int IdOf(Category entity) => entity.Id;
 
-        protected override string NameOf(Category entity) => entity.Name;
+        protected override string NameOf(Category entity) => entity.DisplayName();
 
         protected override IQueryable<Category> Filter(IQueryable<Category> query, string pattern) =>
-            query.Where(c => EF.Functions.ILike(c.Name, pattern, "\\"));
+            query.Where(c => EF.Functions.ILike(c.Name, pattern, "\\") || (c.NameEn != null && EF.Functions.ILike(c.NameEn, pattern, "\\")));
 
         protected override IQueryable<Category> Order(IQueryable<Category> query) => query.OrderBy(c => c.Name).ThenBy(c => c.Id);
 
@@ -29,6 +30,11 @@ namespace CityFix_backend.Controllers
                 .GroupBy(a => a.CategoryId).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
 
-        protected override void CopyEditable(Category from, Category to) => to.Name = from.Name.Trim();
+        // An empty English name is filled by machine translation (TranslationWorker).
+        protected override void CopyEditable(Category from, Category to)
+        {
+            to.Name = from.Name.Trim();
+            to.NameEn = string.IsNullOrWhiteSpace(from.NameEn) ? null : from.NameEn.Trim();
+        }
     }
 }

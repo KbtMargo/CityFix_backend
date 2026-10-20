@@ -62,6 +62,16 @@ builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(Uploa
 builder.Services.Configure<AppealOptions>(builder.Configuration.GetSection(AppealOptions.Section));
 builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.Section));
 builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOptions.Section));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.Section));
+builder.Services.Configure<SmsOptions>(builder.Configuration.GetSection(SmsOptions.Section));
+builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.Section));
+
+builder.Services.Configure<TranslationOptions>(builder.Configuration.GetSection(TranslationOptions.Section));
+
+// PDF reports (QuestPDF): the free Community licence covers this project.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+// Cyrillic needs real fonts: use the system ones (Segoe UI / Arial on Windows, DejaVu Sans on Linux).
+QuestPDF.Settings.UseSystemFonts = true;
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
@@ -82,6 +92,37 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((se
     client.Timeout = TimeSpan.FromSeconds(5);
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
 });
+
+// Email: SMTP when Email:SmtpHost is set, otherwise letters are written to the log (development).
+// SMS: Twilio when Sms:Provider is "Twilio", otherwise the log. Copies of notifications are sent in the background.
+if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{nameof(EmailOptions.SmtpHost)}"]))
+{
+    builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
+}
+else
+{
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+}
+if (string.Equals(builder.Configuration[$"{SmsOptions.Section}:{nameof(SmsOptions.Provider)}"], "Twilio", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddHttpClient<ISmsSender, TwilioSmsSender>(client => client.Timeout = TimeSpan.FromSeconds(10));
+}
+else
+{
+    builder.Services.AddSingleton<ISmsSender, LogSmsSender>();
+}
+builder.Services.AddHostedService<NotificationDispatcher>();
+
+// Machine translation: DeepL with Translation:DeepLApiKey, otherwise the free MyMemory API. Runs in the background.
+if (string.IsNullOrWhiteSpace(builder.Configuration[$"{TranslationOptions.Section}:{nameof(TranslationOptions.DeepLApiKey)}"]))
+{
+    builder.Services.AddHttpClient<ITranslator, MyMemoryTranslator>(client => client.Timeout = TimeSpan.FromSeconds(15));
+}
+else
+{
+    builder.Services.AddHttpClient<ITranslator, DeepLTranslator>(client => client.Timeout = TimeSpan.FromSeconds(15));
+}
+builder.Services.AddHostedService<TranslationWorker>();
 
 var app = builder.Build();
 
@@ -126,5 +167,12 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 await DbSeeder.SeedAdminAsync(app.Services, app.Logger);
+
+// dotnet run -- --seed-demo : fills the database with demo data (Data/DemoSeeder.cs) and exits.
+if (args.Contains("--seed-demo"))
+{
+    await DemoSeeder.SeedAsync(app.Services, app.Logger);
+    return;
+}
 
 app.Run();

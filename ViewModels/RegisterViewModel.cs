@@ -35,6 +35,10 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.ConfirmPassword")]
         public string ConfirmPassword { get; set; } = "";
 
+        // "I live in a building with an association": only then is the code asked for and used.
+        [Display(Name = "Auth.Register.HasAcab")]
+        public bool HasAssociation { get; set; }
+
         [Display(Name = "Field.AcabCode")]
         public string? InvitationCode { get; set; }
     }
