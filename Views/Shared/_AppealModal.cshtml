@@ -17,14 +17,14 @@
     if (updateError != null) { ViewData["FlashHandled"] = true; }
 
     var statuses = new[] { a.Status }.Concat(d.NextStatuses).ToList();
-    var responsibleName = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.Name : a.Recipient?.Name;
+    var responsibleName = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.DisplayName() : a.Recipient?.DisplayName();
     var responsibleValue = AppealFormViewModel.ResponsibleValue(a);
 }
 <div class="cf-overlay" data-close-href="@closeUrl">
     <div class="cf-modal" role="dialog" aria-modal="true" aria-labelledby="appeal-title">
         <div class="cf-modal__head">
             <div class="cf-modal__titlebar">
-                <h2 class="cf-modal__title" id="appeal-title">@a.Title</h2>
+                <h2 class="cf-modal__title" id="appeal-title">@a.DisplayTitle()</h2>
                 <div class="cf-modal__actions">
                     @if (d.CanEdit)
                     {
@@ -39,7 +39,7 @@
             </div>
             <div class="cf-chips">
                 <partial name="_StatusPill" model="a.Status" />
-                <span class="cf-pill cf-pill--neutral">@a.Category?.Name</span>
+                <span class="cf-pill cf-pill--neutral">@a.Category?.DisplayName()</span>
                 <partial name="_PriorityPill" model="a.Priority" />
             </div>
         </div>
@@ -75,13 +75,25 @@
 
             <div class="cf-modal__section">
                 <h3 class="cf-modal__h">@L["Field.Description"]</h3>
-                <p class="cf-modal__text">@(a.Description ?? L["Modal.NoDescription"].Value)</p>
+                <p class="cf-modal__text">@(a.DisplayDescription() ?? L["Modal.NoDescription"].Value)</p>
+                @if (a.ShowsTranslation())
+                {
+                    @* Machine translation of what the author wrote in the other language; the original stays one click away. *@
+                    <details class="app-translation">
+                        <summary>@L["Translation.Auto"] · @L["Translation.ShowOriginal"]</summary>
+                        <p class="cf-modal__text"><b>@a.Title</b></p>
+                        @if (a.Description != null)
+                        {
+                            <p class="cf-modal__text">@a.Description</p>
+                        }
+                    </details>
+                }
             </div>
 
             <div class="cf-modal__facts">
                 <div class="cf-fact">
                     <div class="cf-fact__label"><span class="cf-icon cf-icon--map-pin cf-icon--4" aria-hidden="true"></span> @L["Modal.Place"]</div>
-                    <p class="cf-fact__value">@(a.Address ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</p>
+                    <p class="cf-fact__value">@(a.DisplayAddress() ?? L["Appeal.Coordinates", a.Lat.Coordinate(), a.Lng.Coordinate()].Value)</p>
                 </div>
                 <div class="cf-fact">
                     <div class="cf-fact__label"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span> @L["Modal.Reported"]</div>
@@ -95,14 +107,14 @@
                 {
                     <div class="cf-fact">
                         <div class="cf-fact__label"><span class="cf-icon cf-icon--apartment cf-icon--4" aria-hidden="true"></span> @L["Field.Acab"]</div>
-                        <p class="cf-fact__value">@a.Acab.Name</p>
+                        <p class="cf-fact__value">@a.Acab.DisplayName()</p>
                     </div>
                 }
                 @if (Model.IsStaff)
                 {
                     <div class="cf-fact">
                         <div class="cf-fact__label"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span> @L["Field.Author"]</div>
-                        <p class="cf-fact__value">@a.Author?.FullName</p>
+                        <p class="cf-fact__value">@a.Author?.DisplayName()</p>
                     </div>
                 }
             </div>
@@ -144,7 +156,7 @@
                         var titles = new List<string>();
                         if (u.StatusChanged) titles.Add(L["Timeline.StatusChanged", u.OldStatus.GetDisplayName(), u.NewStatus.GetDisplayName()].Value);
                         if (u.PriorityChanged) titles.Add(L["Timeline.PriorityChanged", u.OldPriority!.Value.GetDisplayName(), u.NewPriority!.Value.GetDisplayName()].Value);
-                        if (u.AssignedTo != null) titles.Add(L["Timeline.Assigned", u.AssignedTo].Value);
+                        if (u.AssignedTo != null) titles.Add(L["Timeline.Assigned", u.DisplayAssignedTo()!].Value);
                         if (titles.Count == 0) titles.Add(L["Timeline.CommentAdded"].Value);
                         <div class="cf-timeline__item">
                             <div class="cf-timeline__dot cf-timeline__dot--@u.NewStatus.PillModifier()"></div>
@@ -153,7 +165,7 @@
                                 {
                                     <p class="cf-timeline__title">@title</p>
                                 }
-                                <p class="cf-timeline__time">@u.ChangedAt.ToDateTime()@(Model.IsStaff && u.ChangedBy != null ? $" · {u.ChangedBy.FullName}" : "")</p>
+                                <p class="cf-timeline__time">@u.ChangedAt.ToDateTime()@(Model.IsStaff && u.ChangedBy != null ? $" · {u.ChangedBy.DisplayName()}" : "")</p>
                                 @if (!string.IsNullOrWhiteSpace(u.Comment))
                                 {
                                     <p class="cf-timeline__comment">@u.Comment</p>
@@ -230,7 +242,7 @@
                                     <optgroup label="@L["Responsible.Services"]">
                                         @foreach (var r in Model.Lookups.Recipients)
                                         {
-                                            <option value="@r.Id" selected="@(responsibleValue == r.Id.ToString())">@r.Name</option>
+                                            <option value="@r.Id" selected="@(responsibleValue == r.Id.ToString())">@r.DisplayName()</option>
                                         }
                                     </optgroup>
                                 </select>

@@ -56,7 +56,12 @@
     function findAddress() {
         var q = address.value.trim();
         if (q.length < 3) return;
+        if (search.getAttribute('aria-busy') === 'true') return;
         search.setAttribute('aria-busy', 'true');
+        var spinner = document.createElement('span');
+        spinner.className = 'cf-spinner app-btn-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        search.prepend(spinner);
         fetch(root.dataset.searchUrl + '?q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.status === 200 ? r.json() : null; })
             .then(function (place) {
@@ -70,7 +75,7 @@
                 address.dataset.auto = 'true';
             })
             .catch(function () { coords.textContent = root.dataset.searchFailed || ''; coords.hidden = false; })
-            .finally(function () { search.removeAttribute('aria-busy'); });
+            .finally(function () { search.removeAttribute('aria-busy'); spinner.remove(); });
     }
 
     // Editing an appeal that already has a point.

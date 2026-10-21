@@ -31,7 +31,7 @@ namespace CityFix_backend.Controllers
         // POST: Acabs/Create  (both codes are generated)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Address")] AcabFormViewModel form)
+        public async Task<IActionResult> Create([Bind("Name,Address,NameEn,AddressEn")] AcabFormViewModel form)
         {
             if (!ModelState.IsValid)
             {
@@ -49,7 +49,7 @@ namespace CityFix_backend.Controllers
         // POST: Acabs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address")] AcabFormViewModel form)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,NameEn,AddressEn")] AcabFormViewModel form)
         {
             if (id != form.Id)
             {

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CityFix_backend.Helpers;
 using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
@@ -75,7 +76,7 @@ namespace CityFix_backend.ViewComponents
             }
 
             // The profile is reached through the user block at the bottom of the sidebar.
-            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.FullName : user.Email, user.Role, Is("Account")));
+            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account")));
         }
     }
 }

@@ -34,18 +34,18 @@
                 {
                     var appeals = Model.Count(c.Id);
                     <tr>
-                        <td class="cf-strong"><div class="cf-table__name">@c.Name</div></td>
+                        <td class="cf-strong"><div class="cf-table__name">@c.DisplayName()</div></td>
                         <td><span class="cf-tag @(appeals > 0 ? "cf-tag--count" : "cf-tag--zero")">@appeals</span></td>
                         <td>
                             <div class="cf-row-actions">
-                                <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@c.Id" aria-label="@L["Common.EditItem", c.Name]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
+                                <a class="cf-icon-action cf-icon-action--edit" asp-action="Edit" asp-route-id="@c.Id" aria-label="@L["Common.EditItem", c.DisplayName()]"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span></a>
                                 @if (appeals > 0)
                                 {
-                                    <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", c.Name]" title="@L["Common.HasAppeals"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
+                                    <button type="button" class="cf-icon-action cf-icon-action--delete" disabled aria-label="@L["Common.DeleteItem", c.DisplayName()]" title="@L["Common.HasAppeals"]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></button>
                                 }
                                 else
                                 {
-                                    <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@c.Id" aria-label="@L["Common.DeleteItem", c.Name]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
+                                    <a class="cf-icon-action cf-icon-action--delete" asp-action="Delete" asp-route-id="@c.Id" aria-label="@L["Common.DeleteItem", c.DisplayName()]"><span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span></a>
                                 }
                             </div>
                         </td>

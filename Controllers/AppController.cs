@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CityFix_backend.Helpers;
 using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
@@ -39,6 +40,19 @@ namespace CityFix_backend.Controllers
 
         protected void AddModelError(ServiceValidationException ex, string prefix = "") =>
             ModelState.AddModelError(ex.Field.Length == 0 ? "" : prefix + ex.Field, Message(ex));
+
+        // The top of an exported report: whose appeals it covers and who made it.
+        protected async Task<Services.Reports.ReportHeader> ReportHeaderAsync(string title, string? filters)
+        {
+            var user = await Users.GetAsync(CurrentUserId);
+            var scope = user.Role switch
+            {
+                UserRole.Administrator => L["Report.Scope.All"].Value,
+                UserRole.AcabAdmin when user.Acab != null => L["Report.Scope.Acab", user.Acab.DisplayName()].Value,
+                _ => L["Report.Scope.Mine"].Value
+            };
+            return new(title, scope, filters, user.DisplayName(), DateTime.UtcNow);
+        }
 
         // Only local return URLs are followed (no open redirects).
         protected IActionResult RedirectToLocal(string? returnUrl, Func<IActionResult> fallback) =>

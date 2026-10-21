@@ -38,7 +38,7 @@
                             <option value="">@L["Filters.AllCategories"]</option>
                             @foreach (var c in Model.Lookups.Categories)
                             {
-                                <option value="@c.Id" selected="@(f.CategoryId == c.Id)">@c.Name</option>
+                                <option value="@c.Id" selected="@(f.CategoryId == c.Id)">@c.DisplayName()</option>
                             }
                         </select>
                     </div>
@@ -52,7 +52,7 @@
                             <optgroup label="@L["Responsible.Services"]">
                                 @foreach (var r in Model.Lookups.Recipients)
                                 {
-                                    <option value="@r.Id" selected="@(f.ResponsibleRecipientId == r.Id)">@r.Name</option>
+                                    <option value="@r.Id" selected="@(f.ResponsibleRecipientId == r.Id)">@r.DisplayName()</option>
                                 }
                             </optgroup>
                         </select>
@@ -79,7 +79,7 @@
                                 <option value="">@L["Filters.AllAcabs"]</option>
                                 @foreach (var a in Model.Lookups.Acabs)
                                 {
-                                    <option value="@a.Id" selected="@(f.AcabId == a.Id)">@a.Name</option>
+                                    <option value="@a.Id" selected="@(f.AcabId == a.Id)">@a.DisplayName()</option>
                                 }
                             </select>
                         </div>

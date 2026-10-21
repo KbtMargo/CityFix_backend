@@ -11,12 +11,12 @@
 
 <div class="cf-card">
     <div class="cf-card__head">
-        <div class="cf-card__title">@user.FullName</div>
+        <div class="cf-card__title">@user.DisplayName()</div>
         <div class="cf-card__desc"><span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span></div>
     </div>
     <div class="cf-card__body">
         <div class="cf-form-grid">
-            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">@(user.Acab?.Name ?? L["Common.NotSpecified"].Value)</p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">@(user.Acab?.DisplayName() ?? L["Common.NotSpecified"].Value)</p></div>
             <div class="cf-fact"><div class="cf-fact__label">@L["Profile.MemberSince"]</div><p class="cf-fact__value">@user.CreatedAt.ToDate()</p></div>
         </div>
     </div>
@@ -51,6 +51,39 @@
                     <label class="cf-label" asp-for="Profile.Phone">@L["Field.PhoneOptional"]</label>
                     <label class="cf-field"><input asp-for="Profile.Phone" class="@InputClass("Profile.Phone")" type="tel" autocomplete="tel" placeholder="+380..." /></label>
                     <span asp-validation-for="Profile.Phone" class="cf-field__error"></span>
+                </div>
+            </div>
+            <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
+        </form>
+        @if (user.PendingEmail != null)
+        {
+            @* A separate form: forms cannot be nested. *@
+            <form asp-action="ResendPendingEmail" method="post" class="cf-stack-4 app-profile-pending">
+                <p class="cf-field__hint">@L["Profile.EmailPendingNote", user.PendingEmail, user.Email]</p>
+                <div><button type="submit" class="cf-btn cf-btn--outline">@L["Auth.Resend.Submit"]</button></div>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Profile.NotificationsTitle"]</div>
+        <div class="cf-card__desc">@L["Profile.NotificationsHint"]</div>
+    </div>
+    <div class="cf-card__body">
+        <form asp-action="UpdateNotifications" method="post" class="cf-stack-6">
+            <div class="cf-stack-4">
+                <div>
+                    <label class="cf-check"><input asp-for="Notifications.InApp" /><span>@Html.DisplayNameFor(m => m.Notifications.InApp)</span></label>
+                </div>
+                <div>
+                    <label class="cf-check"><input asp-for="Notifications.Email" /><span>@Html.DisplayNameFor(m => m.Notifications.Email)</span></label>
+                    <p class="cf-field__hint">@(user.EmailConfirmed ? L["Profile.Notify.EmailTo", user.Email] : L["Profile.Notify.EmailUnconfirmed"])</p>
+                </div>
+                <div>
+                    <label class="cf-check"><input asp-for="Notifications.Sms" /><span>@Html.DisplayNameFor(m => m.Notifications.Sms)</span></label>
+                    <p class="cf-field__hint">@(PhoneNumber.ToE164(user.Phone) is string phone ? L["Profile.Notify.SmsTo", phone] : L["Profile.Notify.SmsNoPhone"])</p>
                 </div>
             </div>
             <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>

@@ -1,4 +1,5 @@
 using CityFix_backend.Data;
+using CityFix_backend.Helpers;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +14,10 @@ namespace CityFix_backend.Services
             _context = context;
         }
 
+        // Categories and recipients are sorted by the name shown in the current UI language (the lists are short).
         public async Task<AppealLookups> GetAsync() => new(
-            await _context.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync(),
-            await _context.Recipients.AsNoTracking().OrderBy(r => r.Name).ToListAsync(),
+            (await _context.Categories.AsNoTracking().ToListAsync()).OrderBy(c => c.DisplayName(), StringComparer.CurrentCulture).ToList(),
+            (await _context.Recipients.AsNoTracking().ToListAsync()).OrderBy(r => r.DisplayName(), StringComparer.CurrentCulture).ToList(),
             await _context.Acabs.AsNoTracking().OrderBy(a => a.Name).ToListAsync());
     }
 }

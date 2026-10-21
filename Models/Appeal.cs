@@ -22,6 +22,21 @@ namespace CityFix_backend.Models
         [MaxLength(1000)]
         public string? Description { get; set; }
 
+        // Title and description as the author wrote them are in Language ("uk" / "en"); the Translated fields hold
+        // the machine translation into the other UI language, made in the background (TranslationWorker) after
+        // every change of the text. Until it is ready (or if it fails) everyone sees the original.
+        [MaxLength(2)]
+        public string Language { get; set; } = "uk";
+
+        [MaxLength(300)]
+        public string? TitleTranslated { get; set; }
+
+        [MaxLength(3000)]
+        public string? DescriptionTranslated { get; set; }
+
+        public bool TranslationPending { get; set; }
+        public int TranslationAttempts { get; set; }
+
         // Entered on the map as two numbers (invariant culture, decimal dot).
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }
@@ -32,6 +47,10 @@ namespace CityFix_backend.Models
 
         [MaxLength(300)]
         public string? Address { get; set; }
+
+        // The address in the other UI language (TranslationWorker); null until made and after the address changes.
+        [MaxLength(600)]
+        public string? AddressTranslated { get; set; }
 
         public AppealStatus Status { get; set; } = AppealStatus.New;
         public AppealPriority Priority { get; set; } = AppealPriority.Normal;

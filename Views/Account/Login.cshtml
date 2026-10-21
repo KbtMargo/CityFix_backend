@@ -10,6 +10,7 @@
             <h1 class="cf-auth__title">@L["Auth.Login.Title"]</h1>
             <p class="cf-auth__sub">@L["Auth.Login.Sub"]</p>
         </div>
+        <partial name="_Flash" />
         <form asp-action="Login" method="post" class="cf-stack-6" novalidate>
             <input type="hidden" asp-for="ReturnUrl" />
             <div><label class="cf-auth__label" asp-for="Email"></label><input asp-for="Email" class="cf-auth__input" autocomplete="email" placeholder="you@example.com" /></div>
@@ -18,6 +19,10 @@
             @if (error != null)
             {
                 <p class="cf-auth__error" role="alert">@error</p>
+                if (Model.NeedsConfirmation)
+                {
+                    <p class="cf-auth__foot"><a class="cf-auth__link" asp-action="ResendConfirmation" asp-route-email="@Model.Email">@L["Auth.ResendLink"]</a></p>
+                }
             }
             <div><button type="submit" class="cf-auth__submit">@L["Auth.Login.Submit"]</button></div>
         </form>

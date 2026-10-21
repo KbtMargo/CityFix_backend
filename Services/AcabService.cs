@@ -25,7 +25,9 @@ namespace CityFix_backend.Services
             {
                 var pattern = Search.ContainsPattern(q);
                 query = query.Where(a => EF.Functions.ILike(a.Name, pattern, "\\")
-                    || (a.Address != null && EF.Functions.ILike(a.Address, pattern, "\\")));
+                    || (a.NameEn != null && EF.Functions.ILike(a.NameEn, pattern, "\\"))
+                    || (a.Address != null && EF.Functions.ILike(a.Address, pattern, "\\"))
+                    || (a.AddressEn != null && EF.Functions.ILike(a.AddressEn, pattern, "\\")));
             }
 
             var acabs = await query.OrderBy(a => a.Name).ThenBy(a => a.Id).ToPagedResultAsync(page);
@@ -51,6 +53,8 @@ namespace CityFix_backend.Services
             {
                 Name = input.Name.Trim(),
                 Address = string.IsNullOrWhiteSpace(input.Address) ? null : input.Address.Trim(),
+                NameEn = Clean(input.NameEn),
+                AddressEn = Clean(input.AddressEn),
                 ResidentCode = await NewCodeAsync(),
                 CreatedAt = now,
                 UpdatedAt = now
@@ -67,6 +71,8 @@ namespace CityFix_backend.Services
                 ?? throw new NotFoundException($"Association {id} does not exist.");
             acab.Name = input.Name.Trim();
             acab.Address = string.IsNullOrWhiteSpace(input.Address) ? null : input.Address.Trim();
+            acab.NameEn = Clean(input.NameEn);
+            acab.AddressEn = Clean(input.AddressEn);
             acab.UpdatedAt = Now;
             await _context.SaveChangesAsync();
         }
@@ -125,5 +131,7 @@ namespace CityFix_backend.Services
                 }
             }
         }
+
+        private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

@@ -23,7 +23,7 @@
             <option value="">@L["Form.ChooseCategory"]</option>
             @foreach (var c in Model.Lookups.Categories)
             {
-                <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.Name</option>
+                <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.DisplayName()</option>
             }
         </select>
     </div>
@@ -65,7 +65,7 @@
             <optgroup label="@L["Responsible.Services"]">
                 @foreach (var r in Model.Lookups.Recipients)
                 {
-                    <option value="@r.Id" selected="@(Model.Responsible == r.Id.ToString())">@r.Name</option>
+                    <option value="@r.Id" selected="@(Model.Responsible == r.Id.ToString())">@r.DisplayName()</option>
                 }
             </optgroup>
         </select>

@@ -40,7 +40,7 @@ namespace CityFix_backend.Helpers
             _ => "resident"
         };
 
-        public static bool IsClosed(this AppealStatus status) => status is AppealStatus.Done or AppealStatus.Rejected;
+        public static bool IsClosed(this AppealStatus status) => status is AppealStatus.Done or AppealStatus.Rejected or AppealStatus.Duplicate;
     }
 
     public static class UiFormat

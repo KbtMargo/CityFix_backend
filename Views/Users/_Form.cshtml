@@ -38,7 +38,7 @@
                 <option value="">@L["Common.NotSpecified"]</option>
                 @foreach (var a in Model.Acabs)
                 {
-                    <option value="@a.Id" selected="@(Model.AcabId == a.Id)">@a.Name</option>
+                    <option value="@a.Id" selected="@(Model.AcabId == a.Id)">@a.DisplayName()</option>
                 }
             </select>
         </div>

@@ -92,7 +92,7 @@ namespace CityFix_backend.Services
         public async Task<AppealStats> GetStatsAsync(User actor)
         {
             var counts = await _context.Appeals.VisibleTo(actor)
-                .GroupBy(a => a.Status == AppealStatus.Done || a.Status == AppealStatus.Rejected)
+                .GroupBy(a => AppealWorkflow.Closed.Contains(a.Status))
                 .Select(g => new { Closed = g.Key, Count = g.Count() })
                 .ToListAsync();
             return new AppealStats(
@@ -110,18 +110,28 @@ namespace CityFix_backend.Services
                 .Take(ExportLimit)
                 .Select(a => new
                 {
-                    a.Id, a.Title, a.Status, a.Priority, Category = a.Category!.Name, a.ResponsibleKind,
+                    a.Id, a.Title, a.Status, a.Priority, Category = a.Category!.Name, CategoryEn = a.Category.NameEn, a.ResponsibleKind,
                     Recipient = a.Recipient != null ? a.Recipient.Name : null,
+                    RecipientEn = a.Recipient != null ? a.Recipient.NameEn : null,
                     Acab = a.Acab != null ? a.Acab.Name : null,
-                    a.Author!.FirstName, a.Author.LastName, a.Address, a.Lat, a.Lng, a.CreatedAt
+                    AcabEn = a.Acab != null ? a.Acab.NameEn : null,
+                    a.Language, a.TitleTranslated, a.AddressTranslated,
+                    a.Author!.FirstName, a.Author.LastName, a.Author.FullNameTranslated, a.Address, a.Lat, a.Lng, a.CreatedAt
                 })
                 .ToListAsync();
 
-            return rows.Select(r => new AppealExportRow(
-                r.Id, r.Title, r.Status.GetDisplayName(), r.Priority.GetDisplayName(), r.Category,
-                (r.ResponsibleKind == ResponsibleKind.Association ? r.Acab : r.Recipient) ?? SharedText.Get("Appeal.NoResponsible"),
-                r.Acab, $"{r.FirstName} {r.LastName}".Trim(), r.Address, r.Lat, r.Lng,
-                r.CreatedAt.ToKyiv().ToString("yyyy-MM-dd HH:mm"))).ToList();
+            // Everything in the current UI language, like the list it was exported from.
+            return rows.Select(r =>
+            {
+                var shown = new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated, Address = r.Address, AddressTranslated = r.AddressTranslated };
+                var author = new User { FirstName = r.FirstName, LastName = r.LastName, FullNameTranslated = r.FullNameTranslated };
+                var acab = r.Acab == null ? null : Localized.Pick(r.Acab, r.AcabEn);
+                return new AppealExportRow(
+                    r.Id, shown.DisplayTitle(), r.Status.GetDisplayName(), r.Priority.GetDisplayName(), Localized.Pick(r.Category, r.CategoryEn),
+                    (r.ResponsibleKind == ResponsibleKind.Association ? acab : r.Recipient == null ? null : Localized.Pick(r.Recipient, r.RecipientEn)) ?? SharedText.Get("Appeal.NoResponsible"),
+                    acab, author.DisplayName(), shown.DisplayAddress(), r.Lat, r.Lng,
+                    r.CreatedAt.ToKyiv().ToString("yyyy-MM-dd HH:mm"));
+            }).ToList();
         }
 
         // ───── Changing ─────
@@ -247,7 +257,7 @@ namespace CityFix_backend.Services
             if (appeal.AuthorId != actor.Id && (statusChanged || comment != null))
             {
                 // A comment without a status change is sent as a comment notification (no new status).
-                _notifications.AddStatusChanged(appeal, statusChanged ? input.NewStatus : null, comment);
+                await _notifications.AddStatusChangedAsync(appeal, statusChanged ? input.NewStatus : null, comment);
             }
 
             // The new status, its history entry and the notification are saved in one transaction.
@@ -306,9 +316,11 @@ namespace CityFix_backend.Services
             }
             if (!string.IsNullOrWhiteSpace(filter.Q))
             {
-                // Case-insensitive "contains" on title, description and address; % and _ typed by the user are literal.
+                // Case-insensitive "contains" on title, description and address (original and translation); % and _ typed by the user are literal.
                 var pattern = Search.ContainsPattern(filter.Q);
                 query = query.Where(a => EF.Functions.ILike(a.Title, pattern, "\\")
+                    || (a.TitleTranslated != null && EF.Functions.ILike(a.TitleTranslated, pattern, "\\"))
+                    || (a.DescriptionTranslated != null && EF.Functions.ILike(a.DescriptionTranslated, pattern, "\\"))
                     || (a.Description != null && EF.Functions.ILike(a.Description, pattern, "\\"))
                     || (a.Address != null && EF.Functions.ILike(a.Address, pattern, "\\")));
             }
@@ -346,8 +358,8 @@ namespace CityFix_backend.Services
             return filter.CurrentTab switch
             {
                 AppealFilter.TabNew => query.Where(a => a.Status == AppealStatus.New),
-                AppealFilter.TabInProgress => query.Where(a => a.Status == AppealStatus.InProgress),
-                AppealFilter.TabClosed => query.Where(a => a.Status == AppealStatus.Done || a.Status == AppealStatus.Rejected),
+                AppealFilter.TabInProgress => query.Where(a => AppealWorkflow.Active.Contains(a.Status)),
+                AppealFilter.TabClosed => query.Where(a => AppealWorkflow.Closed.Contains(a.Status)),
                 _ => query
             };
         }
@@ -360,10 +372,10 @@ namespace CityFix_backend.Services
             var radius = _options.SimilarRadiusMeters;
             var found = await _context.Appeals.AsNoTracking()
                 .Where(a => ids.Contains(a.Id) && a.Location != null
-                    && (a.Status == AppealStatus.New || a.Status == AppealStatus.InProgress))
+                    && AppealWorkflow.Open.Contains(a.Status))
                 .Where(a => _context.Appeals.Any(o =>
                     o.Id != a.Id && o.CategoryId == a.CategoryId && o.CreatedAt < a.CreatedAt
-                    && (o.Status == AppealStatus.New || o.Status == AppealStatus.InProgress)
+                    && AppealWorkflow.Open.Contains(o.Status)
                     && o.Location != null && o.Location.IsWithinDistance(a.Location!, radius)))
                 .Select(a => a.Id)
                 .ToListAsync();
@@ -377,23 +389,34 @@ namespace CityFix_backend.Services
 
             var rows = await _context.Appeals.AsNoTracking()
                 .Where(a => a.CategoryId == categoryId && a.Location != null && a.Id != (excludeId ?? 0))
-                .Where(a => !openOnly || a.Status == AppealStatus.New || a.Status == AppealStatus.InProgress)
+                .Where(a => !openOnly || AppealWorkflow.Open.Contains(a.Status))
                 .Where(a => a.Location!.IsWithinDistance(point, radius))
                 .OrderBy(a => a.Location!.Distance(point))
                 .Take(_options.SimilarLimit)
-                .Select(a => new { a.Id, a.Title, a.Status, a.CreatedAt, a.AuthorId, a.AcabId, Distance = a.Location!.Distance(point) })
+                .Select(a => new { a.Id, a.Title, a.Language, a.TitleTranslated, a.Status, a.CreatedAt, a.AuthorId, a.AcabId, Distance = a.Location!.Distance(point) })
                 .ToListAsync();
 
             return rows.Select(r => new SimilarAppeal(
-                r.Id, r.Title, r.Status, r.CreatedAt, (int)Math.Round(r.Distance),
+                r.Id, new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated }.DisplayTitle(),
+                r.Status, r.CreatedAt, (int)Math.Round(r.Distance),
                 AppealPolicy.CanView(actor, new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId }))).ToList();
         }
 
         // Copies and checks the form fields. Status, author and dates are never taken from the form.
         private async Task ApplyInputAsync(Appeal appeal, AppealInput input)
         {
-            appeal.Title = input.Title.Trim();
-            appeal.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
+            var title = input.Title.Trim();
+            var description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
+            if (appeal.Id == 0 || title != appeal.Title || description != appeal.Description)
+            {
+                // New or changed text: translated again in the background (TranslationWorker); the original shows meanwhile.
+                appeal.Language = TextLanguage.Detect($"{title} {description}");
+                appeal.TitleTranslated = appeal.DescriptionTranslated = null;
+                appeal.TranslationPending = true;
+                appeal.TranslationAttempts = 0;
+            }
+            appeal.Title = title;
+            appeal.Description = description;
             appeal.CategoryId = input.CategoryId;
 
             if (!await _context.Categories.AnyAsync(c => c.Id == input.CategoryId))
@@ -413,10 +436,13 @@ namespace CityFix_backend.Services
 
             // The map script fills the address from the point; the user may type it when geocoding is
             // unavailable. Still empty (no JS, or the lookup failed in the browser): try once more here.
-            appeal.Address = string.IsNullOrWhiteSpace(input.Address) ? null : input.Address.Trim();
-            if (appeal.Address == null)
+            var address = string.IsNullOrWhiteSpace(input.Address) ? null : input.Address.Trim();
+            address ??= await _geocoding.ReverseAsync((double)lat, (double)lng);
+            if (address != appeal.Address)
             {
-                appeal.Address = await _geocoding.ReverseAsync((double)lat, (double)lng);
+                // Translated again in the background (TranslationWorker).
+                appeal.Address = address;
+                appeal.AddressTranslated = null;
             }
 
             await SetResponsibleAsync(appeal, input.Responsible, input.RecipientId);
@@ -449,22 +475,31 @@ namespace CityFix_backend.Services
         // History entry and notifications for a new responsible party.
         private async Task NoteAssignmentAsync(Appeal appeal, User actor)
         {
-            var name = await ResponsibleNameAsync(appeal);
+            var (name, nameEn) = await ResponsibleNameAsync(appeal);
             _context.AppealUpdates.Add(new AppealUpdate
             {
                 AppealId = appeal.Id,
                 OldStatus = appeal.Status,
                 NewStatus = appeal.Status,
                 AssignedTo = name,
+                AssignedToEn = nameEn,
                 ChangedById = actor.Id,
                 ChangedAt = Now
             });
-            await _notifications.AddAssignedAsync(appeal, name, actor.Id);
+            await _notifications.AddAssignedAsync(appeal, name, nameEn, actor.Id);
         }
 
-        private async Task<string> ResponsibleNameAsync(Appeal appeal) => appeal.ResponsibleKind == ResponsibleKind.Association
-            ? (await _context.Acabs.Where(a => a.Id == appeal.AcabId).Select(a => a.Name).FirstOrDefaultAsync()) ?? ""
-            : (await _context.Recipients.Where(r => r.Id == appeal.RecipientId).Select(r => r.Name).FirstOrDefaultAsync()) ?? "";
+        // (Ukrainian, English) name of the responsible party.
+        private async Task<(string Name, string? NameEn)> ResponsibleNameAsync(Appeal appeal)
+        {
+            if (appeal.ResponsibleKind == ResponsibleKind.Association)
+            {
+                var acab = await _context.Acabs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == appeal.AcabId);
+                return (acab?.Name ?? "", acab?.NameEn);
+            }
+            var recipient = await _context.Recipients.AsNoTracking().FirstOrDefaultAsync(r => r.Id == appeal.RecipientId);
+            return (recipient?.Name ?? "", recipient?.NameEn);
+        }
 
         private async Task SaveOrConflictAsync()
         {

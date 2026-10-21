@@ -3,28 +3,6 @@
 @model NotificationsViewModel
 @{
     ViewData["Title"] = L["Notifications.Title"].Value;
-
-    string TitleFor(Notification n) => n.Type switch
-    {
-        NotificationType.StatusChanged when n.NewStatus == null => L["Notifications.CommentTitle"].Value,
-        NotificationType.StatusChanged => L["Notifications.StatusTitle"].Value,
-        NotificationType.NewAppeal => L["Notifications.NewAppealTitle"].Value,
-        _ => L["Notifications.AssignedTitle"].Value
-    };
-
-    string TextFor(Notification n)
-    {
-        var title = n.Appeal?.Title ?? "";
-        if (n.Type == NotificationType.Assigned)
-        {
-            // Message holds the responsible party's name.
-            return L["Notifications.AssignedText", title, n.Message].Value;
-        }
-        var text = n.NewStatus is AppealStatus status
-            ? L["Notifications.StatusText", title, status.GetDisplayName()].Value
-            : L["Notifications.GenericText", title].Value;
-        return string.IsNullOrWhiteSpace(n.Message) ? text : $"{text} {L["Notifications.Comment"]}: {n.Message}";
-    }
 }
 <div class="cf-notes-page">
     <div class="cf-notes-head">
@@ -65,10 +43,10 @@
                         <span class="cf-note__main">
                             <span class="cf-note__top">
                                 <span class="cf-note__title">@if (!n.IsRead)
-                                    {<span class="cf-sr-only">@L["Notifications.UnreadPrefix"]: </span>}@TitleFor(n)</span>
+                                    {<span class="cf-sr-only">@L["Notifications.UnreadPrefix"]: </span>}@NotificationText.Title(n)</span>
                                 <span class="cf-note__time">@n.CreatedAt.TimeAgo()</span>
                             </span>
-                            <span class="cf-note__text">@TextFor(n)</span>
+                            <span class="cf-note__text">@NotificationText.Text(n)</span>
                         </span>
                     </button>
                 </form>

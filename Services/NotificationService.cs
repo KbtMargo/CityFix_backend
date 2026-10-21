@@ -17,21 +17,17 @@ namespace CityFix_backend.Services
         }
 
         // The text is rendered from Type + NewStatus in the reader's language; only free text is stored.
-        public void AddStatusChanged(Appeal appeal, AppealStatus? newStatus, string? comment) =>
-            Add(appeal.AuthorId, appeal, NotificationType.StatusChanged, newStatus, comment);
+        public Task AddStatusChangedAsync(Appeal appeal, AppealStatus? newStatus, string? comment) =>
+            AddAsync(new[] { appeal.AuthorId }, appeal, NotificationType.StatusChanged, newStatus, comment);
 
         public async Task AddNewAppealAsync(Appeal appeal)
         {
-            foreach (var headId in await HeadsOfAsync(appeal.AcabId))
-            {
-                if (headId != appeal.AuthorId)
-                {
-                    Add(headId, appeal, NotificationType.NewAppeal, null, null);
-                }
-            }
+            var heads = await HeadsOfAsync(appeal.AcabId);
+            heads.Remove(appeal.AuthorId);
+            await AddAsync(heads, appeal, NotificationType.NewAppeal, null, null);
         }
 
-        public async Task AddAssignedAsync(Appeal appeal, string responsibleName, int actorId)
+        public async Task AddAssignedAsync(Appeal appeal, string responsibleName, string? responsibleNameEn, int actorId)
         {
             var recipients = new HashSet<int> { appeal.AuthorId };
             if (appeal.ResponsibleKind == ResponsibleKind.Association)
@@ -40,17 +36,14 @@ namespace CityFix_backend.Services
             }
             recipients.Remove(actorId);
 
-            foreach (var userId in recipients)
-            {
-                Add(userId, appeal, NotificationType.Assigned, null, responsibleName);
-            }
+            await AddAsync(recipients, appeal, NotificationType.Assigned, null, responsibleName, responsibleNameEn);
         }
 
         public Task<List<Notification>> GetForUserAsync(int userId, bool unreadOnly)
         {
             var query = _context.Notifications.AsNoTracking()
                 .Include(n => n.Appeal)
-                .Where(n => n.UserId == userId);
+                .Where(n => n.UserId == userId && n.InApp);
             if (unreadOnly)
             {
                 query = query.Where(n => !n.IsRead);
@@ -59,11 +52,11 @@ namespace CityFix_backend.Services
         }
 
         public Task<int> CountUnreadAsync(int userId) =>
-            _context.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
+            _context.Notifications.CountAsync(n => n.UserId == userId && n.InApp && !n.IsRead);
 
         public async Task<Notification?> MarkReadAsync(int id, int userId)
         {
-            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId && n.InApp);
             if (notification != null && !notification.IsRead)
             {
                 notification.IsRead = true;
@@ -74,19 +67,40 @@ namespace CityFix_backend.Services
 
         public Task MarkAllReadAsync(int userId) =>
             _context.Notifications
-                .Where(n => n.UserId == userId && !n.IsRead)
+                .Where(n => n.UserId == userId && n.InApp && !n.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
 
-        private void Add(int userId, Appeal appeal, NotificationType type, AppealStatus? newStatus, string? message) =>
-            _context.Notifications.Add(new Notification
+        // One row per recipient with the channels they chose; nothing for someone who turned every channel off.
+        // Email and SMS are marked Pending and sent by NotificationDispatcher once this unit of work is saved.
+        private async Task AddAsync(IEnumerable<int> userIds, Appeal appeal, NotificationType type, AppealStatus? newStatus, string? message, string? messageEn = null)
+        {
+            var ids = userIds.ToList();
+            if (ids.Count == 0) return;
+
+            var recipients = await _context.Users.AsNoTracking()
+                .Where(u => ids.Contains(u.Id))
+                .Select(u => new { u.Id, u.NotifyInApp, Email = u.NotifyEmail && u.EmailConfirmed, Sms = u.NotifySms && u.Phone != null })
+                .ToListAsync();
+
+            foreach (var user in recipients.Where(u => u.NotifyInApp || u.Email || u.Sms))
             {
-                UserId = userId,
-                AppealId = appeal.Id,
-                Type = type,
-                NewStatus = newStatus,
-                Message = message?.Trim() ?? "",
-                CreatedAt = _clock.GetUtcNow().UtcDateTime
-            });
+                _context.Notifications.Add(new Notification
+                {
+                    UserId = user.Id,
+                    AppealId = appeal.Id,
+                    Type = type,
+                    NewStatus = newStatus,
+                    Message = message?.Trim() ?? "",
+                    MessageEn = messageEn,
+                    InApp = user.NotifyInApp,
+                    // Read already, so it never counts as unread if in-app notifications are turned on later.
+                    IsRead = !user.NotifyInApp,
+                    EmailState = user.Email ? DeliveryState.Pending : DeliveryState.None,
+                    SmsState = user.Sms ? DeliveryState.Pending : DeliveryState.None,
+                    CreatedAt = _clock.GetUtcNow().UtcDateTime
+                });
+            }
+        }
 
         private async Task<List<int>> HeadsOfAsync(int? acabId) => acabId == null
             ? new List<int>()

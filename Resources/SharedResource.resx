@@ -69,7 +69,7 @@
   <data name="Tabs.Label" xml:space="preserve"><value>Статус звернень</value></data>
   <data name="Tabs.All" xml:space="preserve"><value>Усі</value></data>
   <data name="Tabs.New" xml:space="preserve"><value>Нові</value></data>
-  <data name="Tabs.InProgress" xml:space="preserve"><value>В роботі</value></data>
+  <data name="Tabs.InProgress" xml:space="preserve"><value>В обробці</value></data>
   <data name="Tabs.Closed" xml:space="preserve"><value>Закриті</value></data>
   <data name="Filters.Title" xml:space="preserve"><value>Фільтри</value></data>
   <data name="Filters.Active" xml:space="preserve"><value>Активних фільтрів</value></data>
@@ -146,7 +146,7 @@
   <data name="Analytics.Sub" xml:space="preserve"><value>Статистика звернень, доступних вам</value></data>
   <data name="Analytics.Total" xml:space="preserve"><value>Всього звернень</value></data>
   <data name="Analytics.Waiting" xml:space="preserve"><value>Очікують</value></data>
-  <data name="Analytics.InProgress" xml:space="preserve"><value>В роботі</value></data>
+  <data name="Analytics.InProgress" xml:space="preserve"><value>В обробці</value></data>
   <data name="Analytics.Resolved" xml:space="preserve"><value>Вирішено</value></data>
   <data name="Analytics.ByCategory" xml:space="preserve"><value>Найпоширеніші проблеми</value></data>
   <data name="Analytics.PerDay" xml:space="preserve"><value>Нові звернення за 30 днів</value></data>
@@ -295,9 +295,9 @@
   <data name="Enum.AppealStatus.InProgress" xml:space="preserve"><value>В роботі</value></data>
   <data name="Enum.AppealStatus.Done" xml:space="preserve"><value>Виконано</value></data>
   <data name="Enum.AppealStatus.Rejected" xml:space="preserve"><value>Відхилено</value></data>
-  <data name="Enum.AppealPriority.Low" xml:space="preserve"><value>низький пріоритет</value></data>
-  <data name="Enum.AppealPriority.Normal" xml:space="preserve"><value>середній пріоритет</value></data>
-  <data name="Enum.AppealPriority.Urgent" xml:space="preserve"><value>високий пріоритет</value></data>
+  <data name="Enum.AppealPriority.Low" xml:space="preserve"><value>Не терміново</value></data>
+  <data name="Enum.AppealPriority.Normal" xml:space="preserve"><value>Звичайний пріоритет</value></data>
+  <data name="Enum.AppealPriority.Urgent" xml:space="preserve"><value>Терміново</value></data>
   <data name="Enum.UserRole.Resident" xml:space="preserve"><value>Мешканець</value></data>
   <data name="Enum.UserRole.AcabAdmin" xml:space="preserve"><value>Голова ОСББ</value></data>
   <data name="Enum.UserRole.Administrator" xml:space="preserve"><value>Адміністратор</value></data>
@@ -400,7 +400,7 @@
   <data name="Assign.Title" xml:space="preserve"><value>Відповідальний</value></data>
   <data name="Assign.Hint" xml:space="preserve"><value>ОСББ, якщо проблема стосується будинку, або комунальна служба. Автор отримає сповіщення.</value></data>
   <data name="Assign.Submit" xml:space="preserve"><value>Призначити</value></data>
-  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Необов'язково. Код для мешканців приєднує вас до ОСББ, код голови дає роль голови ОСББ.</value></data>
+  <data name="Auth.Register.CodeHint" xml:space="preserve"><value>Код видає голова вашого ОСББ. Він приєднує вас до ОСББ, щоб звернення бачив ваш голова.</value></data>
   <data name="Enum.ResponsibleKind.Association" xml:space="preserve"><value>ОСББ</value></data>
   <data name="Enum.ResponsibleKind.Recipient" xml:space="preserve"><value>Служба</value></data>
   <data name="Field.ResidentCode" xml:space="preserve"><value>Код для мешканців</value></data>
@@ -458,4 +458,77 @@
   <data name="Validation.NoAcab" xml:space="preserve"><value>Ви не належите до ОСББ — оберіть службу.</value></data>
   <data name="Validation.PointRequired" xml:space="preserve"><value>Позначте місце проблеми на карті.</value></data>
   <data name="Validation.TransitionNotAllowed" xml:space="preserve"><value>Статус «{0}» не можна змінити на «{1}».</value></data>
+  <data name="Auth.EmailNotConfirmed" xml:space="preserve"><value>Підтвердіть email: перейдіть за посиланням із листа, який ми надіслали після реєстрації.</value></data>
+  <data name="Auth.ResendLink" xml:space="preserve"><value>Надіслати лист ще раз</value></data>
+  <data name="Auth.EmailConfirmed" xml:space="preserve"><value>Email підтверджено.</value></data>
+  <data name="Auth.ConfirmInvalid" xml:space="preserve"><value>Посилання недійсне або застаріле. Надішліть лист ще раз.</value></data>
+  <data name="Auth.ConfirmSendFailed" xml:space="preserve"><value>Не вдалося надіслати лист. Спробуйте ще раз трохи пізніше.</value></data>
+  <data name="Auth.CheckEmail.Title" xml:space="preserve"><value>Перевірте пошту</value></data>
+  <data name="Auth.CheckEmail.Sub" xml:space="preserve"><value>Ми надіслали лист із посиланням для підтвердження на {0}.</value></data>
+  <data name="Auth.CheckEmail.Hint" xml:space="preserve"><value>Перейдіть за посиланням у листі, щоб завершити реєстрацію. Немає листа? Перевірте папку «Спам» або надішліть його ще раз.</value></data>
+  <data name="Auth.Resend.Title" xml:space="preserve"><value>Підтвердження email</value></data>
+  <data name="Auth.Resend.Sub" xml:space="preserve"><value>Вкажіть email, з яким ви реєструвалися, і ми надішлемо посилання ще раз.</value></data>
+  <data name="Auth.Resend.Submit" xml:space="preserve"><value>Надіслати лист ще раз</value></data>
+  <data name="Email.Confirm.Subject" xml:space="preserve"><value>Підтвердіть email для {0}</value></data>
+  <data name="Email.Confirm.Greeting" xml:space="preserve"><value>Вітаємо, {0}!</value></data>
+  <data name="Email.Confirm.Text" xml:space="preserve"><value>Щоб підтвердити цю адресу для {0}, перейдіть за посиланням:</value></data>
+  <data name="Email.Confirm.Expires" xml:space="preserve"><value>Посилання дійсне {0} год.</value></data>
+  <data name="Email.Confirm.Ignore" xml:space="preserve"><value>Якщо ви не реєструвалися, просто проігноруйте цей лист.</value></data>
+  <data name="Email.NotificationFooter" xml:space="preserve"><value>Канали сповіщень можна змінити в профілі (Профіль → Сповіщення).</value></data>
+  <data name="Profile.EmailPending" xml:space="preserve"><value>Ми надіслали лист на {0}. Адреса зміниться після переходу за посиланням.</value></data>
+  <data name="Profile.EmailPendingNote" xml:space="preserve"><value>Нова адреса {0} очікує підтвердження. До того для входу і листів використовується {1}.</value></data>
+  <data name="Profile.NotificationsTitle" xml:space="preserve"><value>Сповіщення</value></data>
+  <data name="Profile.NotificationsHint" xml:space="preserve"><value>Куди надсилати сповіщення про зміну статусу та інші оновлення звернень.</value></data>
+  <data name="Profile.NotificationsSaved" xml:space="preserve"><value>Налаштування сповіщень збережено.</value></data>
+  <data name="Profile.Notify.InApp" xml:space="preserve"><value>У системі (сторінка «Сповіщення»)</value></data>
+  <data name="Profile.Notify.Email" xml:space="preserve"><value>На email</value></data>
+  <data name="Profile.Notify.Sms" xml:space="preserve"><value>SMS на телефон</value></data>
+  <data name="Profile.Notify.EmailTo" xml:space="preserve"><value>Листи надходитимуть на {0}.</value></data>
+  <data name="Profile.Notify.EmailUnconfirmed" xml:space="preserve"><value>Email ще не підтверджено — листи не надсилаються.</value></data>
+  <data name="Profile.Notify.SmsTo" xml:space="preserve"><value>SMS надходитимуть на {0}.</value></data>
+  <data name="Profile.Notify.SmsNoPhone" xml:space="preserve"><value>Вкажіть номер телефону в особистих даних, щоб отримувати SMS.</value></data>
+  <data name="Enum.AppealStatus.UnderReview" xml:space="preserve"><value>На розгляді</value></data>
+  <data name="Enum.AppealStatus.NeedsInfo" xml:space="preserve"><value>Потребує уточнення</value></data>
+  <data name="Enum.AppealStatus.OnHold" xml:space="preserve"><value>Призупинено</value></data>
+  <data name="Enum.AppealStatus.Duplicate" xml:space="preserve"><value>Дублікат</value></data>
+  <data name="Auth.Register.HasAcab" xml:space="preserve"><value>Я мешкаю в будинку з ОСББ</value></data>
+  <data name="Auth.CodeRequired" xml:space="preserve"><value>Введіть код вашого ОСББ або зніміть позначку.</value></data>
+  <data name="Translation.Auto" xml:space="preserve"><value>Автоматичний переклад</value></data>
+  <data name="Translation.ShowOriginal" xml:space="preserve"><value>показати оригінал</value></data>
+  <data name="Field.NameEn" xml:space="preserve"><value>Назва англійською</value></data>
+  <data name="Field.NameUk" xml:space="preserve"><value>Назва українською</value></data>
+  <data name="Field.NameEnHint" xml:space="preserve"><value>Необов'язково: залиште порожнім, і назву буде перекладено автоматично.</value></data>
+  <data name="Field.AddressEn" xml:space="preserve"><value>Адреса англійською</value></data>
+  <data name="Table.ResizeColumn" xml:space="preserve"><value>Змінити ширину стовпця (стрілки ←/→, Esc — скинути)</value></data>
+  <data name="Export.Title" xml:space="preserve"><value>Експорт</value></data>
+  <data name="Export.xlsx" xml:space="preserve"><value>Excel (.xlsx)</value></data>
+  <data name="Export.xlsx.Hint" xml:space="preserve"><value>Таблиця з фільтрами, для роботи в Excel</value></data>
+  <data name="Export.pdf" xml:space="preserve"><value>PDF</value></data>
+  <data name="Export.pdf.Hint" xml:space="preserve"><value>Оформлений звіт для друку або надсилання</value></data>
+  <data name="Export.csv" xml:space="preserve"><value>CSV</value></data>
+  <data name="Export.csv.Hint" xml:space="preserve"><value>Дані для інших програм</value></data>
+  <data name="Export.json" xml:space="preserve"><value>JSON</value></data>
+  <data name="Export.json.Hint" xml:space="preserve"><value>Дані для інтеграцій</value></data>
+  <data name="Report.Generated" xml:space="preserve"><value>Сформовано {0} · {1}</value></data>
+  <data name="Report.Page" xml:space="preserve"><value>Сторінка</value></data>
+  <data name="Report.Scope.All" xml:space="preserve"><value>Обсяг: усі звернення</value></data>
+  <data name="Report.Scope.Acab" xml:space="preserve"><value>Обсяг: звернення {0}</value></data>
+  <data name="Report.Scope.Mine" xml:space="preserve"><value>Обсяг: мої звернення</value></data>
+  <data name="Report.Filters" xml:space="preserve"><value>Фільтри</value></data>
+  <data name="Report.Search" xml:space="preserve"><value>Пошук</value></data>
+  <data name="Report.Period" xml:space="preserve"><value>Період</value></data>
+  <data name="Report.Appeals.Title" xml:space="preserve"><value>Звіт про звернення</value></data>
+  <data name="Report.Appeals.Sheet" xml:space="preserve"><value>Звернення</value></data>
+  <data name="Report.Appeals.Count" xml:space="preserve"><value>Звернень у звіті: {0}</value></data>
+  <data name="Report.Analytics.Title" xml:space="preserve"><value>Аналітичний звіт</value></data>
+  <data name="Report.Analytics.Summary" xml:space="preserve"><value>Підсумок</value></data>
+  <data name="Report.Analytics.KeyFigures" xml:space="preserve"><value>Ключові показники</value></data>
+  <data name="Report.Analytics.Totals" xml:space="preserve"><value>Звернення за станом</value></data>
+  <data name="Report.Metric" xml:space="preserve"><value>Показник</value></data>
+  <data name="Report.Value" xml:space="preserve"><value>Значення</value></data>
+  <data name="Report.Change" xml:space="preserve"><value>Зміна</value></data>
+  <data name="Report.Count" xml:space="preserve"><value>Кількість</value></data>
+  <data name="Report.Share" xml:space="preserve"><value>Частка</value></data>
+  <data name="Report.Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Report.NewAppeals" xml:space="preserve"><value>Нові звернення</value></data>
 </root>

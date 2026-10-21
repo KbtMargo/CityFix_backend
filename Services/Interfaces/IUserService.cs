@@ -28,10 +28,17 @@ namespace CityFix_backend.Services.Interfaces
 
         Task DeleteAsync(int id, User actor);
 
-        // The user's own name, email and phone.
-        Task UpdateProfileAsync(int userId, ProfileInput input);
+        // The user's own name, email and phone. A changed email is kept as pending until confirmed:
+        // returns that address when a confirmation letter must be sent, otherwise null.
+        Task<string?> UpdateProfileAsync(int userId, ProfileInput input);
+
+        // Profile → Notifications.
+        Task UpdateNotificationSettingsAsync(int userId, NotificationSettings settings);
+
+        // The language of the user's emails and SMS ("uk" / "en").
+        Task SetLanguageAsync(int userId, string language);
 
         // Shared by registration and "Add user": checks the email and creates the account.
-        Task<User> CreateAccountAsync(UserInput input, string password);
+        Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk");
     }
 }

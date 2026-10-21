@@ -1,0 +1,23 @@
+@model ResendConfirmationViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = L["Auth.Resend.Title"].Value;
+    var error = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+}
+<div class="cf-auth cf-auth--login">
+    <div class="cf-auth__card">
+        <div class="cf-auth__head">
+            <h1 class="cf-auth__title">@L["Auth.Resend.Title"]</h1>
+            <p class="cf-auth__sub">@L["Auth.Resend.Sub"]</p>
+        </div>
+        <form asp-action="ResendConfirmation" method="post" class="cf-stack-6" novalidate>
+            <div><label class="cf-auth__label" asp-for="Email"></label><input asp-for="Email" class="cf-auth__input" autocomplete="email" placeholder="you@example.com" /></div>
+            @if (error != null)
+            {
+                <p class="cf-auth__error" role="alert">@error</p>
+            }
+            <div><button type="submit" class="cf-auth__submit">@L["Auth.Resend.Submit"]</button></div>
+        </form>
+        <p class="cf-auth__foot"><a class="cf-auth__link" asp-action="Login">@L["Auth.Register.ToLogin"]</a></p>
+    </div>
+</div>

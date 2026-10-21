@@ -12,8 +12,12 @@
         red: token('--series-red'), violet: token('--series-violet'), cyan: token('--series-cyan'), gray: token('--series-gray')
     };
     var categoryColors = [series.blue, series.emerald, series.amber, series.red, series.violet, series.cyan];
-    // getStatusColor: New, In progress, Done, Rejected (the enum order).
-    var statusColors = [series.blue, series.amber, series.emerald, series.red];
+    // One colour per status, matching the pills (the server sends each bar's status key).
+    var statusColor = {
+        new: series.blue, underreview: series.cyan, needsinfo: series.violet, inprogress: series.amber,
+        onhold: series.gray, done: series.emerald, rejected: series.red, duplicate: series.gray
+    };
+    var statusColors = (data.statusKeys || []).map(function (k) { return statusColor[k] || series.gray; });
     var priorityColors = [series.gray, series.blue, series.red];
 
     // Horizontal dashed (3 3) #ccc grid, #666 12px ticks, no axis or tick lines.

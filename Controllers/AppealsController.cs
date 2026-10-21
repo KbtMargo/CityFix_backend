@@ -8,6 +8,7 @@ using CityFix_backend.Helpers;
 using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
+using CityFix_backend.Services.Reports;
 using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
@@ -164,7 +165,7 @@ namespace CityFix_backend.Controllers
         {
             var details = await _appeals.GetDetailsAsync(id, await GetActorAsync());
             return details.CanDelete
-                ? View(new DeleteCheck(id, details.Appeal.Title, 0, null))
+                ? View(new DeleteCheck(id, details.Appeal.DisplayTitle(), 0, null))
                 : Forbid();
         }
 
@@ -199,9 +200,9 @@ namespace CityFix_backend.Controllers
             }));
         }
 
-        // GET: Appeals/Export?format=csv|json&...filters  (staff: the appeals of the current filter)
+        // GET: Appeals/Export?format=xlsx|pdf|csv|json&...filters  (staff: the appeals of the current filter)
         [HttpGet]
-        public async Task<IActionResult> Export([FromQuery] AppealFilter filter, string format = "csv")
+        public async Task<IActionResult> Export([FromQuery] AppealFilter filter, string format = "xlsx")
         {
             var actor = await GetActorAsync();
             if (!actor.IsStaff)
@@ -210,20 +211,70 @@ namespace CityFix_backend.Controllers
             }
 
             var rows = await _appeals.ExportAsync(filter, actor);
-            var name = $"appeals-{DateTime.UtcNow.ToKyiv():yyyyMMdd-HHmm}";
+            var now = DateTime.UtcNow;
 
-            if (format == "json")
+            switch (format)
             {
-                var json = JsonSerializer.SerializeToUtf8Bytes(rows, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All)
-                });
-                return File(json, "application/json", name + ".json");
+                case "json":
+                    var json = JsonSerializer.SerializeToUtf8Bytes(rows, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All)
+                    });
+                    return File(json, "application/json", ReportHeader.FileName("appeals", now, "json"));
+                case "csv":
+                    return File(Csv(rows), "text/csv", ReportHeader.FileName("appeals", now, "csv"));
             }
 
-            return File(Csv(rows), "text/csv", name + ".csv");
+            var header = await ReportHeaderAsync(L["Report.Appeals.Title"], await FilterSummaryAsync(filter));
+            return format == "pdf"
+                ? File(AppealReports.Pdf(rows, header), "application/pdf", ReportHeader.FileName("appeals", now, "pdf"))
+                : File(AppealReports.Xlsx(rows, header), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    ReportHeader.FileName("appeals", now, "xlsx"));
+        }
+
+        // "Tab: New · Category: Elevators · …" for the report header; null when nothing narrows the list.
+        private async Task<string?> FilterSummaryAsync(AppealFilter filter)
+        {
+            var lookups = await _lookups.GetAsync();
+            var parts = new List<string>();
+            if (filter.CurrentTab != AppealFilter.TabAll)
+            {
+                var tab = filter.CurrentTab switch
+                {
+                    AppealFilter.TabNew => "Tabs.New",
+                    AppealFilter.TabInProgress => "Tabs.InProgress",
+                    _ => "Tabs.Closed"
+                };
+                parts.Add($"{L["Tabs.Label"]}: {L[tab]}");
+            }
+            if (!string.IsNullOrWhiteSpace(filter.Q)) parts.Add($"{L["Report.Search"]}: «{filter.Q.Trim()}»");
+            if (filter.From != null || filter.To != null)
+            {
+                parts.Add($"{L["Report.Period"]}: {filter.From?.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) ?? "…"} – {filter.To?.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) ?? "…"}");
+            }
+            if (filter.CategoryId != null)
+            {
+                parts.Add($"{L["Field.Category"]}: {lookups.Categories.FirstOrDefault(c => c.Id == filter.CategoryId)?.DisplayName()}");
+            }
+            if (filter.ResponsibleIsAcab)
+            {
+                parts.Add($"{L["Field.Responsible"]}: {L["Enum.ResponsibleKind.Association"]}");
+            }
+            else if (filter.ResponsibleRecipientId is int recipientId)
+            {
+                parts.Add($"{L["Field.Responsible"]}: {lookups.Recipients.FirstOrDefault(r => r.Id == recipientId)?.DisplayName()}");
+            }
+            if (filter.AcabId != null)
+            {
+                parts.Add($"{L["Field.Acab"]}: {lookups.Acabs.FirstOrDefault(a => a.Id == filter.AcabId)?.DisplayName()}");
+            }
+            if (filter.Priority is AppealPriority priority)
+            {
+                parts.Add($"{L["Field.Priority"]}: {priority.GetDisplayName()}");
+            }
+            return parts.Count == 0 ? null : $"{L["Report.Filters"]}: {string.Join(" · ", parts)}";
         }
 
         // RFC 4180 CSV with a UTF-8 BOM, so Excel opens the Cyrillic text correctly.
@@ -255,7 +306,7 @@ namespace CityFix_backend.Controllers
         private async Task PopulateAsync(AppealFormViewModel form, int? acabId)
         {
             form.Lookups = await _lookups.GetAsync();
-            form.AcabName = form.Lookups.Acabs.FirstOrDefault(a => a.Id == acabId)?.Name;
+            form.AcabName = form.Lookups.Acabs.FirstOrDefault(a => a.Id == acabId)?.DisplayName();
             form.MaxPhotos = _files.MaxPhotos;
         }
     }
