@@ -1,8 +1,3 @@
-/* CityFix glue on top of the design system (tokens.css + bundle.css).
-   Only what the design leaves to the app; token values only, no new colours, sizes or radii.
-   Classes use the app- prefix so they never collide with the design system's cf- classes. */
-
-/* Auth layout: the logo top-left, the theme and UA/EN switches top-right of the cf-auth page. */
 .app-auth {
   position: relative;
 }
@@ -29,7 +24,6 @@
   .cf-auth--login, .cf-auth--register { padding: 88px var(--space-4) var(--space-6); }
 }
 
-/* Lucide icons the shell needs that bundle.css does not ship (same mask technique as .cf-icon--*). */
 .cf-icon--tag{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z'/%3E%3Ccircle cx='7.5' cy='7.5' r='.5' fill='black'/%3E%3C/svg%3E")}
 .cf-icon--wrench{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E")}
 .cf-icon--log-out{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' x2='9' y1='12' y2='12'/%3E%3C/svg%3E")}
@@ -38,12 +32,10 @@
 .cf-icon--menu{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E")}
 .cf-icon--moon{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'/%3E%3C/svg%3E")}
 
-/* Theme toggle: the moon in light mode, the sun in dark mode. */
 .app-theme-toggle__sun { display: none; }
 [data-theme="dark"] .app-theme-toggle__sun { display: inline-block; }
 [data-theme="dark"] .app-theme-toggle__moon { display: none; }
 
-/* Skip link: first Tab stop on every app page, visible only when focused. */
 .app-skip {
   position: fixed;
   top: var(--space-2);
@@ -61,7 +53,6 @@
 .app-skip:focus { transform: none; }
 .app-content:focus, .cf-modal:focus, .cf-panel-modal:focus { outline: none; }
 
-/* ───────────── App shell: topbar, collapsible sidebar, mobile drawer ───────────── */
 :root { --app-rail-w: 76px; }
 
 .app-shell .cf-shell__main { display: flex; flex-direction: column; }
@@ -81,12 +72,10 @@
 .app-topbar__end { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
 @media (min-width: 768px) { .app-topbar__menu { display: none; } }
 
-/* Sidebar head: the logo and the collapse button side by side; stacked on the rail. */
 .app-sidebar__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .app-sidebar__toggle { color: var(--ink-muted); }
 .app-sidebar__toggle:hover { color: var(--ink-strong); }
 
-/* Similar appeals: the create form's duplicate warning and the list in the appeal card. */
 .app-similar { padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--amber-200); background: var(--amber-50); color: var(--amber-700); }
 [data-theme="dark"] .app-similar { border-color: color-mix(in oklab, var(--amber-700) 50%, transparent); background: color-mix(in oklab, var(--amber-700) 15%, transparent); color: var(--amber-200); }
 .app-similar__title { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }
@@ -98,13 +87,11 @@
 a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
 .app-similar__meta { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
 
-/* Invitation codes and account actions: a label + value on the left, the action on the right. */
 .app-code-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 .app-code-row + .app-code-row { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--line); }
 .app-code { display: inline-block; margin-top: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: var(--radius-md); background: var(--surface-tile); font-size: 16px; font-weight: 600; letter-spacing: .08em; }
 .app-table-badge { margin-top: var(--space-1); }
 
-/* The user block at the foot of the sidebar: avatar, name, role, sign-out. */
 .app-user {
   display: flex;
   align-items: center;
@@ -141,7 +128,6 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
 .app-user__logout { color: var(--ink-muted); }
 .app-user__logout:hover { color: var(--red-600); }
 
-/* Tooltip for the collapsed rail (positioned by site.js, so the sidebar's overflow cannot clip it). */
 .app-tip {
   position: fixed;
   z-index: 60;
@@ -160,7 +146,6 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
 
 .app-shell__scrim { display: none; }
 
-/* Desktop: full sidebar or the icon rail. */
 @media (min-width: 768px) {
   .app-shell .cf-shell__sidebar { overflow-x: hidden; overflow-y: auto; height: 100vh; }
   .app-shell:not(.cf-shell--admin) .cf-shell__sidebar { transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1); }
@@ -190,7 +175,6 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
   .app-shell.is-collapsed .app-user__main { flex: none; }
 }
 
-/* Mobile: the sidebar is an off-canvas drawer, opened from the topbar button. */
 @media (max-width: 767px) {
   .app-shell .cf-shell__sidebar,
   .app-shell.cf-shell--admin .cf-shell__sidebar {
@@ -220,7 +204,6 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
   .app-shell .cf-shell__sidebar, .app-shell.cf-shell--admin { transition: none !important; }
 }
 
-/* Flash messages: the Alert box with an icon, a success variant and a close button. */
 .app-flash { display: flex; align-items: flex-start; gap: var(--space-2); }
 .app-flash > .cf-icon { margin-top: 2px; }
 .app-flash__text { flex: 1; }
@@ -230,21 +213,16 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
 .app-flash__close { padding: 2px; border-radius: var(--radius-sm); opacity: .7; cursor: pointer; }
 .app-flash__close:hover { opacity: 1; }
 
-/* A submit button while its form is being sent (site.js): spinner, no second click. */
-/* The spinner takes the place of the button's own icon, with the same gap as an icon would have
-   (cf-auth__submit has no gap of its own), and the button stays readable instead of fading out. */
 [aria-busy="true"]:is(.cf-btn, .cf-auth__submit) { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); opacity: .8; cursor: progress; }
 .cf-auth__submit[aria-busy="true"] { display: flex; }
 [aria-busy="true"]:is(.cf-btn, .cf-auth__submit) > .cf-icon { display: none; }
 .app-btn-spinner { flex: none; width: 16px; height: 16px; border-width: 2px; }
 .cf-btn--sm .app-btn-spinner { width: 14px; height: 14px; }
 
-/* Register: the source's pt-2 above the submit button (inline style in the AuthForm preview). */
 .app-auth-submit {
   padding-top: var(--space-2);
 }
 
-/* ReportFilters without JS: the popover hangs under the Filters button inside <details>. */
 .app-filters {
   position: relative;
 }
@@ -264,17 +242,14 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
   z-index: 20;
 }
 
-/* MapPicker: the 8px gap between the address input and the locate button (inline style in the preview). */
 .app-toolbar-tight {
   gap: var(--space-2);
 }
 
-/* The small gap between a shadcn Label and its Select/TextArea (inline style in the previews). */
 .app-control-gap {
   margin-top: var(--space-1);
 }
 
-/* Notification rows are submit buttons (marking read is a POST): stretch them like the design's div rows. */
 .app-note-button {
   width: 100%;
   text-align: left;
@@ -285,12 +260,8 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
   display: block;
 }
 
-/* Profile: the pending-email note under the personal details form. */
 .app-profile-pending { margin-top: 16px; }
 
-/* ───── Status and priority pills, tags and badges ─────
-   Each coloured variant names its hue (--tone). The light theme keeps the design's pastel fills; the dark
-   theme tints the surface with the hue instead, because the pastel -50/-100 fills glare on dark cards. */
 .cf-pill--new, .cf-pill--urgent, .cf-badge--danger, .cf-tag--admin { --tone: var(--series-red); }
 .cf-pill--inprogress, .cf-pill--normal, .cf-badge--warning { --tone: var(--series-amber); }
 .cf-pill--underreview, .cf-badge--info { --tone: var(--series-cyan); }
@@ -299,7 +270,6 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
 .cf-pill--done, .cf-badge--success, .cf-tag--resident { --tone: var(--series-emerald); }
 .cf-tag--head { --tone: var(--series-blue); }
 
-/* Statuses added after the design: same recipe as the design's pills. */
 .cf-pill--underreview { color: var(--sky-700); background: var(--sky-50); --cf-ring: var(--sky-200); }
 .cf-pill--needsinfo { color: color-mix(in oklab, var(--purple-500) 70%, black); background: var(--purple-50); --cf-ring: var(--purple-200); }
 .cf-pill--onhold { color: var(--orange-700); background: var(--orange-50); --cf-ring: var(--orange-200); }
@@ -320,26 +290,19 @@ a.app-similar__name { text-decoration: underline; text-underline-offset: 2px; }
     --cf-ring: color-mix(in oklab, var(--tone) 40%, transparent);
 }
 
-/* Register: the association code is asked for only when "I live in a building with an association" is ticked. */
 form:has([data-acab-toggle]:not(:checked)) [data-acab-code] { display: none; }
 
-/* Appeal card: "machine translation · show original" under the description. */
 .app-translation { margin-top: 8px; font-size: 13px; color: var(--ink-muted); }
 .app-translation > summary { cursor: pointer; }
 .app-translation > p { margin-top: 6px; }
 
-/* Overlays (appeal card, dialogs) are rendered inside the page stack, whose "* + *" rule gives every later child
-   margin-top: 24px. On a fixed, inset: 0 overlay that pushed the whole scrim and modal 24px down. */
 .app-content .cf-overlay { margin: 0; }
 
-/* Timeline dots for the statuses added after the design (New, In progress and Done come from the design). */
 .cf-timeline__dot--underreview { background: var(--series-cyan); }
 .cf-timeline__dot--needsinfo { background: var(--series-violet); }
 .cf-timeline__dot--onhold { background: var(--series-gray); }
 .cf-timeline__dot--rejected { background: var(--series-red); }
 
-/* Resizable table columns (site.js): a handle on the right edge of each header but the last. Once a column
-   was resized the table switches to a fixed layout with explicit widths and may scroll sideways. */
 .cf-table th { position: relative; }
 .app-col-resize { position: absolute; top: 0; right: -5px; z-index: 1; width: 10px; height: 100%; cursor: col-resize; touch-action: none; }
 .app-col-resize::after { content: ""; position: absolute; top: 25%; bottom: 25%; left: 4px; width: 2px; border-radius: 1px; background: var(--ink-muted); opacity: 0; transition: opacity 150ms; }
@@ -348,7 +311,6 @@ form:has([data-acab-toggle]:not(:checked)) [data-acab-code] { display: none; }
 .cf-table.is-resized { table-layout: fixed; }
 .cf-table.is-resized th, .cf-table.is-resized td { overflow-wrap: anywhere; }
 
-/* Export menu (_ExportMenu): a short list of formats under the button, inside <details>. */
 .app-menu { position: relative; }
 .app-menu > summary { list-style: none; }
 .app-menu > summary::-webkit-details-marker { display: none; }

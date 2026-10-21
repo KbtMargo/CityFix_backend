@@ -8,9 +8,6 @@ using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // Administrators manage every account; association heads see the members of their own association.
-    // The rules (who may do what, last administrator, unique email) are in UserService.
-    // Passwords are never typed here: Register sets them, or the admin issues a one-time temporary password.
     [Authorize(Roles = "Administrator,AcabAdmin")]
     public class UsersController : AppController
     {
@@ -24,7 +21,6 @@ namespace CityFix_backend.Controllers
             _lookups = lookups;
         }
 
-        // GET: Users?q=
         public async Task<IActionResult> Index(string? q, int page = 1)
         {
             var actor = await GetActorAsync();
@@ -37,14 +33,12 @@ namespace CityFix_backend.Controllers
             });
         }
 
-        // GET: Users/Create
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Create()
         {
             return View(await WithAcabsAsync(new UserFormViewModel()));
         }
 
-        // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
@@ -55,7 +49,6 @@ namespace CityFix_backend.Controllers
                 try
                 {
                     var (user, password) = await Users.CreateAsync(form.ToInput(), await GetActorAsync());
-                    // Shown once, never stored in plain text.
                     FlashSuccess(L["Users.CreatedWithPassword", user.Email, password]);
                     return RedirectToAction(nameof(Index));
                 }
@@ -67,14 +60,12 @@ namespace CityFix_backend.Controllers
             return View(await WithAcabsAsync(form));
         }
 
-        // GET: Users/Edit/5
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id)
         {
             return View(await WithAcabsAsync(UserFormViewModel.From(await Users.GetAsync(id))));
         }
 
-        // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
@@ -103,7 +94,6 @@ namespace CityFix_backend.Controllers
             return View(await WithAcabsAsync(form));
         }
 
-        // POST: Users/ResetPassword/5  (a new one-time temporary password)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
@@ -115,7 +105,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Edit), new { id });
         }
 
-        // POST: Users/SetBlocked/5?blocked=true|false
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
@@ -133,14 +122,12 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Edit), new { id });
         }
 
-        // GET: Users/Delete/5  (confirmation dialog; blocked while the user has appeals or history)
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int id)
         {
             return View(await Users.CheckDeleteAsync(id, await GetActorAsync()));
         }
 
-        // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]

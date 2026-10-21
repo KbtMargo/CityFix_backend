@@ -13,13 +13,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-// The server locale (uk-UA) expects a decimal comma, but Lat/Lng are entered and posted with a dot.
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Resources/SharedResource.resx is Ukrainian (the default), SharedResource.en.resx is English.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddControllersWithViews(options => options.Filters.Add<ServiceExceptionFilter>())
@@ -27,7 +25,6 @@ builder.Services.AddControllersWithViews(options => options.Filters.Add<ServiceE
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)));
 
-// Model-binding errors (e.g. nothing chosen in a required dropdown) in the user's language.
 builder.Services.AddOptions<MvcOptions>().Configure<IStringLocalizerFactory>((options, factory) =>
 {
     var localizer = factory.Create(typeof(SharedResource));
@@ -45,11 +42,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        // Blocked or deleted accounts are signed out, and role changes apply, at the next request.
         options.Events.OnValidatePrincipal = CookieValidator.ValidateAsync;
     });
 
-// Sign-in and registration (and with it invitation-code guessing): 10 attempts per minute per address.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -68,9 +63,7 @@ builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection
 
 builder.Services.Configure<TranslationOptions>(builder.Configuration.GetSection(TranslationOptions.Section));
 
-// PDF reports (QuestPDF): the free Community licence covers this project.
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-// Cyrillic needs real fonts: use the system ones (Segoe UI / Arial on Windows, DejaVu Sans on Linux).
 QuestPDF.Settings.UseSystemFonts = true;
 
 builder.Services.AddSingleton(TimeProvider.System);
@@ -93,8 +86,6 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((se
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
 });
 
-// Email: SMTP when Email:SmtpHost is set, otherwise letters are written to the log (development).
-// SMS: Twilio when Sms:Provider is "Twilio", otherwise the log. Copies of notifications are sent in the background.
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{nameof(EmailOptions.SmtpHost)}"]))
 {
     builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
@@ -113,7 +104,6 @@ else
 }
 builder.Services.AddHostedService<NotificationDispatcher>();
 
-// Machine translation: DeepL with Translation:DeepLApiKey, otherwise the free MyMemory API. Runs in the background.
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{TranslationOptions.Section}:{nameof(TranslationOptions.DeepLApiKey)}"]))
 {
     builder.Services.AddHttpClient<ITranslator, MyMemoryTranslator>(client => client.Timeout = TimeSpan.FromSeconds(15));
@@ -132,17 +122,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// 404 and friends render the design's ErrorPage instead of an empty response.
 app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 
 app.UseHttpsRedirection();
 
-// MapStaticAssets only knows files that existed at build time; uploaded photos are added at runtime.
 app.UseStaticFiles();
 
-// Only the UI language is switchable (uk / en), and only through the culture cookie that
-// CultureController writes. The formatting culture always stays invariant, so a request in
-// Ukrainian never turns Lat/Lng parsing into uk-UA (decimal comma).
 var uiCultures = new[] { new CultureInfo("uk"), new CultureInfo("en") };
 var localization = new RequestLocalizationOptions
 {
@@ -168,7 +153,6 @@ app.MapControllerRoute(
 
 await DbSeeder.SeedAdminAsync(app.Services, app.Logger);
 
-// dotnet run -- --seed-demo : fills the database with demo data (Data/DemoSeeder.cs) and exits.
 if (args.Contains("--seed-demo"))
 {
     await DemoSeeder.SeedAsync(app.Services, app.Logger);

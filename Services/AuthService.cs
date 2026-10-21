@@ -51,8 +51,6 @@ namespace CityFix_backend.Services
                 (role, acabId) = (found.Value.Role, found.Value.Acab.Id);
             }
 
-            // An unconfirmed account has never signed in (so it has no appeals): registering again with the
-            // same email replaces it. Nobody can hold on to someone else's address by not confirming it.
             var email = EmailAddress.Normalize(request.Email);
             await _context.Users.Where(u => u.Email == email && !u.EmailConfirmed).ExecuteDeleteAsync();
 
@@ -110,7 +108,6 @@ namespace CityFix_backend.Services
             }
             catch (CryptographicException)
             {
-                // Tampered with, expired, or made with keys that no longer exist.
                 return (EmailConfirmation.Invalid, null);
             }
 
@@ -129,7 +126,6 @@ namespace CityFix_backend.Services
 
             if (user.PendingEmail == email)
             {
-                // A new address from the profile: it becomes the login once confirmed (if still free).
                 if (await _context.Users.AnyAsync(u => u.Email == email && u.Id != userId))
                 {
                     return (EmailConfirmation.EmailTaken, user);
@@ -139,7 +135,6 @@ namespace CityFix_backend.Services
             }
             else if (user.Email != email)
             {
-                // A link for an address the account no longer uses.
                 return (EmailConfirmation.Invalid, null);
             }
 
@@ -151,7 +146,6 @@ namespace CityFix_backend.Services
             }
             catch (DbUpdateException)
             {
-                // Someone took the address between the check and the update (unique index).
                 return (EmailConfirmation.EmailTaken, user);
             }
             return (EmailConfirmation.Confirmed, user);
@@ -202,7 +196,6 @@ namespace CityFix_backend.Services
                 return null;
             }
 
-            // Same role, name and email: keep the cookie as it is.
             var unchanged = principal.FindFirstValue(ClaimTypes.Role) == user.Role.ToString()
                 && principal.FindFirstValue(ClaimTypes.Name) == user.FullName
                 && principal.FindFirstValue(ClaimTypes.Email) == user.Email;
@@ -213,8 +206,6 @@ namespace CityFix_backend.Services
             new(null, new Dictionary<string, string> { [field] = key });
     }
 
-    // Wired into the cookie handler (Program.cs): every request re-reads the account, so a blocked or
-    // deleted user is signed out and a changed role applies at once (not only when the cookie expires).
     public static class CookieValidator
     {
         public static async Task ValidateAsync(CookieValidatePrincipalContext context)

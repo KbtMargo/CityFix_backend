@@ -21,7 +21,6 @@
                 <div><label class="cf-auth__label" asp-for="Password"></label><input asp-for="Password" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
                 <div><label class="cf-auth__label" asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" class="cf-auth__input" autocomplete="new-password" placeholder="••••••••" /></div>
             </div>
-            @* The code field shows only while the box is ticked (CSS :has, no script needed); unticked, the code is ignored. *@
             <label class="cf-check"><input asp-for="HasAssociation" data-acab-toggle /><span>@Html.DisplayNameFor(m => m.HasAssociation)</span></label>
             <div data-acab-code>
                 <label class="cf-auth__label" asp-for="InvitationCode"></label><input asp-for="InvitationCode" class="cf-auth__input" autocomplete="off" spellcheck="false" placeholder="@L["Auth.Register.CodePlaceholder"]" aria-describedby="code-hint" />

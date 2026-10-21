@@ -2,13 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CityFix_backend.Models
 {
-    // A condominium association (ОСББ). It has two invitation codes: the residents' code links a new
-    // account to the association as a Resident; the head code (issued by an administrator) makes it its head.
     public class Acab
     {
         public int Id { get; set; }
 
-        // Name and Address are Ukrainian; the En fields are English, filled by machine translation when left empty.
         [Display(Name = "Field.Name")]
         public string Name { get; set; } = "";
 

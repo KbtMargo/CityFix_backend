@@ -1,8 +1,3 @@
-// MapPicker (components/MapPicker/README.md): Leaflet + OpenStreetMap tiles, centred on Khmelnytskyi.
-// Clicking the map or using geolocation sets the point: Lat/Lng go into the hidden inputs with a '.'
-// decimal separator, and the address is filled from the point through /Geo/Reverse (Nominatim, via the
-// server). An address the user typed is never overwritten. The search button (or Enter in the address
-// field) finds the point for a typed address through /Geo/Search. Every new point fires "cf:point".
 (function () {
     var root = document.querySelector('[data-cf-map-picker]');
     if (!root || !window.L) return;
@@ -24,7 +19,6 @@
     var marker = null;
     var lookup = 0;
 
-    // The address was filled by us (or is empty), so a new point may replace it.
     function addressIsAuto() { return !address.value.trim() || address.dataset.auto === 'true'; }
     address.addEventListener('input', function () { address.dataset.auto = 'false'; });
 
@@ -45,12 +39,11 @@
         fetch(root.dataset.reverseUrl + '?lat=' + lat + '&lng=' + lng, { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.status === 200 ? r.json() : null; })
             .then(function (data) {
-                // A later click wins; a typed address is kept.
                 if (id !== lookup || !data || !addressIsAuto()) return;
                 address.value = data.address;
                 address.dataset.auto = 'true';
             })
-            .catch(function () { /* geocoding unavailable: the user types the address */ });
+            .catch(function () { });
     }
 
     function findAddress() {
@@ -78,12 +71,10 @@
             .finally(function () { search.removeAttribute('aria-busy'); spinner.remove(); });
     }
 
-    // Editing an appeal that already has a point.
     if (latInput.value && lngInput.value) {
         var lat = parseFloat(latInput.value), lng = parseFloat(lngInput.value);
         marker = L.marker([lat, lng]).addTo(map);
         map.setView([lat, lng], 16);
-        // The stored address belongs to the stored point: moving the point updates it.
         address.dataset.auto = 'true';
     }
 

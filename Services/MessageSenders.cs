@@ -8,7 +8,6 @@ using MimeKit;
 
 namespace CityFix_backend.Services
 {
-    // Email:SmtpHost is set: letters go to that SMTP server.
     public class SmtpEmailSender : IEmailSender
     {
         private readonly EmailOptions _options;
@@ -27,7 +26,6 @@ namespace CityFix_backend.Services
             message.Body = new TextPart("plain") { Text = textBody };
 
             using var client = new SmtpClient();
-            // Port 465 is implicit TLS; otherwise STARTTLS when the server offers it.
             var security = _options.SmtpUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTlsWhenAvailable;
             await client.ConnectAsync(_options.SmtpHost!, _options.SmtpPort, security, cancellationToken);
             if (!string.IsNullOrEmpty(_options.SmtpUserName))
@@ -39,7 +37,6 @@ namespace CityFix_backend.Services
         }
     }
 
-    // No SMTP server configured (development): the letter, with its links, is written to the log.
     public class LogEmailSender : IEmailSender
     {
         private readonly ILogger<LogEmailSender> _logger;
@@ -56,7 +53,6 @@ namespace CityFix_backend.Services
         }
     }
 
-    // Sms:Provider = "Twilio": POST /2010-04-01/Accounts/{sid}/Messages.json with basic auth.
     public class TwilioSmsSender : ISmsSender
     {
         private readonly HttpClient _http;
@@ -90,7 +86,6 @@ namespace CityFix_backend.Services
         }
     }
 
-    // Sms:Provider = "Log" (the default): the message is written to the log.
     public class LogSmsSender : ISmsSender
     {
         private readonly ILogger<LogSmsSender> _logger;

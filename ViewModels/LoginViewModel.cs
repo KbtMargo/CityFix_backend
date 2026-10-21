@@ -19,12 +19,10 @@ namespace CityFix_backend.ViewModels
 
         public string? ReturnUrl { get; set; }
 
-        // Set by the controller: the password was right but the email is not confirmed yet (offer a new letter).
         [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
         public bool NeedsConfirmation { get; set; }
     }
 
-    // "Send the confirmation letter again" (and the CheckEmail page, which shows the address).
     public class ResendConfirmationViewModel
     {
         [Required(ErrorMessage = "Validation.Required")]

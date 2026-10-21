@@ -1,5 +1,3 @@
-// Duplicate warning on the appeal form: when a point and a category are chosen, asks /Appeals/Similar
-// for open appeals of that category within the search radius and lists them. Advisory only.
 (function () {
     var box = document.querySelector('[data-similar-appeals]');
     var category = document.querySelector('[data-similar-category]');

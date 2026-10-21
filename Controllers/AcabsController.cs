@@ -7,7 +7,6 @@ using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // Condominium associations (ОСББ) and their invitation codes. The entity stays "Acab" in code and in the database.
     [Authorize(Roles = "Administrator")]
     public class AcabsController : AppController
     {
@@ -19,16 +18,13 @@ namespace CityFix_backend.Controllers
             _acabs = acabs;
         }
 
-        // GET: Acabs?q=
         public async Task<IActionResult> Index(string? q, int page = 1)
         {
             return View(new TablePageViewModel<AcabRow> { Page = await _acabs.GetPageAsync(q, page), Q = q });
         }
 
-        // GET: Acabs/Create
         public IActionResult Create() => View(new AcabFormViewModel());
 
-        // POST: Acabs/Create  (both codes are generated)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Address,NameEn,AddressEn")] AcabFormViewModel form)
@@ -43,10 +39,8 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Edit), new { id = acab.Id });
         }
 
-        // GET: Acabs/Edit/5
         public async Task<IActionResult> Edit(int id) => View(AcabFormViewModel.From(await _acabs.GetAsync(id)));
 
-        // POST: Acabs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,NameEn,AddressEn")] AcabFormViewModel form)
@@ -68,7 +62,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Acabs/RegenerateCode/5?kind=Resident|Head  (a leaked code is replaced)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegenerateCode(int id, AcabCodeKind kind)
@@ -78,10 +71,8 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Edit), new { id });
         }
 
-        // GET: Acabs/Delete/5  (blocked while users or appeals belong to it)
         public async Task<IActionResult> Delete(int id) => View(await _acabs.CheckDeleteAsync(id));
 
-        // POST: Acabs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

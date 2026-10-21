@@ -7,7 +7,6 @@ namespace CityFix_backend.Services
 {
     public class FileService : IFileService
     {
-        // Extension per accepted type, plus the file signature the content must start with.
         private static readonly Dictionary<string, (string Extension, byte[][] Signatures)> Accepted = new()
         {
             ["image/png"] = (".png", new[] { new byte[] { 0x89, 0x50, 0x4E, 0x47 } }),
@@ -61,7 +60,6 @@ namespace CityFix_backend.Services
 
             foreach (var photo in photos)
             {
-                // Never use the client's file name or content type on disk: both come from the browser.
                 var contentType = DetectType(photo)!;
                 var storedName = $"{Guid.NewGuid():N}{Accepted[contentType].Extension}";
                 var fullPath = Path.Combine(folder, storedName);
@@ -102,7 +100,6 @@ namespace CityFix_backend.Services
 
         private string FolderOf(int appealId) => Path.Combine(_env.WebRootPath, "uploads", "appeals", appealId.ToString());
 
-        // The real image type, from the file's first bytes; null if it isn't a PNG/JPEG/GIF/WebP.
         private static string? DetectType(IFormFile photo)
         {
             var header = new byte[12];
@@ -113,7 +110,6 @@ namespace CityFix_backend.Services
             {
                 if (signatures.Any(sig => read >= sig.Length && header.AsSpan(0, sig.Length).SequenceEqual(sig)))
                 {
-                    // RIFF is shared by other formats; WebP also has "WEBP" at offset 8.
                     if (type == "image/webp" && (read < 12 || !header.AsSpan(8, 4).SequenceEqual("WEBP"u8)))
                     {
                         continue;

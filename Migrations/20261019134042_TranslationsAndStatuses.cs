@@ -10,8 +10,6 @@ namespace CityFix_backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Every existing appeal is queued for machine translation (TranslationWorker), and existing category and
-            // recipient names get their English version the same way (NameEn starts empty).
             migrationBuilder.AddColumn<string>(
                 name: "NameEn",
                 table: "Recipients",

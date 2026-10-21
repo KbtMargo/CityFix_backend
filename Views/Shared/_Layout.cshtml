@@ -1,8 +1,6 @@
 @{
     var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-    // Residents get the 320px white sidebar; association heads and administrators the 280px admin shell.
     var staff = User.IsInRole(nameof(UserRole.Administrator)) || User.IsInRole(nameof(UserRole.AcabAdmin));
-    // The collapsed rail is remembered in a cookie (site.js), so the first paint already has the right width.
     var collapsed = Context.Request.Cookies["cf_sidebar"] == "collapsed";
 }
 <!DOCTYPE html>
@@ -25,7 +23,6 @@
         <div class="app-shell__scrim" data-sidebar-close></div>
         <main class="cf-shell__main">
             <header class="cf-topbar app-topbar">
-                @* Phones only: opens the sidebar drawer (its own button collapses it on desktop). *@
                 <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon app-topbar__menu" data-sidebar-open aria-controls="app-sidebar"
                         aria-expanded="false" aria-label="@L["Shell.Open"]" title="@L["Shell.Open"]">
                     <span class="cf-icon cf-icon--menu cf-icon--5" aria-hidden="true"></span>
@@ -36,7 +33,6 @@
                 </div>
             </header>
             <div class="@(staff ? "cf-stack-6 app-content--admin" : "cf-page") app-content" id="content" tabindex="-1">
-                @* The view body has already run when the layout executes, so the detail modal can claim an error first. *@
                 <partial name="_Flash" />
                 @RenderBody()
             </div>

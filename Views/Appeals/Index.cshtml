@@ -22,7 +22,6 @@ else
             <h1 class="cf-page-title">@L["Appeals.AllTitle"]</h1>
             <div class="cf-toolbar">
                 <div class="cf-page-head__meta">@L["Appeals.Total"]: <b>@Model.Page.TotalCount</b></div>
-                @* The export follows the current search, filters and tab. *@
                 <partial name="_ExportMenu" model="@(new ExportMenuModel("Appeals", exportRoute, "xlsx", "pdf", "csv", "json"))" />
             </div>
         </div>

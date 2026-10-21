@@ -1,4 +1,3 @@
-@* ErrorPage (404): EmptyState + AppLink. Signed-out visitors get the auth layout (no sidebar). *@
 @{
     Layout = User.Identity?.IsAuthenticated == true ? "_Layout" : "_AuthLayout";
     ViewData["Title"] = L["Error.NotFound.Title"].Value;

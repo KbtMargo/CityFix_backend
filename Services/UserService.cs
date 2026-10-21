@@ -52,7 +52,6 @@ namespace CityFix_backend.Services
             var users = await query.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ThenBy(u => u.Id).ToPagedResultAsync(page);
             var ids = users.Items.Select(u => u.Id).ToList();
 
-            // A user with appeals or status changes cannot be deleted (their history would go with them).
             var appealCounts = await _context.Appeals.Where(a => ids.Contains(a.AuthorId))
                 .GroupBy(a => a.AuthorId).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
@@ -80,7 +79,6 @@ namespace CityFix_backend.Services
             EnsureAdministrator(actor);
             await ValidateRoleAsync(input);
             var password = RandomCodes.TemporaryPassword();
-            // The administrator typed the address in; the account does not wait for a confirmation letter.
             return (await CreateAccountAsync(input, password, emailConfirmed: true), password);
         }
 
@@ -111,7 +109,6 @@ namespace CityFix_backend.Services
             }
             catch (DbUpdateException)
             {
-                // Someone registered the same email between the check and the insert (unique index).
                 _context.Entry(user).State = EntityState.Detached;
                 if (await EmailTakenAsync(email, null))
                 {
@@ -132,7 +129,6 @@ namespace CityFix_backend.Services
             var email = EmailAddress.Normalize(input.Email);
             await EnsureEmailFreeAsync(email, id);
 
-            // The last administrator (or yourself) cannot lose the role: nobody could manage the system.
             if (user.Role == UserRole.Administrator && input.Role != UserRole.Administrator)
             {
                 if (user.Id == actor.Id) throw new ServiceValidationException("Role", "Users.CannotDemoteSelf");
@@ -144,7 +140,6 @@ namespace CityFix_backend.Services
             user.LastName = Clean(input.LastName);
             if (user.Email != email)
             {
-                // An address set by an administrator counts as confirmed; a pending change from the profile is dropped.
                 user.Email = email;
                 user.EmailConfirmed = true;
                 user.PendingEmail = null;
@@ -218,8 +213,6 @@ namespace CityFix_backend.Services
             var email = EmailAddress.Normalize(input.Email);
             await EnsureEmailFreeAsync(email, userId);
 
-            // A new address only becomes the login once its confirmation link is followed (AuthService.ConfirmEmailAsync);
-            // typing the current one again cancels a pending change.
             string? toConfirm = null;
             if (email == user.Email)
             {
@@ -264,7 +257,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // A role must be one of the enum values; a head always belongs to an existing association.
         private async Task ValidateRoleAsync(UserInput input)
         {
             if (!Enum.IsDefined(input.Role))
@@ -297,11 +289,9 @@ namespace CityFix_backend.Services
             }
         }
 
-        // Emails are stored lower-cased, so the unique index is used directly.
         private Task<bool> EmailTakenAsync(string email, int? exceptId) =>
             _context.Users.AnyAsync(u => u.Email == email && u.Id != (exceptId ?? 0));
 
-        // A changed name gets a new transliteration / Ukrainian spelling (TranslationWorker).
         private static void ResetTranslatedName(User user, string firstName, string? lastName)
         {
             if (user.FirstName != firstName.Trim() || user.LastName != Clean(lastName)) user.FullNameTranslated = null;

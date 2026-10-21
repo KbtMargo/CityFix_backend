@@ -35,7 +35,6 @@ namespace CityFix_backend.Controllers
         protected override void CopyEditable(Recipient from, Recipient to)
         {
             to.Name = from.Name.Trim();
-            // An empty English name is filled by machine translation (TranslationWorker).
             to.NameEn = string.IsNullOrWhiteSpace(from.NameEn) ? null : from.NameEn.Trim();
             to.ContactInfo = string.IsNullOrWhiteSpace(from.ContactInfo) ? null : from.ContactInfo.Trim();
         }

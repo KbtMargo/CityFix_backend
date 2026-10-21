@@ -4,7 +4,6 @@
     var k = Model.Kpis;
     string ListUrl(string? tab) => Url.Action("Index", "Dashboard", tab == null ? null : new { tab })!;
 
-    // KpiCard README: the active card links to the In progress tab; tones never change between pages.
     var cards = new[]
     {
         (Kpi: k.Active, Tone: "orange", Icon: "alert", LabelKey: "Kpi.Active", Href: ListUrl(AppealFilter.TabInProgress)),

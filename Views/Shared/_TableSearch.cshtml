@@ -1,4 +1,3 @@
-@* Search box above an admin table: a GET form that keeps only the search text (paging restarts). *@
 @model string?
 <form method="get" class="cf-toolbar" role="search">
     <div class="cf-toolbar__grow"><input class="cf-input" type="search" name="q" value="@Model" placeholder="@L["Table.SearchPlaceholder"]" aria-label="@L["Table.Search"]" /></div>

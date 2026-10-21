@@ -30,7 +30,6 @@
     <span asp-validation-for="CategoryId" class="cf-field__error"></span>
 </div>
 
-@* The point is required; the address is filled from it (Nominatim) and can be typed or searched by hand. *@
 <div class="cf-stack-2" data-cf-map-picker data-coords-template="@L["Form.CoordsChosen"]" data-locate-error="@L["Form.LocateFailed"]"
      data-search-failed="@L["Form.SearchFailed"]" data-reverse-url="@Url.Action("Reverse", "Geo")" data-search-url="@Url.Action("Search", "Geo")">
     <label class="cf-label" for="Address">@L["Form.Location"]</label>
@@ -46,7 +45,6 @@
     <input type="hidden" asp-for="Lat" value="@Model.Lat.Coordinate()" /><input type="hidden" asp-for="Lng" value="@Model.Lng.Coordinate()" />
 </div>
 
-@* Advisory only: open appeals of the same category within the search radius (filled by similar-appeals.js). *@
 <div class="app-similar" data-similar-appeals data-url="@Url.Action("Similar", "Appeals")" data-exclude="@(Model.Id > 0 ? Model.Id : "")" hidden role="status">
     <p class="app-similar__title"><span class="cf-icon cf-icon--alert cf-icon--4" aria-hidden="true"></span>@L["Similar.Warning"]</p>
     <p class="app-similar__text">@L["Similar.WarningText"]</p>

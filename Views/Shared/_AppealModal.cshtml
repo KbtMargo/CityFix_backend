@@ -1,6 +1,3 @@
-@* ReportDetailModal, rendered on the list page when ?appealId= is set. Closing goes back to the list
-   with the same filters. Staff get the "Update appeal" panel (status by AppealWorkflow, priority, comment)
-   and the "Responsible" panel; everyone sees the similar appeals within the search radius. *@
 @model AppealListViewModel
 @{
     var d = Model.Selected!;
@@ -9,7 +6,6 @@
     var closeUrl = Url.Action(Model.Action, Model.Controller, new RouteValueDictionary(closeRoute));
     var currentUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
 
-    // A failed update comes back here with its error and the typed values.
     var updateError = TempData[CityFix_backend.Controllers.AppController.ErrorKey] as string;
     var keptComment = TempData["Comment"] as string;
     var keptStatus = Enum.TryParse<AppealStatus>(TempData["Status"] as string, out var s) ? s : a.Status;
@@ -78,7 +74,6 @@
                 <p class="cf-modal__text">@(a.DisplayDescription() ?? L["Modal.NoDescription"].Value)</p>
                 @if (a.ShowsTranslation())
                 {
-                    @* Machine translation of what the author wrote in the other language; the original stays one click away. *@
                     <details class="app-translation">
                         <summary>@L["Translation.Auto"] · @L["Translation.ShowOriginal"]</summary>
                         <p class="cf-modal__text"><b>@a.Title</b></p>

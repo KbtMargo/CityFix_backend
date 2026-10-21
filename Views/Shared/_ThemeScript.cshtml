@@ -1,2 +1,1 @@
-@* Before the stylesheets: the theme chosen with the toggle (localStorage), otherwise the system one. *@
 <script>(function () { var t = null; try { t = localStorage.getItem('cf-theme'); } catch (e) { } document.documentElement.dataset.theme = t === 'dark' || t === 'light' ? t : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); })()</script>

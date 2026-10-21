@@ -14,7 +14,6 @@ namespace CityFix_backend.Services
             _context = context;
         }
 
-        // Categories and recipients are sorted by the name shown in the current UI language (the lists are short).
         public async Task<AppealLookups> GetAsync() => new(
             (await _context.Categories.AsNoTracking().ToListAsync()).OrderBy(c => c.DisplayName(), StringComparer.CurrentCulture).ToList(),
             (await _context.Recipients.AsNoTracking().ToListAsync()).OrderBy(r => r.DisplayName(), StringComparer.CurrentCulture).ToList(),

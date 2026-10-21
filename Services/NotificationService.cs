@@ -16,7 +16,6 @@ namespace CityFix_backend.Services
             _clock = clock;
         }
 
-        // The text is rendered from Type + NewStatus in the reader's language; only free text is stored.
         public Task AddStatusChangedAsync(Appeal appeal, AppealStatus? newStatus, string? comment) =>
             AddAsync(new[] { appeal.AuthorId }, appeal, NotificationType.StatusChanged, newStatus, comment);
 
@@ -70,8 +69,6 @@ namespace CityFix_backend.Services
                 .Where(n => n.UserId == userId && n.InApp && !n.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
 
-        // One row per recipient with the channels they chose; nothing for someone who turned every channel off.
-        // Email and SMS are marked Pending and sent by NotificationDispatcher once this unit of work is saved.
         private async Task AddAsync(IEnumerable<int> userIds, Appeal appeal, NotificationType type, AppealStatus? newStatus, string? message, string? messageEn = null)
         {
             var ids = userIds.ToList();
@@ -93,7 +90,6 @@ namespace CityFix_backend.Services
                     Message = message?.Trim() ?? "",
                     MessageEn = messageEn,
                     InApp = user.NotifyInApp,
-                    // Read already, so it never counts as unread if in-app notifications are turned on later.
                     IsRead = !user.NotifyInApp,
                     EmailState = user.Email ? DeliveryState.Pending : DeliveryState.None,
                     SmsState = user.Sms ? DeliveryState.Pending : DeliveryState.None,

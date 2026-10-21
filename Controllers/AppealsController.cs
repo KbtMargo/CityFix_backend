@@ -30,7 +30,6 @@ namespace CityFix_backend.Controllers
             _files = files;
         }
 
-        // GET: Appeals  ("My appeals" for residents, "All appeals" for staff; ?appealId= opens the detail modal)
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
             var actor = await GetActorAsync();
@@ -38,10 +37,8 @@ namespace CityFix_backend.Controllers
             return View(await AppealListFactory.BuildAsync(_appeals, _lookups, filter, appealId, actor, "Appeals"));
         }
 
-        // GET: Appeals/Details/5 → the list with the modal open
         public IActionResult Details(int id) => RedirectToAction(nameof(Index), new { appealId = id });
 
-        // GET: Appeals/Create
         public async Task<IActionResult> Create()
         {
             var actor = await GetActorAsync();
@@ -50,7 +47,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // POST: Appeals/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(60 * 1024 * 1024)]
@@ -75,7 +71,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // GET: Appeals/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var appeal = await _appeals.GetForEditAsync(id, await GetActorAsync());
@@ -84,7 +79,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // POST: Appeals/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(60 * 1024 * 1024)]
@@ -110,14 +104,12 @@ namespace CityFix_backend.Controllers
                 }
             }
 
-            // Same access check as the GET: a user who may not edit gets 403, not the form.
             var stored = await _appeals.GetForEditAsync(id, actor);
             form.Files = stored.Files;
             await PopulateAsync(form, stored.AcabId);
             return View(form);
         }
 
-        // POST: Appeals/Process  (the "Update appeal" panel: status, priority, comment)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Process(int appealId, AppealStatus expectedStatus, AppealStatus status,
@@ -130,7 +122,6 @@ namespace CityFix_backend.Controllers
             }
             catch (ServiceValidationException ex)
             {
-                // Shown inside the modal as a cf-alert; the typed values are kept so they aren't lost.
                 FlashError(Message(ex));
                 TempData["Comment"] = comment;
                 TempData["Status"] = status.ToString();
@@ -140,7 +131,6 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
         }
 
-        // POST: Appeals/Assign  (the responsible party: the association or a recipient)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Assign(int appealId, string? responsible, string? returnUrl)
@@ -160,7 +150,6 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
         }
 
-        // GET: Appeals/Delete/5  (confirmation dialog)
         public async Task<IActionResult> Delete(int id)
         {
             var details = await _appeals.GetDetailsAsync(id, await GetActorAsync());
@@ -169,7 +158,6 @@ namespace CityFix_backend.Controllers
                 : Forbid();
         }
 
-        // POST: Appeals/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -179,7 +167,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Appeals/Similar?lat=&lng=&categoryId=  (the create form's duplicate warning, JSON)
         [HttpGet]
         public async Task<IActionResult> Similar(double lat, double lng, int categoryId, int? excludeId)
         {
@@ -200,7 +187,6 @@ namespace CityFix_backend.Controllers
             }));
         }
 
-        // GET: Appeals/Export?format=xlsx|pdf|csv|json&...filters  (staff: the appeals of the current filter)
         [HttpGet]
         public async Task<IActionResult> Export([FromQuery] AppealFilter filter, string format = "xlsx")
         {
@@ -234,7 +220,6 @@ namespace CityFix_backend.Controllers
                     ReportHeader.FileName("appeals", now, "xlsx"));
         }
 
-        // "Tab: New · Category: Elevators · …" for the report header; null when nothing narrows the list.
         private async Task<string?> FilterSummaryAsync(AppealFilter filter)
         {
             var lookups = await _lookups.GetAsync();
@@ -277,7 +262,6 @@ namespace CityFix_backend.Controllers
             return parts.Count == 0 ? null : $"{L["Report.Filters"]}: {string.Join(" · ", parts)}";
         }
 
-        // RFC 4180 CSV with a UTF-8 BOM, so Excel opens the Cyrillic text correctly.
         private byte[] Csv(IReadOnlyList<AppealExportRow> rows)
         {
             static string Cell(object? value)
@@ -302,7 +286,6 @@ namespace CityFix_backend.Controllers
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
         }
 
-        // The select lists and limits the form shows. acabId is the association the appeal belongs to.
         private async Task PopulateAsync(AppealFormViewModel form, int? acabId)
         {
             form.Lookups = await _lookups.GetAsync();

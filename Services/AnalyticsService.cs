@@ -27,7 +27,6 @@ namespace CityFix_backend.Services
             var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
             var rows = await visible.Select(a => new Row(a.Id, a.CreatedAt, a.Status)).ToListAsync();
 
-            // Only real status changes count: a comment or a priority change is not a response.
             var changes = await _context.AppealUpdates.AsNoTracking()
                 .Where(u => u.OldStatus != u.NewStatus && visible.Any(a => a.Id == u.AppealId))
                 .Select(u => new Change(u.AppealId, u.OldStatus, u.NewStatus, u.ChangedAt))
@@ -42,7 +41,6 @@ namespace CityFix_backend.Services
                 AvgResponseKpi(rows, changes, now));
         }
 
-        // The charts are grouped by the database; only the last 30 days of creation dates are loaded.
         public async Task<AnalyticsData> GetAnalyticsAsync(User actor)
         {
             var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
@@ -74,7 +72,6 @@ namespace CityFix_backend.Services
                 statuses.Select(s => s.PillModifier()).ToList());
         }
 
-        // Active appeals now vs a week ago; fewer is good. Sparkline: open count at the end of each of the last 7 days.
         private static Kpi ActiveKpi(List<Row> rows, List<Change> changes, DateTime now, DateTime todayKyiv)
         {
             var byAppeal = changes.GroupBy(c => c.AppealId).ToDictionary(g => g.Key, g => g.OrderBy(c => c.ChangedAt).ToList());
@@ -101,7 +98,6 @@ namespace CityFix_backend.Services
                 SharedText.Get("Kpi.ThisWeek"), series);
         }
 
-        // Appeals closed (Done or Rejected) this calendar month vs last month; more is good.
         private static Kpi ClosedThisMonthKpi(List<Change> changes, DateTime todayKyiv)
         {
             var monthStart = new DateTime(todayKyiv.Year, todayKyiv.Month, 1);
@@ -126,7 +122,6 @@ namespace CityFix_backend.Services
                 SharedText.Format("Kpi.VsMonth", previousMonth), series);
         }
 
-        // All appeals; the change is how many were created this month (neither good nor bad).
         private static Kpi TotalKpi(List<Row> rows, DateTime todayKyiv)
         {
             var monthStart = new DateTime(todayKyiv.Year, todayKyiv.Month, 1);
@@ -143,8 +138,6 @@ namespace CityFix_backend.Services
                 SharedText.Get("Kpi.ThisMonth"), series);
         }
 
-        // Days from submission to the first status change, for first responses in the last 30 days
-        // vs the 30 days before; faster is good. Sparkline: weekly averages for the last 7 weeks.
         private static Kpi AvgResponseKpi(List<Row> rows, List<Change> changes, DateTime now)
         {
             var created = rows.ToDictionary(r => r.Id, r => r.CreatedAt);

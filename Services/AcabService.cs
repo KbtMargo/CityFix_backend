@@ -77,7 +77,6 @@ namespace CityFix_backend.Services
             await _context.SaveChangesAsync();
         }
 
-        // A leaked code is replaced; accounts that already registered with it keep their role.
         public async Task<string> RegenerateCodeAsync(int id, AcabCodeKind kind)
         {
             var acab = await _context.Acabs.FirstOrDefaultAsync(a => a.Id == id)
@@ -119,7 +118,6 @@ namespace CityFix_backend.Services
             return acab == null ? null : (acab, acab.HeadCode == normalized ? UserRole.AcabAdmin : UserRole.Resident);
         }
 
-        // A code no association uses yet, in either column.
         private async Task<string> NewCodeAsync(string? alsoAvoid = null)
         {
             while (true)

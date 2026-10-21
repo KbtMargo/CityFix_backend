@@ -1,8 +1,3 @@
-// Small progressive enhancements. Every page works without them.
-
-// Sidebar: on desktop its own button (or Ctrl+B) collapses it to an icon rail, remembered in the
-// cf_sidebar cookie so _Layout renders the right width on the next page. On phones the topbar menu
-// button opens it as a drawer, and the sidebar's button, the scrim or Escape close it.
 (function () {
     var shell = document.querySelector('[data-app-shell]');
     var toggle = document.querySelector('[data-sidebar-toggle]');
@@ -72,7 +67,6 @@
 
     mobile.addEventListener('change', function () { shell.classList.remove('is-open'); hideTip(); sync(); });
 
-    // Rail tooltips: the label of the hovered or focused item, next to it.
     var tip = document.createElement('div');
     tip.className = 'app-tip';
     tip.setAttribute('aria-hidden', 'true');
@@ -101,7 +95,6 @@
     sync();
 })();
 
-// Theme toggle: light / dark, remembered in localStorage (read by _ThemeScript before first paint).
 document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     function sync() {
         var dark = document.documentElement.dataset.theme === 'dark';
@@ -120,8 +113,6 @@ document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     button.addEventListener('cf:theme', sync);
 });
 
-// Overlays (detail modal, delete dialog): focus moves into the dialog; clicking the backdrop or pressing
-// Escape closes it, by going to the same URL the close button links to.
 (function () {
     var overlay = document.querySelector('[data-close-href]');
     if (!overlay) return;
@@ -135,7 +126,6 @@ document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') location.href = href; });
 })();
 
-// Flash messages can be dismissed.
 document.querySelectorAll('[data-flash]').forEach(function (flash) {
     var close = flash.querySelector('[data-flash-close]');
     if (!close) return;
@@ -143,15 +133,12 @@ document.querySelectorAll('[data-flash]').forEach(function (flash) {
     close.addEventListener('click', function () { flash.remove(); });
 });
 
-// POST forms: one submission only, with a spinner in the button, so a slow save is not sent twice.
-// Runs after jQuery validation, which cancels the event when the form is invalid.
 document.addEventListener('submit', function (e) {
     var form = e.target;
     if (e.defaultPrevented || (form.method || '').toLowerCase() !== 'post') return;
     if (form.dataset.submitting) { e.preventDefault(); return; }
     form.dataset.submitting = 'true';
     var button = e.submitter;
-    // Named buttons (the UA/EN switch) carry their value; leave them alone.
     if (button && !button.name && (button.classList.contains('cf-btn') || button.classList.contains('cf-auth__submit'))) {
         button.setAttribute('aria-disabled', 'true');
         button.setAttribute('aria-busy', 'true');
@@ -162,7 +149,6 @@ document.addEventListener('submit', function (e) {
     }
 });
 
-// Coming back with the browser's Back button restores the page from cache: re-enable its forms.
 window.addEventListener('pageshow', function (e) {
     if (!e.persisted) return;
     document.querySelectorAll('form[data-submitting]').forEach(function (form) { delete form.dataset.submitting; });
@@ -174,7 +160,6 @@ window.addEventListener('pageshow', function (e) {
     });
 });
 
-// Edit and create forms warn before leaving with unsaved changes.
 document.querySelectorAll('form.cf-form-card').forEach(function (form) {
     var dirty = false;
     form.addEventListener('input', function () { dirty = true; });
@@ -184,12 +169,10 @@ document.querySelectorAll('form.cf-form-card').forEach(function (form) {
     });
 });
 
-// The close (×) button inside the filters popover closes its <details>.
 document.querySelectorAll('[data-close-details]').forEach(function (button) {
     button.addEventListener('click', function () { button.closest('details').open = false; });
 });
 
-// Photo carousel in the detail modal: thumbnails and arrows switch the main image.
 document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     var main = gallery.querySelector('[data-gallery-main]');
     var thumbs = Array.from(gallery.querySelectorAll('[data-gallery-src]'));
@@ -208,9 +191,6 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     });
 });
 
-// Tables: drag the right edge of a column header to change the column's width, or focus that edge and use
-// the arrow keys (Shift for bigger steps); a double-click (or Escape) restores the default widths.
-// Widths are remembered per page and table in localStorage. Without script the tables keep their auto layout.
 (function () {
     var label = document.body.getAttribute('data-col-resize-label') || '';
     var MIN = 60;
@@ -231,14 +211,14 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
         }
 
         function save() {
-            try { localStorage.setItem(key, JSON.stringify(current())); } catch (e) { /* private mode: not remembered */ }
+            try { localStorage.setItem(key, JSON.stringify(current())); } catch (e) { }
         }
 
         function reset() {
             headers.forEach(function (th) { th.style.width = ''; });
             table.style.width = '';
             table.classList.remove('is-resized');
-            try { localStorage.removeItem(key); } catch (e) { /* nothing stored */ }
+            try { localStorage.removeItem(key); } catch (e) { }
         }
 
         function resize(i, delta) {
@@ -250,9 +230,8 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
         try {
             var saved = JSON.parse(localStorage.getItem(key) || 'null');
             if (Array.isArray(saved) && saved.length === headers.length) apply(saved);
-        } catch (e) { /* a broken value: keep the default layout */ }
+        } catch (e) { }
 
-        // Every column but the last gets a handle on its right edge.
         headers.slice(0, -1).forEach(function (th, i) {
             var handle = document.createElement('span');
             handle.className = 'app-col-resize';
@@ -301,7 +280,6 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     });
 })();
 
-// Menus in <details data-menu>: an outside click or Escape closes them, picking an item closes them too.
 document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     document.addEventListener('click', function (e) { if (menu.open && !menu.contains(e.target)) menu.open = false; });
     menu.addEventListener('keydown', function (e) {

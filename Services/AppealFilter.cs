@@ -2,7 +2,6 @@ using CityFix_backend.Models;
 
 namespace CityFix_backend.Services
 {
-    // Query-string filters for appeal lists (ReportFilters + segmented Tabs + Pagination).
     public class AppealFilter
     {
         public const string TabAll = "all";
@@ -10,12 +9,10 @@ namespace CityFix_backend.Services
         public const string TabInProgress = "inprogress";
         public const string TabClosed = "closed";
 
-        // The "responsible" value meaning the appeal's association; any other value is a recipient id.
         public const string ResponsibleAcab = "acab";
 
         public string? Q { get; set; }
 
-        // Kyiv calendar dates, inclusive.
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
 
@@ -26,7 +23,6 @@ namespace CityFix_backend.Services
         public string? Tab { get; set; }
         public int Page { get; set; } = 1;
 
-        // Set by the controller (not from the query string): only the current user's own appeals.
         public bool MineOnly { get; set; }
 
         public string CurrentTab => Tab is TabNew or TabInProgress or TabClosed ? Tab : TabAll;
@@ -35,13 +31,11 @@ namespace CityFix_backend.Services
 
         public int? ResponsibleRecipientId => int.TryParse(Responsible, out var id) ? id : null;
 
-        // The number on the Filters button: popover fields that are set (the date range counts once).
         public int ActiveFilterCount =>
             (From != null || To != null ? 1 : 0) + (CategoryId != null ? 1 : 0)
             + (ResponsibleIsAcab || ResponsibleRecipientId != null ? 1 : 0)
             + (AcabId != null ? 1 : 0) + (Priority != null ? 1 : 0);
 
-        // Route values that keep the current filters in links (tabs, pagination, closing the modal, export).
         public Dictionary<string, string> ToRouteValues(bool includeTab = true, bool includePage = false)
         {
             var values = new Dictionary<string, string>();

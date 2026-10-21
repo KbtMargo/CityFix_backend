@@ -6,7 +6,6 @@ using CityFix_backend.Services.Reports;
 
 namespace CityFix_backend.Controllers
 {
-    // Charts over the appeals the user may see (all roles; residents see their own).
     [Authorize]
     public class AnalyticsController : AppController
     {
@@ -18,13 +17,11 @@ namespace CityFix_backend.Controllers
             _analytics = analytics;
         }
 
-        // GET: Analytics
         public async Task<IActionResult> Index()
         {
             return View(await _analytics.GetAnalyticsAsync(await GetActorAsync()));
         }
 
-        // GET: Analytics/Export?format=xlsx|pdf  (the same figures as the page, plus the dashboard's key figures)
         [HttpGet]
         public async Task<IActionResult> Export(string format = "xlsx")
         {

@@ -30,7 +30,6 @@ namespace CityFix_backend.Controllers
                 .GroupBy(a => a.CategoryId).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
 
-        // An empty English name is filled by machine translation (TranslationWorker).
         protected override void CopyEditable(Category from, Category to)
         {
             to.Name = from.Name.Trim();

@@ -7,7 +7,6 @@ using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // "Home" for every role: KPI cards, search + filters, tabs and the appeals the user may see.
     [Authorize]
     public class DashboardController : AppController
     {
@@ -23,7 +22,6 @@ namespace CityFix_backend.Controllers
             _analytics = analytics;
         }
 
-        // GET: Dashboard  (?appealId= opens the detail modal)
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
             var actor = await GetActorAsync();

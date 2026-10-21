@@ -14,7 +14,6 @@ namespace CityFix_backend.Controllers
 {
     public class AccountController : AppController
     {
-        // TempData: the address the confirmation letter went to (CheckEmail page).
         private const string SentToKey = "ConfirmationSentTo";
 
         private readonly IAuthService _auth;
@@ -27,7 +26,6 @@ namespace CityFix_backend.Controllers
             _logger = logger;
         }
 
-        // GET: Account/Register
         public IActionResult Register()
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -37,14 +35,11 @@ namespace CityFix_backend.Controllers
             return View(new RegisterViewModel());
         }
 
-        // POST: Account/Register  (rate-limited: invitation codes cannot be guessed by brute force)
-        // The account can sign in only after the link from the confirmation letter is followed.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            // Someone in a private house has no association; a member must give its code.
             if (model.HasAssociation && string.IsNullOrWhiteSpace(model.InvitationCode))
             {
                 ModelState.AddModelError(nameof(model.InvitationCode), L["Auth.CodeRequired"]);
@@ -72,7 +67,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(CheckEmail));
         }
 
-        // GET: Account/CheckEmail  ("we have sent you a letter")
         public IActionResult CheckEmail()
         {
             if (TempData[SentToKey] is not string email)
@@ -82,7 +76,6 @@ namespace CityFix_backend.Controllers
             return View(new ResendConfirmationViewModel { Email = email });
         }
 
-        // GET: Account/ConfirmEmail?token=...  (the link from the letter)
         public async Task<IActionResult> ConfirmEmail(string? token)
         {
             var result = string.IsNullOrEmpty(token)
@@ -102,17 +95,14 @@ namespace CityFix_backend.Controllers
                     break;
             }
 
-            // The link only confirms the address; it never signs anyone in.
             return User.Identity?.IsAuthenticated == true
                 ? RedirectToAction(nameof(Profile))
                 : RedirectToAction(nameof(Login));
         }
 
-        // GET: Account/ResendConfirmation
         public IActionResult ResendConfirmation(string? email) =>
             View(new ResendConfirmationViewModel { Email = email ?? "" });
 
-        // POST: Account/ResendConfirmation  (the same answer whether or not such an account exists)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
@@ -132,7 +122,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(CheckEmail));
         }
 
-        // GET: Account/Login
         public IActionResult Login(string? returnUrl)
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -142,7 +131,6 @@ namespace CityFix_backend.Controllers
             return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
-        // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
@@ -156,12 +144,10 @@ namespace CityFix_backend.Controllers
             var user = await _auth.LoginAsync(model.Email, model.Password);
             if (user == null)
             {
-                // One message for a wrong password, an unknown email and a blocked account.
                 ModelState.AddModelError(string.Empty, L["Auth.LoginFailed"]);
                 return View(model);
             }
 
-            // Said only after the right password, so it does not reveal which addresses are registered.
             if (!user.EmailConfirmed)
             {
                 ModelState.AddModelError(string.Empty, L["Auth.EmailNotConfirmed"]);
@@ -174,7 +160,6 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(model.ReturnUrl, () => RedirectToAction("Index", "Dashboard"));
         }
 
-        // POST: Account/Logout
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -184,21 +169,18 @@ namespace CityFix_backend.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: Account/AccessDenied
         public IActionResult AccessDenied()
         {
             Response.StatusCode = StatusCodes.Status403Forbidden;
             return View();
         }
 
-        // GET: Account/Profile
         [Authorize]
         public async Task<IActionResult> Profile()
         {
             return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId)));
         }
 
-        // POST: Account/Profile  (name, email, phone). A new email waits for its confirmation link.
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -230,7 +212,6 @@ namespace CityFix_backend.Controllers
             return View(nameof(Profile), view);
         }
 
-        // POST: Account/ResendPendingEmail  (the letter for the new address typed in the profile)
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -245,7 +226,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // POST: Account/UpdateNotifications  (the channels notifications arrive on)
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -256,7 +236,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // POST: Account/ChangePassword
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -278,8 +257,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // A mail server failure is logged and shown, not thrown: the account or the profile change is
-        // already saved, and the letter can be requested again.
         private async Task<bool> TrySendConfirmationAsync(User user, string email)
         {
             var link = Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) }, Request.Scheme)!;

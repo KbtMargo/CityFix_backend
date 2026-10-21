@@ -1,10 +1,7 @@
-@* The sidebar. Collapsed (desktop) it becomes an icon rail: the .app-sidebar__label parts are only
-   visually hidden, so every link keeps its accessible name, and data-tip feeds the hover tooltip. *@
 @model CityFix_backend.ViewComponents.SidebarModel
 <div class="cf-sidebar app-sidebar">
     <div class="cf-sidebar__head app-sidebar__head">
         <partial name="_Logo" />
-        @* Desktop: collapse to the icon rail and back (also Ctrl+B). Mobile drawer: close it. *@
         <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon app-sidebar__toggle" data-sidebar-toggle aria-controls="app-sidebar"
                 aria-expanded="@(Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "false" : "true")"
                 aria-label="@L[Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "Shell.Expand" : "Shell.Collapse"]"

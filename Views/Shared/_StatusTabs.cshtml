@@ -1,4 +1,3 @@
-@* Segmented tabs: All / New / In progress / Closed (Done + Rejected). Keeps the other filters. *@
 @model AppealListViewModel
 @{
     var current = Model.Filter.CurrentTab;
@@ -10,7 +9,6 @@
         (Key: AppealFilter.TabClosed, Label: "Tabs.Closed")
     };
 }
-@* Links that reload the list, so a nav with aria-current rather than ARIA tabs. *@
 <nav class="cf-tabs" aria-label="@L["Tabs.Label"]">
     @foreach (var tab in tabs)
     {

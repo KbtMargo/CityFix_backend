@@ -8,9 +8,6 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Sends the email and SMS copies of notifications (DeliveryState.Pending) in the background, so a status
-    // change never waits for, or fails because of, a mail server. A failed copy is retried on the next rounds
-    // and marked Failed after Notifications:MaxAttempts.
     public class NotificationDispatcher : BackgroundService
     {
         private readonly IServiceScopeFactory _scopes;
@@ -61,7 +58,6 @@ namespace CityFix_backend.Services
                 var user = notification.User!;
                 var failed = false;
 
-                // The texts are rendered in the recipient's language, not the language of whoever caused the change.
                 var previous = CultureInfo.CurrentUICulture;
                 CultureInfo.CurrentUICulture = new CultureInfo(user.Language == "en" ? "en" : "uk");
                 try
@@ -71,7 +67,6 @@ namespace CityFix_backend.Services
 
                     if (notification.EmailState == DeliveryState.Pending)
                     {
-                        // The address may have been changed or the channel turned off since the notification was created.
                         if (!user.NotifyEmail || !user.EmailConfirmed)
                         {
                             notification.EmailState = DeliveryState.None;
@@ -108,7 +103,6 @@ namespace CityFix_backend.Services
                     if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.Failed;
                 }
 
-                // Saved after each one, so a crash halfway never sends the same letter twice.
                 await db.SaveChangesAsync(cancellationToken);
             }
         }

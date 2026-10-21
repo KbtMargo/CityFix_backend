@@ -57,7 +57,6 @@
         </form>
         @if (user.PendingEmail != null)
         {
-            @* A separate form: forms cannot be nested. *@
             <form asp-action="ResendPendingEmail" method="post" class="cf-stack-4 app-profile-pending">
                 <p class="cf-field__hint">@L["Profile.EmailPendingNote", user.PendingEmail, user.Email]</p>
                 <div><button type="submit" class="cf-btn cf-btn--outline">@L["Auth.Resend.Submit"]</button></div>

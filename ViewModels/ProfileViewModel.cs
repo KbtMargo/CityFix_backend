@@ -22,7 +22,6 @@ namespace CityFix_backend.ViewModels
         };
     }
 
-    // Profile → Notifications: one switch per channel.
     public class NotificationSettingsViewModel
     {
         [Display(Name = "Profile.Notify.InApp")]

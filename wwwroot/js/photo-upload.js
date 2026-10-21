@@ -1,6 +1,3 @@
-// PhotoUpload: the design system's dropzone script (components/PhotoUpload/preview.html).
-// Adds drag-and-drop, thumbnails and removal by rebuilding input.files with DataTransfer.
-// The only changes: the file limit and the remove label come from data attributes (localized).
 document.querySelectorAll('[data-cf-dropzone]').forEach(function (zone) {
     var input = document.getElementById(zone.getAttribute('for'));
     var list = document.querySelector(zone.dataset.cfDropzone);

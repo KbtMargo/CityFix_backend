@@ -2,10 +2,6 @@ using CityFix_backend.Models;
 
 namespace CityFix_backend.Services
 {
-    // Who may do what with an appeal. Every service that reads or changes appeals goes through here.
-    //  - Resident: sees their own appeals; edits and deletes them while they are still New.
-    //  - Association head: the appeals of their association; processes and reassigns them.
-    //  - Administrator: everything.
     public static class AppealPolicy
     {
         public static IQueryable<Appeal> VisibleTo(this IQueryable<Appeal> appeals, User actor) => actor.Role switch
@@ -21,7 +17,6 @@ namespace CityFix_backend.Services
             || appeal.AuthorId == actor.Id
             || IsHeadOf(actor, appeal);
 
-        // The author edits while the appeal is New, and again when staff ask for more details (NeedsInfo).
         public static bool CanEdit(User actor, Appeal appeal) =>
             actor.Role == UserRole.Administrator
             || IsHeadOf(actor, appeal)
@@ -29,11 +24,9 @@ namespace CityFix_backend.Services
 
         public static bool CanDelete(User actor, Appeal appeal) => CanEdit(actor, appeal);
 
-        // Status, priority and comments.
         public static bool CanProcess(User actor, Appeal appeal) =>
             actor.Role == UserRole.Administrator || IsHeadOf(actor, appeal);
 
-        // Choosing the responsible party.
         public static bool CanAssign(User actor, Appeal appeal) => CanProcess(actor, appeal);
 
         public static void EnsureCanView(User actor, Appeal appeal)
@@ -58,10 +51,6 @@ namespace CityFix_backend.Services
             new($"User {actor.Id} may not {action} appeal {appeal.Id}.");
     }
 
-    // The appeal life cycle. Done, Rejected and Duplicate are final.
-    //   New → Under review → In progress → Done
-    //   Needs info: staff wait for the author's details, then review or work goes on.
-    //   On hold: work is paused (weather, materials, queue) and resumed later.
     public static class AppealWorkflow
     {
         private static readonly Dictionary<AppealStatus, AppealStatus[]> Transitions = new()
@@ -76,26 +65,21 @@ namespace CityFix_backend.Services
             [AppealStatus.Duplicate] = Array.Empty<AppealStatus>()
         };
 
-        // Life-cycle order, for lists and charts (the enum's numbers are storage only).
         public static readonly IReadOnlyList<AppealStatus> Ordered = new[]
         {
             AppealStatus.New, AppealStatus.UnderReview, AppealStatus.NeedsInfo, AppealStatus.InProgress,
             AppealStatus.OnHold, AppealStatus.Done, AppealStatus.Rejected, AppealStatus.Duplicate
         };
 
-        // Being worked on: neither New nor closed (the "In progress" tab and counters).
         public static readonly AppealStatus[] Active =
             { AppealStatus.UnderReview, AppealStatus.NeedsInfo, AppealStatus.InProgress, AppealStatus.OnHold };
 
         public static readonly AppealStatus[] Closed = { AppealStatus.Done, AppealStatus.Rejected, AppealStatus.Duplicate };
 
-        // New or active: still counts as open (sidebar stats, similar appeals, duplicates).
         public static readonly AppealStatus[] Open = [AppealStatus.New, .. Active];
 
-        // In life-cycle order, as the status list shows them.
         public static IReadOnlyList<AppealStatus> NextStatuses(AppealStatus from) => Ordered.Where(Transitions[from].Contains).ToList();
 
-        // Keeping the status (a comment or a priority change only) is always allowed.
         public static bool CanMove(AppealStatus from, AppealStatus to) => from == to || Transitions[from].Contains(to);
 
         public static bool IsFinal(AppealStatus status) => Transitions[status].Length == 0;

@@ -6,12 +6,8 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Nominatim (OpenStreetMap) geocoding, following its usage policy: an identifying User-Agent
-    // (set on the HttpClient in Program.cs), at most one request per second across the whole app,
-    // and cached results. Any failure returns null, so the user can type the address by hand.
     public class NominatimGeocodingService : IGeocodingService
     {
-        // One gate for every instance: the limit is per application, not per request.
         private static readonly SemaphoreSlim Gate = new(1, 1);
         private static DateTimeOffset _lastRequest = DateTimeOffset.MinValue;
 
@@ -33,7 +29,6 @@ namespace CityFix_backend.Services
 
         public async Task<string?> ReverseAsync(double lat, double lng, CancellationToken cancellationToken = default)
         {
-            // ~1 m precision is enough for an address and lets nearby clicks share a cache entry.
             var la = Math.Round(lat, 5).ToString(CultureInfo.InvariantCulture);
             var ln = Math.Round(lng, 5).ToString(CultureInfo.InvariantCulture);
             var language = Language();
@@ -114,7 +109,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // "street house, city" when Nominatim knows them, otherwise its display name.
         private static string? FormatAddress(JsonElement place)
         {
             if (place.TryGetProperty("address", out var a))

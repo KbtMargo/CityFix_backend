@@ -32,8 +32,6 @@ namespace CityFix_backend.Services
 
         private DateTime Now => _clock.GetUtcNow().UtcDateTime;
 
-        // ───── Reading ─────
-
         public async Task<AppealPage> GetFilteredAsync(AppealFilter filter, User actor)
         {
             var page = await Filtered(filter, actor)
@@ -120,7 +118,6 @@ namespace CityFix_backend.Services
                 })
                 .ToListAsync();
 
-            // Everything in the current UI language, like the list it was exported from.
             return rows.Select(r =>
             {
                 var shown = new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated, Address = r.Address, AddressTranslated = r.AddressTranslated };
@@ -133,8 +130,6 @@ namespace CityFix_backend.Services
                     r.CreatedAt.ToKyiv().ToString("yyyy-MM-dd HH:mm"));
             }).ToList();
         }
-
-        // ───── Changing ─────
 
         public async Task<Appeal> CreateAsync(AppealInput input, IReadOnlyCollection<IFormFile> photos, User actor)
         {
@@ -150,8 +145,6 @@ namespace CityFix_backend.Services
             await ApplyInputAsync(appeal, input);
             _files.ValidatePhotos(photos);
 
-            // The appeal, its photo rows and the heads' notifications are committed together;
-            // if anything fails, the photo files already written are removed again.
             await using var transaction = await _context.Database.BeginTransactionAsync();
             var written = new List<string>();
             try
@@ -186,7 +179,6 @@ namespace CityFix_backend.Services
             _files.ValidatePhotos(photos, await _context.AppealFiles.CountAsync(f => f.AppealId == id));
             appeal.UpdatedAt = Now;
 
-            // Staff editing the form can also move the appeal to someone else: that is an assignment.
             if (actor.Id != appeal.AuthorId && oldResponsible != (appeal.ResponsibleKind, appeal.RecipientId))
             {
                 await NoteAssignmentAsync(appeal, actor);
@@ -213,7 +205,6 @@ namespace CityFix_backend.Services
                 ?? throw new NotFoundException($"Appeal {id} does not exist.");
             AppealPolicy.EnsureCanProcess(actor, appeal);
 
-            // Someone else changed the status after this staff member opened the card.
             if (appeal.Status != input.ExpectedStatus)
             {
                 throw new ServiceValidationException("Status", "Validation.ChangedMeanwhile");
@@ -228,7 +219,6 @@ namespace CityFix_backend.Services
             var statusChanged = input.NewStatus != appeal.Status;
             var priorityChanged = input.NewPriority != appeal.Priority && Enum.IsDefined(input.NewPriority);
 
-            // Business rule: closing an appeal as Done must say what was done.
             if (statusChanged && input.NewStatus == AppealStatus.Done && comment == null)
             {
                 throw new ServiceValidationException("Comment", "Validation.DoneNeedsComment");
@@ -256,11 +246,9 @@ namespace CityFix_backend.Services
 
             if (appeal.AuthorId != actor.Id && (statusChanged || comment != null))
             {
-                // A comment without a status change is sent as a comment notification (no new status).
                 await _notifications.AddStatusChangedAsync(appeal, statusChanged ? input.NewStatus : null, comment);
             }
 
-            // The new status, its history entry and the notification are saved in one transaction.
             await SaveOrConflictAsync();
         }
 
@@ -304,8 +292,6 @@ namespace CityFix_backend.Services
             _files.DeleteAppealFolder(id);
         }
 
-        // ───── Helpers ─────
-
         private IQueryable<Appeal> Filtered(AppealFilter filter, User actor)
         {
             var query = _context.Appeals.AsNoTracking().VisibleTo(actor);
@@ -316,7 +302,6 @@ namespace CityFix_backend.Services
             }
             if (!string.IsNullOrWhiteSpace(filter.Q))
             {
-                // Case-insensitive "contains" on title, description and address (original and translation); % and _ typed by the user are literal.
                 var pattern = Search.ContainsPattern(filter.Q);
                 query = query.Where(a => EF.Functions.ILike(a.Title, pattern, "\\")
                     || (a.TitleTranslated != null && EF.Functions.ILike(a.TitleTranslated, pattern, "\\"))
@@ -364,7 +349,6 @@ namespace CityFix_backend.Services
             };
         }
 
-        // Open appeals on the page that have an earlier open appeal of the same category nearby.
         private async Task<IReadOnlySet<int>> PossibleDuplicatesAsync(List<int> ids)
         {
             if (ids.Count == 0) return new HashSet<int>();
@@ -402,14 +386,12 @@ namespace CityFix_backend.Services
                 AppealPolicy.CanView(actor, new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId }))).ToList();
         }
 
-        // Copies and checks the form fields. Status, author and dates are never taken from the form.
         private async Task ApplyInputAsync(Appeal appeal, AppealInput input)
         {
             var title = input.Title.Trim();
             var description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
             if (appeal.Id == 0 || title != appeal.Title || description != appeal.Description)
             {
-                // New or changed text: translated again in the background (TranslationWorker); the original shows meanwhile.
                 appeal.Language = TextLanguage.Detect($"{title} {description}");
                 appeal.TitleTranslated = appeal.DescriptionTranslated = null;
                 appeal.TranslationPending = true;
@@ -424,7 +406,6 @@ namespace CityFix_backend.Services
                 throw new ServiceValidationException("CategoryId", "Validation.Choose");
             }
 
-            // Every appeal has a point on the map: the 500 m search and the duplicate warning need it.
             if (input.Lat == null || input.Lng == null)
             {
                 throw new ServiceValidationException("Address", "Validation.PointRequired");
@@ -434,13 +415,10 @@ namespace CityFix_backend.Services
             appeal.Lat = lat;
             appeal.Lng = lng;
 
-            // The map script fills the address from the point; the user may type it when geocoding is
-            // unavailable. Still empty (no JS, or the lookup failed in the browser): try once more here.
             var address = string.IsNullOrWhiteSpace(input.Address) ? null : input.Address.Trim();
             address ??= await _geocoding.ReverseAsync((double)lat, (double)lng);
             if (address != appeal.Address)
             {
-                // Translated again in the background (TranslationWorker).
                 appeal.Address = address;
                 appeal.AddressTranslated = null;
             }
@@ -472,7 +450,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // History entry and notifications for a new responsible party.
         private async Task NoteAssignmentAsync(Appeal appeal, User actor)
         {
             var (name, nameEn) = await ResponsibleNameAsync(appeal);
@@ -489,7 +466,6 @@ namespace CityFix_backend.Services
             await _notifications.AddAssignedAsync(appeal, name, nameEn, actor.Id);
         }
 
-        // (Ukrainian, English) name of the responsible party.
         private async Task<(string Name, string? NameEn)> ResponsibleNameAsync(Appeal appeal)
         {
             if (appeal.ResponsibleKind == ResponsibleKind.Association)

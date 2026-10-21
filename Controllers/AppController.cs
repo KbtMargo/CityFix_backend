@@ -8,8 +8,6 @@ using Microsoft.Extensions.Localization;
 
 namespace CityFix_backend.Controllers
 {
-    // Shared plumbing for the signed-in part of the app: the current user, flash messages and
-    // turning a broken business rule into a localized form error.
     public abstract class AppController : Controller
     {
         public const string SuccessKey = "Success";
@@ -28,10 +26,8 @@ namespace CityFix_backend.Controllers
 
         protected int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // The signed-in user as stored now, loaded once per request.
         protected async Task<User> GetActorAsync() => _actor ??= await Users.GetActorAsync(CurrentUserId);
 
-        // One-off feedback after a redirect (see _Flash).
         protected void FlashSuccess(string message) => TempData[SuccessKey] = message;
 
         protected void FlashError(string message) => TempData[ErrorKey] = message;
@@ -41,7 +37,6 @@ namespace CityFix_backend.Controllers
         protected void AddModelError(ServiceValidationException ex, string prefix = "") =>
             ModelState.AddModelError(ex.Field.Length == 0 ? "" : prefix + ex.Field, Message(ex));
 
-        // The top of an exported report: whose appeals it covers and who made it.
         protected async Task<Services.Reports.ReportHeader> ReportHeaderAsync(string title, string? filters)
         {
             var user = await Users.GetAsync(CurrentUserId);
@@ -54,7 +49,6 @@ namespace CityFix_backend.Controllers
             return new(title, scope, filters, user.DisplayName(), DateTime.UtcNow);
         }
 
-        // Only local return URLs are followed (no open redirects).
         protected IActionResult RedirectToLocal(string? returnUrl, Func<IActionResult> fallback) =>
             !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : fallback();
     }

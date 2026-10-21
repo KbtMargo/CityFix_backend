@@ -4,12 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CityFix_backend.Data
 {
-    // Demo data for Khmelnytskyi: associations, categories, city services, residents and heads, and appeals in
-    // every status with their history, notifications and hand-written translations.
-    //   dotnet run -- --seed-demo
-    // Only adds what is missing (matched by email, name or the author's appeal title), so it can run again.
-    // Categories and recipients created before names were bilingual are given their proper names.
-    // Every demo account has the password DemoPassword.
     public static class DemoSeeder
     {
         public const string DemoPassword = "CityFix2026!";
@@ -22,7 +16,6 @@ namespace CityFix_backend.Data
 
         private record UserSeed(string Email, string FirstName, string LastName, string Phone, UserRole Role, string? Acab, string Language = "uk");
 
-        // A status change by staff, Hours after the appeal was created.
         private record Step(AppealStatus Status, double Hours, string? Comment = null);
 
         private record AppealSeed(
@@ -78,7 +71,6 @@ namespace CityFix_backend.Data
             new("oleh.moroz@example.com", "Олег", "Мороз", "+380731239876", UserRole.Resident, null)
         };
 
-        // Recipient null: the author's association is responsible.
         private static readonly AppealSeed[] Appeals =
         {
             new("ivan.kovalenko@example.com", "Ліфти", null, AppealPriority.Urgent, 6,
@@ -228,7 +220,6 @@ namespace CityFix_backend.Data
             var admin = await db.Users.FirstOrDefaultAsync(u => u.Role == UserRole.Administrator && !u.IsBlocked)
                 ?? throw new InvalidOperationException("Seed an administrator first (DbSeeder.SeedAdminAsync).");
 
-            // ── Reference data ──
             var categories = new Dictionary<string, Category>();
             foreach (var seed in Categories)
             {
@@ -271,7 +262,6 @@ namespace CityFix_backend.Data
             }
             await db.SaveChangesAsync();
 
-            // ── Accounts ──
             var users = new Dictionary<string, User>();
             var createdUsers = 0;
             foreach (var seed in Users)
@@ -299,7 +289,6 @@ namespace CityFix_backend.Data
             }
             await db.SaveChangesAsync();
 
-            // ── Appeals with their history ──
             var createdAppeals = 0;
             foreach (var seed in Appeals)
             {
@@ -330,7 +319,6 @@ namespace CityFix_backend.Data
                 db.Appeals.Add(appeal);
                 await db.SaveChangesAsync();
 
-                // The head of the author's association processes it; without an association, the administrator.
                 var staff = author.AcabId == null
                     ? admin
                     : users.Values.FirstOrDefault(u => u.Role == UserRole.AcabAdmin && u.AcabId == author.AcabId) ?? admin;
@@ -363,7 +351,6 @@ namespace CityFix_backend.Data
                     {
                         UserId = author.Id, AppealId = appeal.Id, Type = NotificationType.StatusChanged,
                         NewStatus = step.Status, Message = step.Comment ?? "",
-                        // Only the latest change of a recent appeal is still unread.
                         IsRead = i < seed.Steps.Length - 1 || seed.DaysAgo > 7,
                         CreatedAt = at
                     });

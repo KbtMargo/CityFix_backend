@@ -11,12 +11,9 @@ namespace CityFix_backend.ViewComponents
 
     public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive)
     {
-        // Up to two initials for the avatar in the user block.
         public string Initials => string.Concat(UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
     }
 
-    // The left navigation: collapse button, logo, Open/Closed stats, the role's menu, help box and the
-    // signed-in user. The language and theme switches live in the topbar (_Layout).
     public class SidebarViewComponent : ViewComponent
     {
         private readonly IUserService _users;
@@ -40,7 +37,6 @@ namespace CityFix_backend.ViewComponents
             bool Is(string c) => string.Equals(controller, c, StringComparison.OrdinalIgnoreCase);
             var creating = Is("Appeals") && string.Equals(action, "Create", StringComparison.OrdinalIgnoreCase);
 
-            // Residents and heads receive notifications; administrators don't.
             int? unread = null;
             if (user.Role != UserRole.Administrator)
             {
@@ -75,7 +71,6 @@ namespace CityFix_backend.ViewComponents
                 }
             }
 
-            // The profile is reached through the user block at the bottom of the sidebar.
             return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account")));
         }
     }

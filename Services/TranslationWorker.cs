@@ -6,13 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Machine-translates in the background, so saving never waits for (or fails because of) the translator:
-    //  - appeals marked TranslationPending: title and description into the other UI language;
-    //  - appeal addresses, and the names and addresses of associations;
-    //  - people's names (Cyrillic ones transliterated, Latin ones spelled in Ukrainian);
-    //  - categories and recipients without an English name. A Latin-only name typed into the Ukrainian
-    //    field (all rows made before names were bilingual) is moved to the English field and translated back.
-    // After a failure the next round waits Translation:RetryAfterFailure.
     public class TranslationWorker : BackgroundService
     {
         private readonly IServiceScopeFactory _scopes;
@@ -76,7 +69,6 @@ namespace CityFix_backend.Services
                 await db.SaveChangesAsync(cancellationToken);
             }
 
-            // People's names: a Cyrillic name is transliterated (no translator needed), a Latin one spelled in Ukrainian.
             foreach (var user in await db.Users.Where(u => u.FullNameTranslated == null && u.FirstName != "").Take(_options.BatchSize).ToListAsync(cancellationToken))
             {
                 user.FullNameTranslated = TextLanguage.Detect(user.FullName) == "uk"
@@ -85,7 +77,6 @@ namespace CityFix_backend.Services
                 await db.SaveChangesAsync(cancellationToken);
             }
 
-            // Appeal addresses, independent of the text: a geocoded Ukrainian address under an English title too.
             foreach (var appeal in await db.Appeals.Where(a => a.Address != null && a.AddressTranslated == null).Take(_options.BatchSize).ToListAsync(cancellationToken))
             {
                 var from = TextLanguage.Detect(appeal.Address);
@@ -94,7 +85,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // (Ukrainian, English) for a name that so far exists in one language only.
         private static async Task<(string Uk, string En)> BilingualAsync(ITranslator translator, string name, int max, CancellationToken cancellationToken) =>
             TextLanguage.Detect(name) == "en"
                 ? (Limit(await translator.TranslateAsync(name, "en", "uk", cancellationToken), max), name)
@@ -136,8 +126,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // The appeal may have been edited meanwhile (xmin concurrency token): that edit marked it pending
-        // again, so this translation is simply dropped and redone in a later round.
         private static async Task SaveAsync(ApplicationDbContext db, CancellationToken cancellationToken)
         {
             try

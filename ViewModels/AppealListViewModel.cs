@@ -3,7 +3,6 @@ using CityFix_backend.Services;
 
 namespace CityFix_backend.ViewModels
 {
-    // An appeal list page: filters, tabs, one page of results, and the detail modal (?appealId=).
     public class AppealListViewModel
     {
         public PagedResult<Appeal> Page { get; init; } = new();
@@ -11,7 +10,6 @@ namespace CityFix_backend.ViewModels
         public AppealFilter Filter { get; init; } = new();
         public AppealLookups Lookups { get; init; } = null!;
 
-        // Controller + action the filters, tabs and modal links point at (Dashboard/Index or Appeals/Index).
         public string Controller { get; init; } = "Appeals";
         public string Action { get; init; } = "Index";
 
@@ -19,7 +17,6 @@ namespace CityFix_backend.ViewModels
         public bool IsStaff => Actor.IsStaff;
         public bool IsAdministrator => Actor.Role == UserRole.Administrator;
 
-        // The appeal shown in the ReportDetailModal, if any.
         public AppealDetails? Selected { get; init; }
     }
 
@@ -29,7 +26,6 @@ namespace CityFix_backend.ViewModels
         public AppealListViewModel List { get; init; } = null!;
     }
 
-    // Admin DataTable pages: one page of rows, a per-row count (appeals, members, ...) and the search text.
     public class TablePageViewModel<T>
     {
         public PagedResult<T> Page { get; init; } = new();
@@ -46,7 +42,6 @@ namespace CityFix_backend.ViewModels
         public int CurrentUserId { get; init; }
     }
 
-    // The Pagination bar: "Showing x–y of N" plus Previous / Page x of y / Next.
     public class PaginationModel
     {
         public int PageNumber { get; init; }
@@ -55,7 +50,6 @@ namespace CityFix_backend.ViewModels
         public int To { get; init; }
         public int TotalCount { get; init; }
 
-        // Route values to keep (filters, search); "page" is added per link.
         public IDictionary<string, string> Route { get; init; } = new Dictionary<string, string>();
 
         public static PaginationModel For<T>(PagedResult<T> page, IDictionary<string, string>? route = null) => new()
@@ -68,7 +62,6 @@ namespace CityFix_backend.ViewModels
             Route = route ?? new Dictionary<string, string>()
         };
 
-        // Keeps the admin tables' search text in the page links.
         public static PaginationModel For<T>(PagedResult<T> page, string? q) =>
             For(page, string.IsNullOrWhiteSpace(q) ? null : new Dictionary<string, string> { ["q"] = q });
 

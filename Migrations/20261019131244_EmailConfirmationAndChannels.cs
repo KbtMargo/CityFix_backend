@@ -10,8 +10,6 @@ namespace CityFix_backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Existing accounts were created before confirmation existed: they count as confirmed, and keep
-            // their in-app notifications with email copies turned on (the defaults for new accounts too).
             migrationBuilder.AddColumn<bool>(
                 name: "EmailConfirmed",
                 table: "Users",

@@ -1,5 +1,3 @@
-@* One-off feedback after a redirect (this design has no toasts). The detail modal shows its own error and sets FlashHandled.
-   With JS the close button dismisses the message; without it the message simply stays until the next page. *@
 @if (ViewData["FlashHandled"] is not true && TempData[CityFix_backend.Controllers.AppController.ErrorKey] is string error)
 {
     <div class="cf-alert app-flash" role="alert" data-flash>

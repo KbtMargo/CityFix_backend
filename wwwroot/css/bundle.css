@@ -1,7 +1,3 @@
-/* CivicReport — component stylesheet for the Razor views. Load AFTER tokens.css.
-   Every value is copied from the Next.js frontend (Tailwind v4 + shadcn new-york); the class comment says which utility it came from. */
-
-/* ───────────── Preflight (Tailwind v4 subset — the frontend relies on it) ───────────── */
 *, ::after, ::before, ::backdrop, ::file-selector-button { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid var(--border); }
 * { outline-color: color-mix(in oklab, var(--ring) 50%, transparent); }
 html { line-height: 1.5; -webkit-text-size-adjust: 100%; tab-size: 4; font-family: var(--font-sans); }
@@ -20,7 +16,6 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 [hidden]:where(:not([hidden=until-found])) { display: none !important; }
 .cf-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 
-/* ───────────── Icons (mask, take currentColor) ───────────── */
 .cf-icon { display: inline-block; flex: none; width: 20px; height: 20px; background-color: currentColor; -webkit-mask: var(--cf-icon) center / contain no-repeat; mask: var(--cf-icon) center / contain no-repeat; }
 .cf-icon--3 { width: 12px; height: 12px; } .cf-icon--4 { width: 16px; height: 16px; } .cf-icon--5 { width: 20px; height: 20px; }
 .cf-icon--6 { width: 24px; height: 24px; } .cf-icon--7 { width: 28px; height: 28px; } .cf-icon--8 { width: 32px; height: 32px; } .cf-icon--12 { width: 48px; height: 48px; }
@@ -66,37 +61,34 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-icon--arrow-down{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14'/%3E%3Cpath d='m19 12-7 7-7-7'/%3E%3C/svg%3E")}
 .cf-icon--search{--cf-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")}
 
-/* ───────────── Logo (components/ui/Logo.tsx) ───────────── */
-.cf-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1); }  /* flex items-center gap-3 hover:scale-105 */
+.cf-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1); }
 .cf-logo:hover { transform: scale(1.05); }
-.cf-logo__mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--radius-xl); background: var(--inverse); color: var(--on-inverse); box-shadow: var(--shadow-md); } /* h-10 w-10 rounded-xl bg-slate-900 shadow-md */
+.cf-logo__mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--radius-xl); background: var(--inverse); color: var(--on-inverse); box-shadow: var(--shadow-md); }
 .cf-logo__mark > svg { flex: none; }
 .cf-logo__text { display: flex; flex-direction: column; line-height: 1.25; }
-.cf-logo__name { font-size: 20px; line-height: 28px; font-weight: 700; letter-spacing: -0.05em; }          /* text-xl font-bold tracking-tighter */
-.cf-logo__tag { font-size: 12px; line-height: 16px; color: var(--ink-muted); }          /* text-xs text-slate-500 dark:text-slate-400 */
+.cf-logo__name { font-size: 20px; line-height: 28px; font-weight: 700; letter-spacing: -0.05em; }
+.cf-logo__tag { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
 
-/* ───────────── App shell (dashboard/layout.tsx, admin/layout.tsx) ───────────── */
 .cf-shell { display: flex; height: 100vh; }
-.cf-shell__sidebar { width: var(--sidebar-w); flex: none; border-right: 1px solid var(--line); background: var(--surface); }  /* w-80 border-r border-slate-200 bg-white */
+.cf-shell__sidebar { width: var(--sidebar-w); flex: none; border-right: 1px solid var(--line); background: var(--surface); }
 .cf-shell__main { flex: 1; min-width: 0; overflow: auto; }
 .cf-shell--admin { display: grid; grid-template-columns: 1fr; height: 100vh; }
 .cf-shell--admin .cf-shell__sidebar { display: none; width: auto; border: 0; background: transparent; height: 100vh; overflow-y: auto; }
-.cf-shell--admin .cf-shell__main { height: 100vh; overflow-y: auto; padding: 32px; background: var(--page-admin); } /* p-8 bg-slate-100 */
+.cf-shell--admin .cf-shell__main { height: 100vh; overflow-y: auto; padding: 32px; background: var(--page-admin); }
 @media (min-width: 768px) { .cf-shell--admin { grid-template-columns: var(--sidebar-w-admin) 1fr; } .cf-shell--admin .cf-shell__sidebar { display: block; } }
-.cf-page { padding: 24px; } .cf-page > * + * { margin-top: 24px; }                       /* space-y-6 p-6 */
-.cf-page-title { font-size: 30px; line-height: 36px; font-weight: 700; }                 /* text-3xl font-bold */
-.cf-page-title--xl { font-size: 36px; line-height: 40px; letter-spacing: -0.025em; }   /* text-4xl font-bold tracking-tight */
-.cf-page-sub { margin-top: 4px; color: var(--slate-500); }                               /* mt-1 text-slate-500 */
+.cf-page { padding: 24px; } .cf-page > * + * { margin-top: 24px; }
+.cf-page-title { font-size: 30px; line-height: 36px; font-weight: 700; }
+.cf-page-title--xl { font-size: 36px; line-height: 40px; letter-spacing: -0.025em; }
+.cf-page-sub { margin-top: 4px; color: var(--slate-500); }
 .cf-back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--back-link); }
 .cf-back-link:hover { color: var(--back-link-hover); }
 .cf-page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .cf-page-head__meta { font-size: 14px; line-height: 20px; color: var(--slate-500); } .cf-page-head__meta b { font-weight: 600; }
 
-/* ───────────── Sidebar (components/layout/AppSidebar.tsx) ───────────── */
 .cf-sidebar { display: flex; height: 100%; flex-direction: column; }
 .cf-sidebar__head { padding: 16px; } .cf-sidebar__body { padding: 0 16px; } .cf-sidebar__foot { margin-top: auto; padding: 16px; }
 .cf-sidebar__nav > * + * { margin-top: 4px; }
-.cf-box { border-radius: var(--radius-xl); background: var(--surface-muted); padding: 16px; box-shadow: 0 0 0 1px var(--line); } /* rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200 */
+.cf-box { border-radius: var(--radius-xl); background: var(--surface-muted); padding: 16px; box-shadow: 0 0 0 1px var(--line); }
 .cf-stats-box { margin-bottom: 12px; }
 .cf-stats-box__row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; line-height: 20px; }
 .cf-stats-box__row + .cf-stats-box__row { margin-top: 8px; }
@@ -117,11 +109,9 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-count--highlight { background: var(--emerald-50); color: var(--emerald-700); box-shadow: 0 0 0 1px var(--emerald-200); }
 .cf-help-box { font-size: 14px; line-height: 20px; } .cf-help-box__title { margin-bottom: 4px; font-weight: 500; } .cf-help-box__text { color: var(--slate-500); }
 
-/* Topbar (components/layout/Topbar.tsx) */
 .cf-topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--topbar-line); background: var(--surface); }
 @media (min-width: 640px) { .cf-topbar { padding: 12px 24px; } }
 
-/* ───────────── Button (components/ui/Button.tsx — shadcn) ───────────── */
 .cf-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; white-space: nowrap;
   height: var(--control-h); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid transparent;
@@ -159,16 +149,14 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-btn--icon-lg, .cf-btn--icon-lg:has(> svg, > .cf-icon) { width: 40px; height: 40px; padding: 0; }
 .cf-btn--round { border-radius: 9999px; }
 .cf-btn--block { width: 100%; }
-.cf-btn--icon-gap > .cf-icon:first-child, .cf-btn--icon-gap > svg:first-child { margin-right: 8px; } /* the app adds mr-2 to the icon in Фільтри, Topbar and loading buttons */
-.cf-btn__count { position: absolute; top: -8px; right: -8px; display: flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 9999px; background: var(--blue-600); color: #fff; font-size: 12px; line-height: 16px; font-weight: 700; } /* filter count */
+.cf-btn--icon-gap > .cf-icon:first-child, .cf-btn--icon-gap > svg:first-child { margin-right: 8px; }
+.cf-btn__count { position: absolute; top: -8px; right: -8px; display: flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 9999px; background: var(--blue-600); color: #fff; font-size: 12px; line-height: 16px; font-weight: 700; }
 .cf-btn:has(> .cf-btn__count) { position: relative; }
-/* AppLink (components/ui/AppLink.tsx) */
 .cf-applink { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-lg); font-size: 14px; line-height: 20px; transition: all 150ms; background: var(--inverse); color: var(--on-inverse); }
 .cf-applink:hover { background: var(--inverse-hover); }
 .cf-applink--soft { background: transparent; color: inherit; box-shadow: 0 0 0 1px var(--soft-ring); }
 .cf-applink--soft:hover { background: var(--soft-hover); }
 
-/* ───────────── Badge & Pill (ui/Badge.tsx, ui/Pill.tsx) ───────────── */
 .cf-badge, .cf-pill { display: inline-flex; align-items: center; border-radius: 9999px; padding: 4px 10px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; box-shadow: inset 0 0 0 1px var(--cf-ring, transparent); }
 .cf-badge, .cf-badge--neutral { background: var(--slate-100); color: var(--slate-700); --cf-ring: var(--slate-200); }
 [data-theme="dark"] .cf-badge:not([class*="cf-badge--"]), [data-theme="dark"] .cf-badge--neutral { background: var(--slate-800); color: var(--slate-200); --cf-ring: var(--slate-700); }
@@ -179,10 +167,9 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-badge--solid { background: var(--primary); color: var(--primary-foreground); --cf-ring: transparent; }
 .cf-badge--secondary { background: var(--secondary); color: var(--secondary-foreground); --cf-ring: transparent; }
 .cf-badge--outline { background: transparent; color: var(--foreground); border: 1px solid var(--input); --cf-ring: transparent; }
-.cf-pill { display: inline-block; color: var(--slate-600); background: var(--slate-100); --cf-ring: var(--slate-200); }  /* low / neutral, DONE, REJECTED */
+.cf-pill { display: inline-block; color: var(--slate-600); background: var(--slate-100); --cf-ring: var(--slate-200); }
 .cf-pill--high, .cf-pill--new, .cf-pill--urgent { color: var(--red-700); background: var(--red-50); --cf-ring: var(--red-200); }
 .cf-pill--medium, .cf-pill--inprogress, .cf-pill--normal { color: var(--amber-700); background: var(--amber-50); --cf-ring: var(--amber-200); }
-/* Small rounded tags in admin tables (px-2 py-1 rounded-full text-xs font-medium, no ring) */
 .cf-tag { display: inline-block; padding: 4px 8px; border-radius: 9999px; font-size: 12px; line-height: 16px; font-weight: 500; background: var(--slate-100); color: var(--slate-700); white-space: nowrap; }
 .cf-tag--admin { background: var(--red-100); color: var(--red-700); }
 .cf-tag--head { background: var(--blue-100); color: var(--blue-700); }
@@ -190,7 +177,6 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-tag--count { background: var(--orange-100); color: var(--orange-700); }
 .cf-tag--zero { background: var(--slate-100); color: var(--slate-600); }
 
-/* ───────────── Card, KPI, Stat (ui/Card.tsx, patterns/KpiCard.tsx, ui/Stat.tsx, admin StatCard) ───────────── */
 .cf-card { border-radius: var(--radius-2xl); background: var(--surface); box-shadow: none; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1); }
 .cf-card:hover { box-shadow: var(--shadow-card-hover); }
 .cf-card__head { padding: 16px 20px; } .cf-card__title { font-weight: 600; } .cf-card__desc { font-size: 14px; line-height: 20px; color: var(--slate-500); }
@@ -210,7 +196,6 @@ table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
 .cf-kpi__value, .cf-stat__value { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.025em; }
 .cf-kpi__label, .cf-stat__label { font-size: 14px; line-height: 20px; color: var(--slate-500); }
 .cf-kpi__delta { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--emerald-600); } .cf-kpi__delta--down { color: var(--red-600); }
-/* KPI card — refreshed (user-requested): label + tinted icon tile, large value, delta chip, sparkline */
 .cf-kpi-card {
   position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px;
   border-radius: var(--radius-2xl); background: var(--surface);
@@ -251,7 +236,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-statcard__tile { padding: 12px; border-radius: var(--radius-lg); background: var(--stat-tile); color: var(--stat-icon); }
 .cf-statcard__title { font-size: 14px; line-height: 20px; color: var(--slate-500); } .cf-statcard__value { font-size: 24px; line-height: 32px; font-weight: 700; }
 
-/* ───────────── IssueListItem (patterns/IssueListItem.tsx) ───────────── */
 .cf-issue-list > * + * { margin-top: 16px; }
 .cf-issue { display: block; }
 .cf-issue__row { display: flex; align-items: flex-start; gap: 16px; padding: 20px; }
@@ -264,10 +248,9 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-issue__thumb { width: 96px; height: 80px; flex: none; overflow: hidden; border-radius: var(--radius-xl); box-shadow: 0 0 0 1px var(--line); }
 .cf-issue__thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ───────────── Form fields (ui/Input.tsx, ui/TextArea.tsx, ui/Label.tsx, ui/Select.tsx) ───────────── */
 .cf-field { display: block; }
 .cf-field__label { margin-bottom: 4px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink-label); }
-.cf-label { display: inline; font-size: 14px; line-height: 1; font-weight: 500; }  /* inline, like the Radix label: sits in a 24px line box */                       /* shadcn Label: text-sm font-medium leading-none */
+.cf-label { display: inline; font-size: 14px; line-height: 1; font-weight: 500; }
 .cf-label--muted { line-height: 20px; color: var(--slate-600); } [data-theme="dark"] .cf-label--muted { color: var(--slate-400); }
 .cf-input, .cf-textarea {
   display: block; width: 100%; padding: 8px 12px; border-radius: var(--radius-xl); border: 1px solid var(--line-strong);
@@ -299,13 +282,12 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-option.is-active { background: var(--tab-hover); }
 .cf-option__check { position: absolute; left: 8px; display: flex; width: 14px; height: 14px; align-items: center; justify-content: center; }
 .cf-check { display: inline-flex; align-items: center; gap: 8px; } .cf-check > span { font-size: 14px; line-height: 20px; }
-.cf-check input[type="checkbox"] { width: 16px; height: 16px; border-radius: 4px; }        /* native checkbox, as in the app (no forms plugin) */
+.cf-check input[type="checkbox"] { width: 16px; height: 16px; border-radius: 4px; }
 .cf-switch { display: inline-flex; align-items: center; height: 24px; width: 44px; border-radius: 9999px; background: var(--slate-300); transition: all 150ms; cursor: pointer; }
 .cf-switch::before { content: ""; width: 20px; height: 20px; border-radius: 9999px; background: #fff; transform: translateX(4px); transition: all 150ms; }
 .cf-switch[aria-checked="true"] { background: var(--slate-900); } .cf-switch[aria-checked="true"]::before { transform: translateX(20px); }
 .cf-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
-/* ───────────── Tabs (ui/Tabs.tsx) and underline tabs (notifications page) ───────────── */
 .cf-tabs { display: inline-flex; align-items: center; gap: 8px; padding: 4px; border-radius: var(--radius-xl); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
 .cf-tab { padding: 6px 12px; border-radius: var(--radius-lg); font-size: 14px; line-height: 20px; font-weight: 500; color: var(--tab-ink); cursor: pointer; transition: all 150ms; }
 .cf-tab:hover { background: var(--tab-hover); }
@@ -317,7 +299,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-utab.is-active, .cf-utab[aria-selected="true"] { border-bottom-color: var(--utab-active); color: var(--utab-active); }
 .cf-utab__count { margin-left: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 12px; line-height: 16px; background: var(--utab-count-bg); color: var(--utab-count-ink); }
 
-/* ───────────── Search + filters row, Popover (dashboard page, patterns/ReportFilters.tsx) ───────────── */
 .cf-toolbar { display: flex; align-items: center; gap: 12px; } .cf-toolbar__grow { flex: 1; }
 .cf-popover { width: 320px; padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--popover); color: var(--foreground); box-shadow: var(--shadow-md); }
 .cf-popover__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -325,7 +306,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-popover__body > * + * { margin-top: 16px; } .cf-popover__field > * + * { margin-top: 8px; }
 .cf-popover__foot { display: flex; justify-content: space-between; margin-top: 24px; }
 
-/* ───────────── Photo upload (dashboard/new-issue) ───────────── */
 .cf-dropzone { display: flex; margin-top: 8px; width: 100%; height: 128px; align-items: center; justify-content: center; padding: 20px 24px 24px; border: 2px dashed var(--dropzone-line); border-radius: var(--radius-md); cursor: pointer; }
 .cf-dropzone:hover, .cf-dropzone.is-dragover { border-color: var(--blue-500); }
 .cf-dropzone:focus-within { box-shadow: 0 0 0 2px var(--slate-300); }
@@ -339,10 +319,8 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-preview__remove { position: absolute; top: 0; right: 0; margin: -8px -8px 0 0; padding: 4px; border-radius: 9999px; background: var(--red-500); color: #fff; opacity: 0; transition: opacity 150ms; cursor: pointer; }
 .cf-preview:hover .cf-preview__remove, .cf-preview__remove:focus-visible { opacity: 1; }
 
-/* ───────────── Map picker (patterns/MapPicker.tsx — Leaflet) ───────────── */
 .cf-map { position: relative; height: 300px; width: 100%; margin-top: 16px; border-radius: 8px; overflow: hidden; z-index: 10; background: #ddd; }
 
-/* ───────────── Form page and auth pages (new-issue, login, register) ───────────── */
 .cf-form-page { max-width: var(--form-w); margin: 0 auto; padding-top: 24px; }
 .cf-form-page__title { margin-bottom: 24px; font-size: 30px; line-height: 36px; font-weight: 700; }
 .cf-form-card { padding: 32px; border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-sm); }
@@ -371,7 +349,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 [data-theme="dark"] .cf-divider::before { border-color: var(--slate-700); }
 .cf-divider__label { position: relative; display: flex; justify-content: center; font-size: 14px; line-height: 20px; } .cf-divider__label span { padding: 0 8px; background: var(--surface-raised); color: var(--ink-muted); }
 
-/* ───────────── Report modal, Dialog (patterns/ReportDetailModal.tsx, ui/dialog.tsx, admin modals) ───────────── */
 .cf-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--scrim); }
 .cf-overlay--dialog { background: var(--scrim-dialog); }
 .cf-overlay--inline { position: relative; inset: auto; min-height: 100%; }
@@ -399,21 +376,18 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 @media (min-width: 640px) { .cf-thumbs { grid-template-columns: repeat(6, minmax(0, 1fr)); } } @media (min-width: 768px) { .cf-thumbs { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
 .cf-thumb { display: block; aspect-ratio: 1; overflow: hidden; border-radius: var(--radius-md); opacity: .6; cursor: pointer; } .cf-thumb:hover { opacity: 1; }
 .cf-thumb.is-active, .cf-thumb[aria-current="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--blue-500); } .cf-thumb img { width: 100%; height: 100%; object-fit: cover; }
-/* shadcn Dialog */
 .cf-dialog { position: relative; display: grid; gap: 16px; width: 100%; max-width: calc(100% - 2rem); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--background); box-shadow: var(--shadow-lg); animation: cf-zoom-in 200ms ease-out; }
 @media (min-width: 640px) { .cf-dialog { max-width: 32rem; } }
 .cf-dialog__close { position: absolute; top: 16px; right: 16px; border-radius: 2px; opacity: .7; cursor: pointer; } .cf-dialog__close:hover { opacity: 1; }
 .cf-dialog__header { display: flex; flex-direction: column; gap: 8px; text-align: center; } @media (min-width: 640px) { .cf-dialog__header { text-align: left; } }
 .cf-dialog__title { font-size: 18px; line-height: 1; font-weight: 600; } .cf-dialog__desc { font-size: 14px; line-height: 20px; color: var(--muted-foreground); }
 .cf-dialog__footer { display: flex; flex-direction: column-reverse; gap: 8px; } @media (min-width: 640px) { .cf-dialog__footer { flex-direction: row; justify-content: flex-end; } }
-/* Admin edit / delete modal */
 .cf-panel-modal { width: 100%; max-width: 32rem; padding: 24px; border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-xl); } .cf-panel-modal > * + * { margin-top: 16px; }
 .cf-panel-modal--sm { max-width: 28rem; }
 .cf-panel-modal__title { font-size: 20px; line-height: 28px; font-weight: 600; } .cf-panel-modal__title--danger { display: flex; align-items: center; gap: 8px; color: var(--red-600); }
 .cf-panel-modal__text { font-size: 14px; line-height: 20px; color: var(--slate-600); } [data-theme="dark"] .cf-panel-modal__text { color: var(--slate-300); }
 .cf-panel-modal__foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
 
-/* ───────────── Status timeline (inside ReportDetailModal) ───────────── */
 .cf-timeline { position: relative; margin-left: 12px; padding: 12px 0; border-left: 2px solid var(--line); } .cf-timeline > * + * { margin-top: 24px; }
 .cf-timeline__item { position: relative; }
 .cf-timeline__dot { position: absolute; left: -13px; display: flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 9999px; background: var(--slate-500); color: #fff; box-shadow: 0 0 0 8px var(--timeline-ring); }
@@ -421,7 +395,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-timeline__content { padding-left: 32px; } .cf-timeline__title { font-weight: 600; } .cf-timeline__time { font-size: 12px; line-height: 16px; color: var(--slate-500); }
 .cf-timeline__comment { margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--ink-secondary); }
 
-/* ───────────── Alerts (inline error boxes used across the app) ───────────── */
 .cf-alert { padding: 12px; border-radius: var(--radius-lg); border: 1px solid var(--red-200); background: var(--red-50); color: var(--red-700); font-size: 14px; line-height: 20px; }
 .cf-alert--box { padding: 16px; } .cf-alert__title { margin-bottom: 8px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--red-800); }
 .cf-denied { max-width: 28rem; margin: 0 auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--denied-line); background: var(--denied-bg); }
@@ -429,7 +402,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-denied__text { margin-bottom: 16px; color: var(--denied-text); }
 .cf-denied__btn { display: inline-block; padding: 8px 16px; border-radius: var(--radius-lg); background: var(--red-600); color: #fff; transition: color 150ms, background-color 150ms; } .cf-denied__btn:hover { background: var(--red-700); }
 
-/* ───────────── Notifications (dashboard/notifications) ───────────── */
 .cf-notes-page { max-width: var(--content-w); margin: 0 auto; padding: 24px; } .cf-notes-page > * + * { margin-top: 24px; }
 .cf-notes-head { display: flex; align-items: center; justify-content: space-between; }
 .cf-notes-head__title { font-size: 24px; line-height: 32px; font-weight: 600; } .cf-notes-head__sub { color: var(--ink-muted); }
@@ -446,7 +418,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-note__time { margin-left: 16px; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--ink-muted); }
 .cf-note__text { font-size: 14px; line-height: 1.625; color: var(--ink-muted); } .cf-note.is-unread .cf-note__text { color: var(--notif-text); }
 
-/* ───────────── Admin table (admin/users, admin/osbb, all-reports) ───────────── */
 .cf-table-card { overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-sm); }
 .cf-table-scroll { overflow-x: auto; }
 .cf-table { width: 100%; font-size: 14px; line-height: 20px; text-align: left; }
@@ -463,13 +434,11 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-icon-action--delete { color: var(--red-500); } .cf-icon-action--delete:hover { color: var(--red-700); background: var(--red-50); }
 .cf-icon-action:disabled { opacity: .5; pointer-events: none; }
 
-/* ───────────── Pagination (addition — built from Button outline/sm and the table header) ───────────── */
 .cf-pagination-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border); font-size: 14px; line-height: 20px; color: var(--slate-500); }
 [data-theme="dark"] .cf-pagination-bar { border-color: var(--slate-700); }
 .cf-pagination { display: flex; align-items: center; gap: 8px; }
 .cf-pagination__status { padding: 0 4px; font-size: 14px; line-height: 20px; color: var(--slate-500); white-space: nowrap; } .cf-pagination__status b { font-weight: 600; color: var(--ink); }
 
-/* ───────────── Analytics (admin/analytics, dashboard/analytics) ───────────── */
 .cf-grid-4 { display: grid; gap: 24px; } @media (min-width: 768px) { .cf-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (min-width: 1024px) { .cf-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .cf-grid-2 { display: grid; gap: 24px; } @media (min-width: 1024px) { .cf-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .cf-chart-box { width: 100%; height: 300px; }
@@ -477,7 +446,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-chart-box .grid { stroke: #ccc; stroke-dasharray: 3 3; } .cf-chart-box .tick { fill: #666; font-family: var(--font-sans); font-size: 12px; }
 .cf-chart-box .bar { fill: var(--series-blue); } .cf-chart-box .line { fill: none; stroke: var(--series-blue); stroke-width: 2; } .cf-chart-box .dot { fill: #fff; stroke: var(--series-blue); stroke-width: 1; }
 
-/* ───────────── Empty states (ui/EmptyState.tsx + inline dashed boxes) ───────────── */
 .cf-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; border-radius: var(--radius-2xl); border: 1px dashed var(--line-strong); }
 .cf-empty__tile { margin-bottom: 16px; padding: 16px; border-radius: var(--radius-2xl); background: var(--inverse); color: var(--on-inverse); }
 .cf-empty__title { font-size: 18px; line-height: 28px; font-weight: 600; } .cf-empty__text { margin-top: 4px; max-width: 28rem; font-size: 14px; line-height: 20px; color: var(--slate-500); }
@@ -487,7 +455,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-empty--page .cf-empty__icon { margin: 0 auto 16px; color: var(--slate-400); }
 .cf-empty--page .cf-empty__title { margin-bottom: 8px; font-weight: 500; } .cf-empty--page .cf-empty__text { margin-top: 0; font-size: 16px; line-height: 24px; }
 
-/* ───────────── Loading (ui/Skeleton.tsx, ui/Spinner.tsx, ui/Progress.tsx) ───────────── */
 @keyframes cf-pulse { 50% { opacity: .5; } } @keyframes cf-spin { to { transform: rotate(360deg); } }
 .cf-skeleton { border-radius: var(--radius-md); background: var(--skeleton); animation: cf-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 .cf-spinner { display: inline-block; width: 20px; height: 20px; vertical-align: -0.125em; border-radius: 9999px; border: 2px solid currentColor; border-right-color: transparent; animation: cf-spin 1s linear infinite; }
@@ -500,7 +467,6 @@ a.cf-kpi-card:hover, .cf-kpi-card--interactive:hover { transform: translateY(-2p
 .cf-progress--multi { display: flex; }
 .cf-loading { padding: 40px; text-align: center; }
 
-/* ───────────── Error page (addition, in the app's EmptyState / AppLink idiom) ───────────── */
 .cf-error-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--page); }
 .cf-error-page .cf-empty { max-width: 32rem; width: 100%; }
 .cf-error-page__code { margin-bottom: 4px; font-size: 48px; line-height: 1; font-weight: 700; letter-spacing: -0.05em; }

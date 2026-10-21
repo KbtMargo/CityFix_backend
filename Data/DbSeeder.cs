@@ -7,9 +7,6 @@ namespace CityFix_backend.Data
 {
     public static class DbSeeder
     {
-        // Creates the first Administrator if there is none yet. Safe to run on every start.
-        // The password comes from Seed:AdminPassword (user secrets or an environment variable); without it
-        // a random one is generated and written to the log this one time, since nobody could sign in otherwise.
         public static async Task SeedAdminAsync(IServiceProvider services, ILogger logger)
         {
             using var scope = services.CreateScope();

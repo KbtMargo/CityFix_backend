@@ -15,14 +15,12 @@ namespace CityFix_backend.Controllers
             _users = users;
         }
 
-        // POST: Culture/Set  (the UA/EN switch)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Set(string culture, string? returnUrl)
         {
             var uiCulture = culture == "en" ? "en" : "uk";
 
-            // Only the UI culture changes; the formatting culture stays invariant (decimal dot for Lat/Lng).
             Response.Cookies.Append(
                 CookieRequestCultureProvider.DefaultCookieName,
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(CultureInfo.InvariantCulture, new CultureInfo(uiCulture))),
@@ -33,7 +31,6 @@ namespace CityFix_backend.Controllers
                     SameSite = SameSiteMode.Lax
                 });
 
-            // Emails and SMS to a signed-in user follow the language they last chose.
             if (int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
             {
                 await _users.SetLanguageAsync(userId, uiCulture);

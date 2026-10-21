@@ -6,14 +6,11 @@ using QuestPDF.Helpers;
 
 namespace CityFix_backend.Services.Reports
 {
-    // The appeals list (current search, filters and tab) as an Excel workbook or a PDF document.
     public static class AppealReports
     {
         private static DateTime Created(AppealExportRow row) =>
             DateTime.ParseExact(row.CreatedAt, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-        // One sheet: the report header on top, then a real Excel table (filter buttons, banded rows, frozen
-        // header), with numbers and dates stored as such so they sort and filter correctly.
         public static byte[] Xlsx(IReadOnlyList<AppealExportRow> rows, ReportHeader header)
         {
             using var workbook = new XLWorkbook();
@@ -56,7 +53,6 @@ namespace CityFix_backend.Services.Reports
             sheet.Column(11).Style.NumberFormat.Format = "0.00000";
             sheet.Column(12).Style.DateFormat.Format = "dd.mm.yyyy hh:mm";
 
-            // Readable widths: long texts wrap instead of stretching the sheet.
             var widths = new[] { 7, 44, 18, 18, 24, 30, 26, 22, 38, 11, 11, 17 };
             for (var c = 0; c < widths.Length; c++) sheet.Column(c + 1).Width = widths[c];
             sheet.Range(firstRow + 1, 1, lastRow, titles.Length).Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
@@ -71,7 +67,6 @@ namespace CityFix_backend.Services.Reports
             return ExcelStyle.Save(workbook);
         }
 
-        // A4 landscape: one row per appeal, the address under its title, page numbers in the footer.
         public static byte[] Pdf(IReadOnlyList<AppealExportRow> rows, ReportHeader header) =>
             Document.Create(document => document.Page(page =>
             {
@@ -139,7 +134,6 @@ namespace CityFix_backend.Services.Reports
 
     internal static class ExcelStyle
     {
-        // Title, scope, filters and "generated" lines above the data; returns the row the table starts on.
         public static int Header(IXLWorksheet sheet, ReportHeader header, int columns)
         {
             sheet.Style.Font.FontName = "Calibri";
