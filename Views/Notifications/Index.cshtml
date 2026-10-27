@@ -50,5 +50,10 @@
                 </form>
             }
         </div>
+        @if (Model.Page.TotalPages > 1)
+        {
+            var pageRoute = new Dictionary<string, string> { ["tab"] = Model.UnreadTab ? "unread" : "all" };
+            <partial name="_Pagination" model="PaginationModel.For(Model.Page, pageRoute)" />
+        }
     }
 </div>

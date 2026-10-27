@@ -19,5 +19,7 @@ namespace CityFix_backend.Services.Interfaces
         Task DeleteAsync(int id);
 
         Task<(Acab Acab, UserRole Role)?> FindByCodeAsync(string code);
+
+        Task<bool> ConsumeHeadCodeAsync(int acabId, string code);
     }
 }

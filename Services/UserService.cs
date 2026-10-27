@@ -21,15 +21,21 @@ namespace CityFix_backend.Services
 
         private DateTime Now => _clock.GetUtcNow().UtcDateTime;
 
-        public async Task<User> GetActorAsync(int userId)
+        // This service lives for one request; the sign-in cookie check, the controller and the sidebar all ask for the
+        // current user, so it is read from the database once.
+        private User? _actor;
+
+        public async Task<User?> FindActorAsync(int userId)
         {
-            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null || user.IsBlocked)
+            if (_actor?.Id != userId)
             {
-                throw new ForbiddenException($"User {userId} no longer exists or is blocked.");
+                _actor = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
             }
-            return user;
+            return _actor == null || _actor.IsBlocked ? null : _actor;
         }
+
+        public async Task<User> GetActorAsync(int userId) =>
+            await FindActorAsync(userId) ?? throw new ForbiddenException($"User {userId} no longer exists or is blocked.");
 
         public async Task<UsersPage> GetPageAsync(User actor, string? q, int page)
         {
@@ -79,10 +85,10 @@ namespace CityFix_backend.Services
             EnsureAdministrator(actor);
             await ValidateRoleAsync(input);
             var password = RandomCodes.TemporaryPassword();
-            return (await CreateAccountAsync(input, password, emailConfirmed: true), password);
+            return (await CreateAccountAsync(input, password, emailConfirmed: true, mustChangePassword: true), password);
         }
 
-        public async Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk")
+        public async Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk", bool mustChangePassword = false)
         {
             var email = EmailAddress.Normalize(input.Email);
             await EnsureEmailFreeAsync(email, null);
@@ -93,6 +99,7 @@ namespace CityFix_backend.Services
                 Email = email,
                 PasswordHash = _hasher.Hash(password),
                 EmailConfirmed = emailConfirmed,
+                MustChangePassword = mustChangePassword,
                 Language = language == "en" ? "en" : "uk",
                 FirstName = input.FirstName.Trim(),
                 LastName = Clean(input.LastName),
@@ -159,6 +166,10 @@ namespace CityFix_backend.Services
 
             var password = RandomCodes.TemporaryPassword();
             user.PasswordHash = _hasher.Hash(password);
+            user.SecurityStamp = SecurityStamps.New();
+            user.MustChangePassword = true;
+            user.FailedLoginCount = 0;
+            user.LockoutEnd = null;
             user.UpdatedAt = Now;
             await _context.SaveChangesAsync();
             return password;
@@ -247,6 +258,66 @@ namespace CityFix_backend.Services
             var value = language == "en" ? "en" : "uk";
             return _context.Users.Where(u => u.Id == userId && u.Language != value)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.Language, value));
+        }
+
+        public async Task<PersonalDataExport> ExportPersonalDataAsync(int userId)
+        {
+            var user = await GetAsync(userId);
+            var appeals = await _context.Appeals.AsNoTracking()
+                .Where(a => a.AuthorId == userId)
+                .Include(a => a.Category)
+                .Include(a => a.Files)
+                .Include(a => a.Updates).ThenInclude(u => u.ChangedBy)
+                .AsSplitQuery()
+                .OrderBy(a => a.CreatedAt)
+                .ToListAsync();
+            var notifications = await _context.Notifications.AsNoTracking()
+                .Where(n => n.UserId == userId)
+                .OrderBy(n => n.CreatedAt)
+                .ToListAsync();
+
+            return new PersonalDataExport(
+                new PersonalDataExport.ProfileData(user.Email, user.PendingEmail, user.FirstName, user.LastName, user.Phone,
+                    user.Role.ToString(), user.Acab?.Name, user.Language, user.NotifyInApp, user.NotifyEmail, user.NotifySms, user.CreatedAt),
+                appeals.Select(a => new PersonalDataExport.AppealData(
+                    a.Id, a.Title, a.Description, a.Address, a.Lat, a.Lng, a.Category?.Name, a.Status.ToString(), a.Priority.ToString(), a.CreatedAt,
+                    a.Files.Select(f => f.FileName).ToList(),
+                    a.Updates.OrderBy(u => u.ChangedAt)
+                        .Select(u => new PersonalDataExport.UpdateData(u.ChangedAt, u.OldStatus.ToString(), u.NewStatus.ToString(), u.Comment, u.ChangedBy?.FullName))
+                        .ToList())).ToList(),
+                notifications.Select(n => new PersonalDataExport.NotificationData(n.CreatedAt, n.Type.ToString(), n.AppealId, n.Message, n.IsRead)).ToList(),
+                Now);
+        }
+
+        public async Task AnonymizeAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException($"User {userId} does not exist.");
+            if (user.Role == UserRole.Administrator)
+            {
+                await EnsureAnotherAdministratorAsync(user.Id);
+            }
+
+            // Appeals stay for the city services and statistics; everything that identifies the person goes.
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            user.Email = $"deleted-{user.Id}@deleted.invalid";
+            user.PendingEmail = null;
+            user.EmailConfirmed = false;
+            user.PasswordHash = _hasher.Hash(RandomCodes.TemporaryPassword() + Guid.NewGuid());
+            user.SecurityStamp = SecurityStamps.New();
+            user.FirstName = "Видалений користувач";
+            user.LastName = null;
+            user.FullNameTranslated = "Deleted user";
+            user.Phone = null;
+            user.Role = UserRole.Resident;
+            user.AcabId = null;
+            user.IsBlocked = true;
+            user.NotifyInApp = user.NotifyEmail = user.NotifySms = false;
+            user.MustChangePassword = false;
+            user.UpdatedAt = Now;
+            await _context.SaveChangesAsync();
+            await _context.Notifications.Where(n => n.UserId == userId).ExecuteDeleteAsync();
+            await transaction.CommitAsync();
         }
 
         private static void EnsureAdministrator(User actor)

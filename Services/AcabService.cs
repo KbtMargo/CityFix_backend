@@ -118,6 +118,19 @@ namespace CityFix_backend.Services
             return acab == null ? null : (acab, acab.HeadCode == normalized ? UserRole.AcabAdmin : UserRole.Resident);
         }
 
+        public async Task<bool> ConsumeHeadCodeAsync(int acabId, string code)
+        {
+            var normalized = RandomCodes.NormalizeCode(code);
+            var replacement = await NewCodeAsync();
+            var now = Now;
+            var updated = await _context.Acabs
+                .Where(a => a.Id == acabId && a.HeadCode == normalized)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(a => a.HeadCode, replacement)
+                    .SetProperty(a => a.UpdatedAt, now));
+            return updated == 1;
+        }
+
         private async Task<string> NewCodeAsync(string? alsoAvoid = null)
         {
             while (true)

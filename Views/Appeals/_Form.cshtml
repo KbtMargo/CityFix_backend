@@ -45,7 +45,7 @@
     <input type="hidden" asp-for="Lat" value="@Model.Lat.Coordinate()" /><input type="hidden" asp-for="Lng" value="@Model.Lng.Coordinate()" />
 </div>
 
-<div class="app-similar" data-similar-appeals data-url="@Url.Action("Similar", "Appeals")" data-exclude="@(Model.Id > 0 ? Model.Id : "")" hidden role="status">
+<div class="app-similar" data-similar-appeals data-url="@Url.Action("Similar", "Appeals")" data-exclude="@(Model.Id > 0 ? Model.Id : "")" data-hidden-title="@L["Similar.Hidden"]" hidden role="status">
     <p class="app-similar__title"><span class="cf-icon cf-icon--alert cf-icon--4" aria-hidden="true"></span>@L["Similar.Warning"]</p>
     <p class="app-similar__text">@L["Similar.WarningText"]</p>
     <ul class="app-similar__list" data-similar-list></ul>
@@ -79,7 +79,12 @@
         <div class="cf-previews app-control-gap">
             @foreach (var file in Model.Files)
             {
-                <div class="cf-preview"><img src="~/@file.FilePath" alt="@file.FileName" /></div>
+                <div class="cf-preview">
+                    <img src="@Url.Action("Photo", "Appeals", new { id = file.Id })" alt="@file.FileName" />
+                    @* Lives inside the edit form, so it reuses its anti-forgery token and posts to its own action. *@
+                    <button type="submit" class="cf-preview__remove" formaction="@Url.Action("DeletePhoto", "Appeals", new { id = file.Id })" formmethod="post" formnovalidate
+                            aria-label="@L["Appeal.DeletePhoto", file.FileName]" title="@L["Appeal.DeletePhoto", file.FileName]"><span class="cf-icon cf-icon--x-lucide cf-icon--3" aria-hidden="true"></span></button>
+                </div>
             }
         </div>
     }

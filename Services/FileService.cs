@@ -61,12 +61,16 @@ namespace CityFix_backend.Services
             foreach (var photo in photos)
             {
                 var contentType = DetectType(photo)!;
+                byte[] content;
+                using (var buffer = new MemoryStream((int)photo.Length))
+                {
+                    await photo.CopyToAsync(buffer);
+                    content = ImageMetadata.Strip(buffer.ToArray(), contentType);
+                }
+
                 var storedName = $"{Guid.NewGuid():N}{Accepted[contentType].Extension}";
                 var fullPath = Path.Combine(folder, storedName);
-                await using (var stream = File.Create(fullPath))
-                {
-                    await photo.CopyToAsync(stream);
-                }
+                await File.WriteAllBytesAsync(fullPath, content);
                 written.Add(fullPath);
 
                 _context.AppealFiles.Add(new AppealFile
@@ -98,7 +102,64 @@ namespace CityFix_backend.Services
             }
         }
 
-        private string FolderOf(int appealId) => Path.Combine(_env.WebRootPath, "uploads", "appeals", appealId.ToString());
+        public string PhysicalPathOf(AppealFile file)
+        {
+            var path = Path.GetFullPath(Path.Combine(Root, file.FilePath));
+            if (!path.StartsWith(Root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            {
+                throw new NotFoundException($"File {file.Id} points outside the upload folder.");
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Moves photos uploaded while they were public in wwwroot into the private upload folder,
+        /// stripping their metadata on the way.
+        /// </summary>
+        public static void MoveLegacyUploads(IWebHostEnvironment env, UploadOptions options, ILogger logger)
+        {
+            var legacyRoot = Path.Combine(env.WebRootPath, "uploads");
+            var legacy = Path.Combine(legacyRoot, "appeals");
+            if (!Directory.Exists(legacy)) return;
+
+            var target = Path.Combine(RootOf(env, options), "uploads", "appeals");
+            foreach (var folder in Directory.GetDirectories(legacy))
+            {
+                var destination = Path.Combine(target, Path.GetFileName(folder));
+                Directory.CreateDirectory(destination);
+                foreach (var file in Directory.GetFiles(folder))
+                {
+                    var moved = Path.Combine(destination, Path.GetFileName(file));
+                    if (File.Exists(moved)) continue;
+
+                    var content = File.ReadAllBytes(file);
+                    var contentType = Accepted.FirstOrDefault(a => a.Value.Extension == Path.GetExtension(file).ToLowerInvariant()).Key;
+                    try
+                    {
+                        if (contentType != null) content = ImageMetadata.Strip(content, contentType);
+                    }
+                    catch (ServiceValidationException)
+                    {
+                        logger.LogWarning("Could not strip metadata from {File}; moved it unchanged.", file);
+                    }
+                    File.WriteAllBytes(moved, content);
+                    File.Delete(file);
+                }
+            }
+
+            if (!Directory.EnumerateFiles(legacyRoot, "*", SearchOption.AllDirectories).Any())
+            {
+                Directory.Delete(legacyRoot, recursive: true);
+            }
+            logger.LogInformation("Moved uploaded photos from wwwroot to {Target}.", target);
+        }
+
+        private string Root => RootOf(_env, _options);
+
+        private static string RootOf(IWebHostEnvironment env, UploadOptions options) =>
+            Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Path));
+
+        private string FolderOf(int appealId) => Path.Combine(Root, "uploads", "appeals", appealId.ToString());
 
         private static string? DetectType(IFormFile photo)
         {

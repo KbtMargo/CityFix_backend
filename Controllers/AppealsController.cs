@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 using CityFix_backend.Helpers;
 using CityFix_backend.Models;
@@ -21,13 +22,15 @@ namespace CityFix_backend.Controllers
         private readonly IAppealService _appeals;
         private readonly ILookupService _lookups;
         private readonly IFileService _files;
+        private readonly IAuditLog _audit;
 
         public AppealsController(IAppealService appeals, ILookupService lookups, IFileService files,
-            IUserService users, IStringLocalizer<SharedResource> localizer) : base(users, localizer)
+            IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit) : base(users, localizer)
         {
             _appeals = appeals;
             _lookups = lookups;
             _files = files;
+            _audit = audit;
         }
 
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
@@ -162,12 +165,43 @@ namespace CityFix_backend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _appeals.DeleteAsync(id, await GetActorAsync());
+            var actor = await GetActorAsync();
+            var appeal = await _appeals.GetForEditAsync(id, actor);
+            await _appeals.DeleteAsync(id, actor);
+            if (appeal.AuthorId != actor.Id)
+            {
+                await _audit.RecordAsync(actor, "appeal.delete", $"Appeal #{id} {appeal.Title}", $"author={appeal.AuthorId}");
+            }
             FlashSuccess(L["Appeal.Deleted"]);
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePhoto(int id)
+        {
+            var appealId = await _appeals.DeleteFileAsync(id, await GetActorAsync());
+            FlashSuccess(L["Appeal.PhotoDeleted"]);
+            return RedirectToAction(nameof(Edit), new { id = appealId });
+        }
+
         [HttpGet]
+        public async Task<IActionResult> Photo(int id)
+        {
+            var file = await _appeals.GetFileAsync(id, await GetActorAsync());
+            var path = _files.PhysicalPathOf(file);
+            if (!System.IO.File.Exists(path))
+            {
+                return NotFound();
+            }
+
+            Response.Headers.CacheControl = "private, max-age=86400";
+            Response.Headers.XContentTypeOptions = "nosniff";
+            return PhysicalFile(path, file.ContentType);
+        }
+
+        [HttpGet]
+        [EnableRateLimiting("lookup")]
         public async Task<IActionResult> Similar(double lat, double lng, int categoryId, int? excludeId)
         {
             if (lat is < -90 or > 90 || lng is < -180 or > 180)
@@ -264,11 +298,7 @@ namespace CityFix_backend.Controllers
 
         private byte[] Csv(IReadOnlyList<AppealExportRow> rows)
         {
-            static string Cell(object? value)
-            {
-                var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
-                return text.IndexOfAny(new[] { ',', '"', '\n', '\r' }) >= 0 ? "\"" + text.Replace("\"", "\"\"") + "\"" : text;
-            }
+            static string Cell(object? value) => CsvCell.Format(value);
 
             var csv = new StringBuilder();
             csv.AppendLine(string.Join(",", new[]

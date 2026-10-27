@@ -17,12 +17,12 @@ namespace CityFix_backend.Controllers
             _notifications = notifications;
         }
 
-        public async Task<IActionResult> Index(string? tab)
+        public async Task<IActionResult> Index(string? tab, int page = 1)
         {
             var unreadTab = tab != "all";
             return View(new NotificationsViewModel
             {
-                Items = await _notifications.GetForUserAsync(CurrentUserId, unreadTab),
+                Page = await _notifications.GetForUserAsync(CurrentUserId, unreadTab, page),
                 UnreadCount = await _notifications.CountUnreadAsync(CurrentUserId),
                 UnreadTab = unreadTab
             });

@@ -7,7 +7,7 @@ namespace CityFix_backend.Services.Interfaces
     {
         Task<RegisterResult> RegisterAsync(RegisterRequest request);
 
-        Task<User?> LoginAsync(string email, string password);
+        Task<LoginResult> LoginAsync(string email, string password);
 
         string CreateEmailToken(int userId, string email);
 
@@ -17,7 +17,21 @@ namespace CityFix_backend.Services.Interfaces
 
         Task<User?> FindUnconfirmedAsync(string email);
 
-        Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
+        Task<User?> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
+
+        string CreatePasswordResetToken(User user);
+
+        Task<User?> FindByResetTokenAsync(string token);
+
+        Task<bool> ResetPasswordAsync(string token, string newPassword);
+
+        Task<User?> FindForPasswordResetAsync(string email);
+
+        Task SendPasswordResetAsync(User user, string link);
+
+        Task SendAccountExistsAsync(User user, string resetLink);
+
+        Task<bool> VerifyPasswordAsync(int userId, string password);
 
         ClaimsPrincipal CreatePrincipal(User user);
 

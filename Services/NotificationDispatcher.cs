@@ -10,6 +10,9 @@ namespace CityFix_backend.Services
 {
     public class NotificationDispatcher : BackgroundService
     {
+        private static readonly TimeSpan Lease = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan RetryBase = TimeSpan.FromSeconds(30);
+
         private readonly IServiceScopeFactory _scopes;
         private readonly NotificationOptions _options;
         private readonly ILogger<NotificationDispatcher> _logger;
@@ -34,9 +37,28 @@ namespace CityFix_backend.Services
                 {
                     _logger.LogError(ex, "Sending notification copies failed.");
                 }
+
+                if (DateTime.UtcNow - _lastCleanup > CleanupInterval)
+                {
+                    _lastCleanup = DateTime.UtcNow;
+                    try
+                    {
+                        using var scope = _scopes.CreateScope();
+                        var removed = await scope.ServiceProvider.GetRequiredService<INotificationService>()
+                            .DeleteOldAsync(_options.KeepRead, _options.KeepAny);
+                        if (removed > 0) _logger.LogInformation("Removed {Count} old notifications.", removed);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogError(ex, "Removing old notifications failed.");
+                    }
+                }
             }
             while (await timer.WaitForNextTickAsync(stoppingToken));
         }
+
+        private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(6);
+        private DateTime _lastCleanup = DateTime.MinValue;
 
         private async Task DispatchAsync(CancellationToken cancellationToken)
         {
@@ -45,12 +67,27 @@ namespace CityFix_backend.Services
             var email = scope.ServiceProvider.GetRequiredService<IEmailSender>();
             var sms = scope.ServiceProvider.GetRequiredService<ISmsSender>();
 
+            // Lease the batch: pushing NextAttemptAt forward under FOR UPDATE SKIP LOCKED means a second app instance
+            // (or a run that crashed mid-batch) cannot pick the same rows and send duplicates until the lease runs out.
+            var now = DateTime.UtcNow;
+            var leaseUntil = now + Lease;
+            var ids = await db.Database.SqlQuery<int>($"""
+                UPDATE "Notifications" SET "NextAttemptAt" = {leaseUntil}
+                WHERE "Id" IN (
+                    SELECT "Id" FROM "Notifications"
+                    WHERE ("EmailState" = {(int)DeliveryState.Pending} OR "SmsState" = {(int)DeliveryState.Pending}) AND "NextAttemptAt" <= {now}
+                    ORDER BY "Id"
+                    LIMIT {_options.BatchSize}
+                    FOR UPDATE SKIP LOCKED)
+                RETURNING "Id" AS "Value"
+                """).ToListAsync(cancellationToken);
+            if (ids.Count == 0) return;
+
             var batch = await db.Notifications
                 .Include(n => n.User)
                 .Include(n => n.Appeal)
-                .Where(n => n.EmailState == DeliveryState.Pending || n.SmsState == DeliveryState.Pending)
+                .Where(n => ids.Contains(n.Id))
                 .OrderBy(n => n.Id)
-                .Take(_options.BatchSize)
                 .ToListAsync(cancellationToken);
 
             foreach (var notification in batch)
@@ -58,12 +95,19 @@ namespace CityFix_backend.Services
                 var user = notification.User!;
                 var failed = false;
 
+                if (user.IsBlocked)
+                {
+                    if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.None;
+                    if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.None;
+                    await db.SaveChangesAsync(cancellationToken);
+                    continue;
+                }
+
                 var previous = CultureInfo.CurrentUICulture;
                 CultureInfo.CurrentUICulture = new CultureInfo(user.Language == "en" ? "en" : "uk");
                 try
                 {
                     var title = NotificationText.Title(notification);
-                    var text = NotificationText.Text(notification);
 
                     if (notification.EmailState == DeliveryState.Pending)
                     {
@@ -71,7 +115,7 @@ namespace CityFix_backend.Services
                         {
                             notification.EmailState = DeliveryState.None;
                         }
-                        else if (await TryAsync(() => email.SendAsync(user.Email, title, EmailBody(notification, text), cancellationToken), notification, "email"))
+                        else if (await TryAsync(() => email.SendAsync(user.Email, BuildEmail(notification, title), cancellationToken), notification, "email"))
                         {
                             notification.EmailState = DeliveryState.Sent;
                         }
@@ -85,7 +129,7 @@ namespace CityFix_backend.Services
                         {
                             notification.SmsState = DeliveryState.None;
                         }
-                        else if (await TryAsync(() => sms.SendAsync(phone, $"{SharedText.Get("App.Name")}: {text}", cancellationToken), notification, "SMS"))
+                        else if (await TryAsync(() => sms.SendAsync(phone, NotificationText.Sms(notification, AppealLink(notification)), cancellationToken), notification, "SMS"))
                         {
                             notification.SmsState = DeliveryState.Sent;
                         }
@@ -102,22 +146,38 @@ namespace CityFix_backend.Services
                     if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.Failed;
                     if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.Failed;
                 }
+                else if (failed)
+                {
+                    // 30 s, 1 min, 2 min, 4 min … so a provider outage is not hammered every few seconds.
+                    notification.NextAttemptAt = DateTime.UtcNow + RetryBase * Math.Pow(2, notification.Attempts - 1);
+                }
 
                 await db.SaveChangesAsync(cancellationToken);
             }
         }
 
-        private string EmailBody(Notification notification, string text)
+        private string? AppealLink(Notification notification) =>
+            !string.IsNullOrWhiteSpace(_options.PublicUrl) && notification.AppealId != null
+                ? $"{_options.PublicUrl.TrimEnd('/')}/Appeals?appealId={notification.AppealId}"
+                : null;
+
+        private EmailMessage BuildEmail(Notification notification, string title)
         {
-            var lines = new List<string> { text };
-            if (!string.IsNullOrWhiteSpace(_options.PublicUrl) && notification.AppealId != null)
+            var link = AppealLink(notification);
+            var lead = NotificationText.Lead(notification);
+            var comment = NotificationText.Comment(notification);
+            return new EmailTemplate
             {
-                lines.Add("");
-                lines.Add($"{_options.PublicUrl.TrimEnd('/')}/Appeals?appealId={notification.AppealId}");
-            }
-            lines.Add("");
-            lines.Add(SharedText.Get("Email.NotificationFooter"));
-            return string.Join("\n", lines);
+                Subject = $"{SharedText.Get("App.Name")}: {title}",
+                Preheader = lead,
+                Heading = title,
+                Paragraphs = { EmailTemplate.Greeting(notification.User!.FirstName), lead },
+                QuoteLabel = comment == null ? null : SharedText.Get("Notifications.Comment"),
+                Quote = comment,
+                ButtonText = link == null ? null : SharedText.Get("Email.OpenAppeal"),
+                ButtonUrl = link,
+                Notes = { SharedText.Get("Email.NotificationFooter") }
+            }.Render();
         }
 
         private async Task<bool> TryAsync(Func<Task> send, Notification notification, string channel)

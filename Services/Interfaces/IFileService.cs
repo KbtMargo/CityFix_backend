@@ -13,5 +13,7 @@ namespace CityFix_backend.Services.Interfaces
         void DeleteFiles(IEnumerable<string> paths);
 
         void DeleteAppealFolder(int appealId);
+
+        string PhysicalPathOf(AppealFile file);
     }
 }

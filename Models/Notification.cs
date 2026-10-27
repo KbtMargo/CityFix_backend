@@ -27,6 +27,9 @@ namespace CityFix_backend.Models
         public DeliveryState SmsState { get; set; }
 
         public int Attempts { get; set; }
+
+        // Pending e-mail/SMS copies are picked up once this moment passes; also leases a row to one dispatcher.
+        public DateTime NextAttemptAt { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

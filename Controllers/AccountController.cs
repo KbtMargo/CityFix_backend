@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Controllers
 {
@@ -18,12 +19,17 @@ namespace CityFix_backend.Controllers
 
         private readonly IAuthService _auth;
         private readonly ILogger<AccountController> _logger;
+        private readonly string? _publicUrl;
+        private readonly IAuditLog _audit;
 
-        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger)
+        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger,
+            IOptions<NotificationOptions> notifications, IAuditLog audit)
             : base(users, localizer)
         {
             _auth = auth;
             _logger = logger;
+            _publicUrl = notifications.Value.PublicUrl;
+            _audit = audit;
         }
 
         public IActionResult Register()
@@ -51,6 +57,14 @@ namespace CityFix_backend.Controllers
 
             var result = await _auth.RegisterAsync(new RegisterRequest(
                 model.Email, model.Password, model.FirstName, model.LastName, model.Phone, model.HasAssociation ? model.InvitationCode : null));
+
+            if (result.ExistingAccount is { } existing)
+            {
+                // Same page as a fresh sign-up, so the form does not reveal who has an account; the owner gets a reset link.
+                await TrySendAsync(existing.Email, () => _auth.SendAccountExistsAsync(existing, ResetLink(existing)));
+                TempData[SentToKey] = existing.Email;
+                return RedirectToAction(nameof(CheckEmail));
+            }
 
             if (!result.Succeeded)
             {
@@ -122,6 +136,59 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(CheckEmail));
         }
 
+        public IActionResult ForgotPassword(string? email) =>
+            View(new ResendConfirmationViewModel { Email = email ?? "" });
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ForgotPassword(ResendConfirmationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _auth.FindForPasswordResetAsync(model.Email);
+            if (user != null)
+            {
+                await TrySendAsync(user.Email, () => _auth.SendPasswordResetAsync(user, ResetLink(user)));
+            }
+            // The same answer whether or not the address has an account.
+            FlashSuccess(L["Auth.Forgot.Sent", EmailAddress.Normalize(model.Email)]);
+            return RedirectToAction(nameof(Login));
+        }
+
+        public async Task<IActionResult> ResetPassword(string? token)
+        {
+            if (string.IsNullOrEmpty(token) || await _auth.FindByResetTokenAsync(token) == null)
+            {
+                FlashError(L["Auth.Reset.Invalid"]);
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            if (!await _auth.ResetPasswordAsync(model.Token, model.NewPassword))
+            {
+                FlashError(L["Auth.Reset.Invalid"]);
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            FlashSuccess(L["Auth.Reset.Done"]);
+            return RedirectToAction(nameof(Login));
+        }
+
         public IActionResult Login(string? returnUrl)
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -141,10 +208,13 @@ namespace CityFix_backend.Controllers
                 return View(model);
             }
 
-            var user = await _auth.LoginAsync(model.Email, model.Password);
+            var login = await _auth.LoginAsync(model.Email, model.Password);
+            var user = login.User;
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, L["Auth.LoginFailed"]);
+                ModelState.AddModelError(string.Empty, login.LockedOut
+                    ? L["Auth.LockedOut", (int)AuthService.LockoutDuration.TotalMinutes]
+                    : L["Auth.LoginFailed"]);
                 return View(model);
             }
 
@@ -239,9 +309,11 @@ namespace CityFix_backend.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ChangePassword([Bind(Prefix = "ChangePassword")] ChangePasswordViewModel model)
         {
-            if (ModelState.IsValid && !await _auth.ChangePasswordAsync(CurrentUserId, model.CurrentPassword, model.NewPassword))
+            User? changed = null;
+            if (ModelState.IsValid && (changed = await _auth.ChangePasswordAsync(CurrentUserId, model.CurrentPassword, model.NewPassword)) == null)
             {
                 ModelState.AddModelError("ChangePassword.CurrentPassword", L["Profile.WrongPassword"]);
             }
@@ -253,13 +325,16 @@ namespace CityFix_backend.Controllers
                 return View(nameof(Profile), view);
             }
 
+            // The new security stamp signs out every other session; keep this one by issuing a fresh cookie.
+            var current = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await SignInAsync(changed!, current.Properties?.IsPersistent == true);
             FlashSuccess(L["Profile.PasswordChanged"]);
             return RedirectToAction(nameof(Profile));
         }
 
         private async Task<bool> TrySendConfirmationAsync(User user, string email)
         {
-            var link = Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) }, Request.Scheme)!;
+            var link = PublicLink(Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) })!);
             try
             {
                 await _auth.SendConfirmationAsync(user, email, link);
@@ -271,6 +346,81 @@ namespace CityFix_backend.Controllers
                 FlashError(L["Auth.ConfirmSendFailed"]);
                 return false;
             }
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ExportData()
+        {
+            var data = await Users.ExportPersonalDataAsync(CurrentUserId);
+            var json = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(data, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+                // A download, never embedded in a page, so readable text beats HTML-safe escaping here.
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+            return File(json, "application/json", $"cityfix-my-data-{DateTime.UtcNow:yyyyMMdd}.json");
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> DeleteAccount(string? password)
+        {
+            if (string.IsNullOrEmpty(password) || !await _auth.VerifyPasswordAsync(CurrentUserId, password))
+            {
+                FlashError(L["Profile.Delete.WrongPassword"]);
+                return RedirectToAction(nameof(Profile));
+            }
+
+            try
+            {
+                await Users.AnonymizeAsync(CurrentUserId);
+                // Only the id is logged: keeping the name or e-mail here would undo the deletion.
+                await _audit.RecordAsync(new User { Id = CurrentUserId, FirstName = "—", Email = "deleted" },
+                    "account.self-delete", $"User #{CurrentUserId}");
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+                return RedirectToAction(nameof(Profile));
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            FlashSuccess(L["Profile.Delete.Done"]);
+            return RedirectToAction(nameof(Login));
+        }
+
+        // Failures are only logged: an error shown here would reveal that the address has an account.
+        private async Task TrySendAsync(string email, Func<Task> send)
+        {
+            try
+            {
+                await send();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not send the password letter to {Email}.", email);
+            }
+        }
+
+        private string ResetLink(User user) =>
+            PublicLink(Url.Action(nameof(ResetPassword), "Account", new { token = _auth.CreatePasswordResetToken(user) })!);
+
+        // The request Host header is client-controlled, so outside development the configured public address is used.
+        private string PublicLink(string path)
+        {
+            if (string.IsNullOrWhiteSpace(_publicUrl))
+            {
+                return $"{Request.Scheme}://{Request.Host}{path}";
+            }
+            if (Request.PathBase.HasValue && path.StartsWith(Request.PathBase.Value!, StringComparison.Ordinal))
+            {
+                path = path[Request.PathBase.Value!.Length..];
+            }
+            return _publicUrl.TrimEnd('/') + path;
         }
 
         private Task SignInAsync(User user, bool persistent)

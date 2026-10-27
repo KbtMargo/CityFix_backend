@@ -11,11 +11,13 @@ namespace CityFix_backend.Controllers
     public class AcabsController : AppController
     {
         private readonly IAcabService _acabs;
+        private readonly IAuditLog _audit;
 
-        public AcabsController(IAcabService acabs, IUserService users, IStringLocalizer<SharedResource> localizer)
+        public AcabsController(IAcabService acabs, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
             : base(users, localizer)
         {
             _acabs = acabs;
+            _audit = audit;
         }
 
         public async Task<IActionResult> Index(string? q, int page = 1)
@@ -35,6 +37,7 @@ namespace CityFix_backend.Controllers
             }
 
             var acab = await _acabs.CreateAsync(form.ToInput());
+            await _audit.RecordAsync(await GetActorAsync(), "acab.create", $"Acab #{acab.Id} {acab.Name}");
             FlashSuccess(L["Acabs.Created"]);
             return RedirectToAction(nameof(Edit), new { id = acab.Id });
         }
@@ -58,6 +61,7 @@ namespace CityFix_backend.Controllers
             }
 
             await _acabs.UpdateAsync(id, form.ToInput());
+            await _audit.RecordAsync(await GetActorAsync(), "acab.update", $"Acab #{id} {form.Name}");
             FlashSuccess(L["Common.Saved"]);
             return RedirectToAction(nameof(Index));
         }
@@ -67,6 +71,7 @@ namespace CityFix_backend.Controllers
         public async Task<IActionResult> RegenerateCode(int id, AcabCodeKind kind)
         {
             await _acabs.RegenerateCodeAsync(id, kind);
+            await _audit.RecordAsync(await GetActorAsync(), "acab.regenerate-code", $"Acab #{id}", $"kind={kind}");
             FlashSuccess(L[kind == AcabCodeKind.Head ? "Acabs.HeadCodeRegenerated" : "Acabs.ResidentCodeRegenerated"]);
             return RedirectToAction(nameof(Edit), new { id });
         }
@@ -79,7 +84,9 @@ namespace CityFix_backend.Controllers
         {
             try
             {
+                var name = (await _acabs.GetAsync(id)).Name;
                 await _acabs.DeleteAsync(id);
+                await _audit.RecordAsync(await GetActorAsync(), "acab.delete", $"Acab #{id} {name}");
                 FlashSuccess(L["Common.Deleted"]);
                 return RedirectToAction(nameof(Index));
             }

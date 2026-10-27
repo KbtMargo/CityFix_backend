@@ -4,6 +4,7 @@ using Microsoft.Extensions.Localization;
 using CityFix_backend.Data;
 using CityFix_backend.Helpers;
 using CityFix_backend.Models;
+using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 
 namespace CityFix_backend.Controllers
@@ -11,8 +12,8 @@ namespace CityFix_backend.Controllers
     [Authorize(Roles = "Administrator")]
     public class CategoriesController : ReferenceListController<Category>
     {
-        public CategoriesController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer)
-            : base(context, users, localizer)
+        public CategoriesController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
+            : base(context, users, localizer, audit)
         {
         }
 

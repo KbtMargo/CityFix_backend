@@ -23,6 +23,24 @@ namespace CityFix_backend.ViewModels
         public bool NeedsConfirmation { get; set; }
     }
 
+    public class ResetPasswordViewModel
+    {
+        [Required]
+        public string Token { get; set; } = "";
+
+        [Required(ErrorMessage = "Validation.Required")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Validation.PasswordLength")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Field.NewPassword")]
+        public string NewPassword { get; set; } = "";
+
+        [Required(ErrorMessage = "Validation.Required")]
+        [Compare(nameof(NewPassword), ErrorMessage = "Validation.PasswordMatch")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Field.ConfirmNewPassword")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+
     public class ResendConfirmationViewModel
     {
         [Required(ErrorMessage = "Validation.Required")]

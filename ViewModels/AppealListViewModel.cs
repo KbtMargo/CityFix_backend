@@ -75,7 +75,8 @@ namespace CityFix_backend.ViewModels
 
     public class NotificationsViewModel
     {
-        public List<Notification> Items { get; init; } = new();
+        public PagedResult<Notification> Page { get; init; } = new();
+        public IReadOnlyList<Notification> Items => Page.Items;
         public int UnreadCount { get; init; }
         public bool UnreadTab { get; init; }
     }

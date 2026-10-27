@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using CityFix_backend;
 using CityFix_backend.Controllers;
@@ -6,6 +8,9 @@ using CityFix_backend.Data;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -20,7 +25,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-builder.Services.AddControllersWithViews(options => options.Filters.Add<ServiceExceptionFilter>())
+builder.Services.AddControllersWithViews(options =>
+    {
+        options.Filters.Add<ServiceExceptionFilter>();
+        options.Filters.Add<PasswordChangeRequiredFilter>();
+    })
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)));
@@ -35,6 +44,39 @@ builder.Services.AddOptions<MvcOptions>().Configure<IStringLocalizerFactory>((op
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
 
+// Without a persistent key ring every restart (or container rebuild) signs everyone out and voids e-mail confirmation links.
+var keysPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["DataProtection:KeysPath"] ?? "App_Data/keys"));
+var dataProtection = builder.Services.AddDataProtection()
+    .SetApplicationName("CityFix")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+if (OperatingSystem.IsWindows())
+{
+    dataProtection.ProtectKeysWithDpapi();
+}
+
+var publicUrl = builder.Configuration[$"{NotificationOptions.Section}:{nameof(NotificationOptions.PublicUrl)}"];
+if (!builder.Environment.IsDevelopment() && !Uri.TryCreate(publicUrl, UriKind.Absolute, out _))
+{
+    // Links in e-mails must not be built from the client-supplied Host header.
+    throw new InvalidOperationException("Set Notifications:PublicUrl to the site's public address (e.g. https://cityfix.example.org).");
+}
+
+// Outside development cookies travel over HTTPS only; locally the plain-http profile keeps working.
+var cookieSecurity = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+builder.Services.AddAntiforgery(options => options.Cookie.SecurePolicy = cookieSecurity);
+builder.Services.Configure<CookieTempDataProviderOptions>(options => options.Cookie.SecurePolicy = cookieSecurity);
+
+// Behind a reverse proxy the client address and scheme arrive in X-Forwarded-* headers. Only proxies on this machine
+// (the default) or listed in ForwardedHeaders:KnownProxies are trusted, so clients cannot spoof their address.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    foreach (var proxy in builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [])
+    {
+        options.KnownProxies.Add(IPAddress.Parse(proxy));
+    }
+});
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -42,6 +84,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = cookieSecurity;
         options.Events.OnValidatePrincipal = CookieValidator.ValidateAsync;
     });
 
@@ -51,6 +94,9 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    options.AddPolicy("lookup", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
 });
 
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.Section));
@@ -78,6 +124,9 @@ builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditLog, AuditLog>();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((services, client) =>
 {
     var options = services.GetRequiredService<IOptions<GeocodingOptions>>().Value;
@@ -86,8 +135,15 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((se
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
 });
 
+builder.Services.AddSingleton<GeocodingCache>();
+
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{nameof(EmailOptions.SmtpHost)}"]))
 {
+    if (!builder.Environment.IsDevelopment())
+    {
+        // The log sender would silently drop confirmation letters and write their links into the log.
+        throw new InvalidOperationException("Set Email:SmtpHost (and credentials) outside the Development environment.");
+    }
     builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
 }
 else
@@ -116,6 +172,31 @@ builder.Services.AddHostedService<TranslationWorker>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
+var contentSecurityPolicy = string.Join("; ",
+    "default-src 'self'",
+    "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+    "style-src 'self' https://cdnjs.cloudflare.com",
+    "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com",
+    // Hot reload talks to the dev server over a websocket.
+    app.Environment.IsDevelopment() ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'");
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.ContentSecurityPolicy = contentSecurityPolicy;
+    headers.XContentTypeOptions = "nosniff";
+    headers.XFrameOptions = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)";
+    await next();
+});
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -139,22 +220,31 @@ localization.RequestCultureProviders = new List<IRequestCultureProvider> { new C
 app.UseRequestLocalization(localization);
 
 app.UseRouting();
-app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapStaticAssets();
+
+// For load balancers and uptime monitors: plain "Healthy"/"Unhealthy", 503 when the database is down.
+app.MapHealthChecks("/health").DisableRateLimiting();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+FileService.MoveLegacyUploads(app.Environment, app.Services.GetRequiredService<IOptions<UploadOptions>>().Value, app.Logger);
 await DbSeeder.SeedAdminAsync(app.Services, app.Logger);
 
 if (args.Contains("--seed-demo"))
 {
+    if (!app.Environment.IsDevelopment())
+    {
+        // Demo accounts share a password published in the repository.
+        throw new InvalidOperationException("--seed-demo is allowed only in the Development environment.");
+    }
     await DemoSeeder.SeedAsync(app.Services, app.Logger);
     return;
 }

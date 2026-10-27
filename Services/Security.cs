@@ -20,6 +20,14 @@ namespace CityFix_backend.Services
         }
     }
 
+    public static class SecurityStamps
+    {
+        public const string ClaimType = "cityfix:stamp";
+        public const string MustChangePasswordClaim = "cityfix:must-change-password";
+
+        public static string New() => Guid.NewGuid().ToString("N");
+    }
+
     public interface IPasswordHasher
     {
         string Hash(string password);

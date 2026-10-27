@@ -11,6 +11,15 @@ namespace CityFix_backend.Models
 
         public string PasswordHash { get; set; } = "";
 
+        // Changes whenever credentials change; sign-in cookies carrying an older stamp are rejected.
+        [MaxLength(32)]
+        public string SecurityStamp { get; set; } = Services.SecurityStamps.New();
+
+        public bool MustChangePassword { get; set; }
+
+        public int FailedLoginCount { get; set; }
+        public DateTime? LockoutEnd { get; set; }
+
         public bool EmailConfirmed { get; set; }
 
         public string? PendingEmail { get; set; }

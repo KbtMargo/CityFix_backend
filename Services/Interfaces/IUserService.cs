@@ -6,6 +6,8 @@ namespace CityFix_backend.Services.Interfaces
     {
         Task<User> GetActorAsync(int userId);
 
+        Task<User?> FindActorAsync(int userId);
+
         Task<UsersPage> GetPageAsync(User actor, string? q, int page);
 
         Task<User> GetAsync(int id);
@@ -28,6 +30,10 @@ namespace CityFix_backend.Services.Interfaces
 
         Task SetLanguageAsync(int userId, string language);
 
-        Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk");
+        Task<PersonalDataExport> ExportPersonalDataAsync(int userId);
+
+        Task AnonymizeAsync(int userId);
+
+        Task<User> CreateAccountAsync(UserInput input, string password, bool emailConfirmed, string language = "uk", bool mustChangePassword = false);
     }
 }

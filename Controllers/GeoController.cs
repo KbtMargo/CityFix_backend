@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using CityFix_backend.Services.Interfaces;
 
 namespace CityFix_backend.Controllers
 {
     [Authorize]
+    [EnableRateLimiting("lookup")]
     public class GeoController : Controller
     {
         private readonly IGeocodingService _geocoding;

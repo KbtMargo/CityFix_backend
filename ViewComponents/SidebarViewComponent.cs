@@ -68,6 +68,7 @@ namespace CityFix_backend.ViewComponents
                     items.Add(new("Acabs", "Index", "apartment", "Nav.Acabs", "Nav.Acabs.Sub", null, Is("Acabs")));
                     items.Add(new("Categories", "Index", "tag", "Nav.Categories", "Nav.Categories.Sub", null, Is("Categories")));
                     items.Add(new("Recipients", "Index", "wrench", "Nav.Recipients", "Nav.Recipients.Sub", null, Is("Recipients")));
+                    items.Add(new("Audit", "Index", "shield", "Nav.Audit", "Nav.Audit.Sub", null, Is("Audit")));
                 }
             }
 

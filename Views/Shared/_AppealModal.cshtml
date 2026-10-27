@@ -51,7 +51,7 @@
                         {
                             <button type="button" class="cf-carousel__btn cf-carousel__btn--prev" data-gallery-step="-1" aria-label="@L["Modal.PrevPhoto"]"><span class="cf-icon cf-icon--chevron-left cf-icon--6" aria-hidden="true"></span></button>
                         }
-                        <img src="~/@first.FilePath" alt="@L["Modal.PhotoAlt"]" data-gallery-main />
+                        <img src="@Url.Action("Photo", "Appeals", new { id = first.Id })" alt="@L["Modal.PhotoAlt"]" data-gallery-main />
                         @if (a.Files.Count > 1)
                         {
                             <button type="button" class="cf-carousel__btn cf-carousel__btn--next" data-gallery-step="1" aria-label="@L["Modal.NextPhoto"]"><span class="cf-icon cf-icon--chevron-right cf-icon--6" aria-hidden="true"></span></button>
@@ -62,7 +62,7 @@
                         <div class="cf-thumbs">
                             @for (var i = 0; i < a.Files.Count; i++)
                             {
-                                <button type="button" class="cf-thumb @(i == 0 ? "is-active" : "")" data-gallery-src="@Url.Content("~/" + a.Files[i].FilePath)" aria-label="@L["Modal.PhotoN", i + 1]"><img src="~/@a.Files[i].FilePath" alt="" /></button>
+                                <button type="button" class="cf-thumb @(i == 0 ? "is-active" : "")" data-gallery-src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id })" aria-label="@L["Modal.PhotoN", i + 1]"><img src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id })" alt="" /></button>
                             }
                         </div>
                     }
@@ -130,7 +130,7 @@
                                 }
                                 else
                                 {
-                                    <span class="app-similar__name">@item.Title</span>
+                                    <span class="app-similar__name">@L["Similar.Hidden"]</span>
                                 }
                                 <span class="app-similar__meta">@item.Status.GetDisplayName() · @item.CreatedAt.ToDate() · @L["Appeal.Distance", item.DistanceMeters]</span>
                             </li>

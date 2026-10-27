@@ -6,18 +6,27 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
+    /// <summary>Own size-capped cache: every distinct query or point is a new key, so a shared unbounded cache could grow without limit.</summary>
+    public sealed class GeocodingCache : MemoryCache
+    {
+        public GeocodingCache() : base(new MemoryCacheOptions { SizeLimit = 10_000 })
+        {
+        }
+    }
+
     public class NominatimGeocodingService : IGeocodingService
     {
         private static readonly SemaphoreSlim Gate = new(1, 1);
+        private static readonly TimeSpan MaxQueueWait = TimeSpan.FromSeconds(5);
         private static DateTimeOffset _lastRequest = DateTimeOffset.MinValue;
 
         private readonly HttpClient _http;
-        private readonly IMemoryCache _cache;
+        private readonly GeocodingCache _cache;
         private readonly GeocodingOptions _options;
         private readonly TimeProvider _clock;
         private readonly ILogger<NominatimGeocodingService> _logger;
 
-        public NominatimGeocodingService(HttpClient http, IMemoryCache cache, IOptions<GeocodingOptions> options,
+        public NominatimGeocodingService(HttpClient http, GeocodingCache cache, IOptions<GeocodingOptions> options,
             TimeProvider clock, ILogger<NominatimGeocodingService> logger)
         {
             _http = http;
@@ -72,14 +81,27 @@ namespace CityFix_backend.Services
             var value = await load();
             if (value != null)
             {
-                _cache.Set(key, value, _options.CacheDuration);
+                _cache.Set(key, value, new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = _options.CacheDuration });
             }
             return value;
         }
 
         private async Task<JsonDocument?> GetAsync(string relativeUrl, CancellationToken cancellationToken)
         {
-            await Gate.WaitAsync(cancellationToken);
+            // Nominatim allows one request per second for the whole app; give up instead of queueing behind a flood.
+            try
+            {
+                if (!await Gate.WaitAsync(MaxQueueWait, cancellationToken))
+                {
+                    _logger.LogWarning("Geocoding queue is full; skipped {Url}", relativeUrl);
+                    return null;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+
             try
             {
                 var wait = _lastRequest + _options.MinInterval - _clock.GetUtcNow();
@@ -98,7 +120,7 @@ namespace CityFix_backend.Services
                 await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                 return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
             {
                 _logger.LogWarning(ex, "Nominatim is unavailable");
                 return null;

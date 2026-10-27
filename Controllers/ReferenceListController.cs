@@ -11,12 +11,20 @@ namespace CityFix_backend.Controllers
     public abstract class ReferenceListController<TEntity> : AppController where TEntity : class, new()
     {
         protected readonly ApplicationDbContext Context;
+        private readonly IAuditLog _audit;
 
-        protected ReferenceListController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer)
+        protected ReferenceListController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
             : base(users, localizer)
         {
             Context = context;
+            _audit = audit;
         }
+
+        private Task AuditAsync(string verb, TEntity entity) =>
+            AuditAsync(verb, IdOf(entity), NameOf(entity));
+
+        private async Task AuditAsync(string verb, int id, string name) =>
+            await _audit.RecordAsync(await GetActorAsync(), $"{typeof(TEntity).Name.ToLowerInvariant()}.{verb}", $"{typeof(TEntity).Name} #{id} {name}");
 
         protected abstract int IdOf(TEntity entity);
 
@@ -57,6 +65,7 @@ namespace CityFix_backend.Controllers
             CopyEditable(posted, entity);
             Context.Add(entity);
             await Context.SaveChangesAsync();
+            await AuditAsync("create", entity);
             FlashSuccess(L["Common.Saved"]);
             return RedirectToAction(nameof(Index));
         }
@@ -72,8 +81,10 @@ namespace CityFix_backend.Controllers
                 return View(posted);
             }
 
-            CopyEditable(posted, await FindAsync(id));
+            var entity = await FindAsync(id);
+            CopyEditable(posted, entity);
             await Context.SaveChangesAsync();
+            await AuditAsync("update", entity);
             FlashSuccess(L["Common.Saved"]);
             return RedirectToAction(nameof(Index));
         }
@@ -90,8 +101,11 @@ namespace CityFix_backend.Controllers
                 return RedirectToAction(nameof(Delete), new { id });
             }
 
-            Context.Remove(await FindAsync(id));
+            var removed = await FindAsync(id);
+            var name = NameOf(removed);
+            Context.Remove(removed);
             await Context.SaveChangesAsync();
+            await AuditAsync("delete", id, name);
             FlashSuccess(L["Common.Deleted"]);
             return RedirectToAction(nameof(Index));
         }

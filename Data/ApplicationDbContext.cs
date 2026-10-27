@@ -18,6 +18,7 @@ namespace CityFix_backend.Data
         public DbSet<AppealUpdate> AppealUpdates { get; set; } = null!;
         public DbSet<AppealFile> AppealFiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<AuditEntry> AuditLog { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,6 +92,9 @@ namespace CityFix_backend.Data
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.EmailState, n.SmsState });
+
+            modelBuilder.Entity<AuditEntry>().ToTable("AuditLog");
+            modelBuilder.Entity<AuditEntry>().HasIndex(e => e.At);
         }
     }
 }

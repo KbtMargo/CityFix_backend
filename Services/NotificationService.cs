@@ -38,7 +38,9 @@ namespace CityFix_backend.Services
             await AddAsync(recipients, appeal, NotificationType.Assigned, null, responsibleName, responsibleNameEn);
         }
 
-        public Task<List<Notification>> GetForUserAsync(int userId, bool unreadOnly)
+        public const int PageSize = 20;
+
+        public Task<PagedResult<Notification>> GetForUserAsync(int userId, bool unreadOnly, int page)
         {
             var query = _context.Notifications.AsNoTracking()
                 .Include(n => n.Appeal)
@@ -47,7 +49,19 @@ namespace CityFix_backend.Services
             {
                 query = query.Where(n => !n.IsRead);
             }
-            return query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id).ToListAsync();
+            return query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id).ToPagedResultAsync(page, PageSize);
+        }
+
+        public Task<int> DeleteOldAsync(TimeSpan readAge, TimeSpan anyAge)
+        {
+            var now = _clock.GetUtcNow().UtcDateTime;
+            var readBefore = now - readAge;
+            var anyBefore = now - anyAge;
+            // Rows still waiting for an e-mail/SMS copy are kept until the dispatcher settles them.
+            return _context.Notifications
+                .Where(n => n.EmailState != DeliveryState.Pending && n.SmsState != DeliveryState.Pending)
+                .Where(n => (n.IsRead && n.CreatedAt < readBefore) || n.CreatedAt < anyBefore)
+                .ExecuteDeleteAsync();
         }
 
         public Task<int> CountUnreadAsync(int userId) =>
@@ -93,7 +107,8 @@ namespace CityFix_backend.Services
                     IsRead = !user.NotifyInApp,
                     EmailState = user.Email ? DeliveryState.Pending : DeliveryState.None,
                     SmsState = user.Sms ? DeliveryState.Pending : DeliveryState.None,
-                    CreatedAt = _clock.GetUtcNow().UtcDateTime
+                    CreatedAt = _clock.GetUtcNow().UtcDateTime,
+                    NextAttemptAt = _clock.GetUtcNow().UtcDateTime
                 });
             }
         }

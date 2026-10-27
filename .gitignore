@@ -19,6 +19,7 @@ appsettings.*.json
 *.publishsettings
 
 wwwroot/uploads/
+App_Data/
 
 .vs/
 .idea/

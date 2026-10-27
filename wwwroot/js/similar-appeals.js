@@ -23,7 +23,7 @@
                     var li = document.createElement('li');
                     var title = document.createElement(s.url ? 'a' : 'span');
                     title.className = 'app-similar__name';
-                    title.textContent = s.title;
+                    title.textContent = s.title || box.dataset.hiddenTitle;
                     if (s.url) { title.href = s.url; title.target = '_blank'; title.rel = 'noopener'; }
                     var meta = document.createElement('span');
                     meta.className = 'app-similar__meta';

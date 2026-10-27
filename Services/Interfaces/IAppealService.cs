@@ -20,6 +20,10 @@ namespace CityFix_backend.Services.Interfaces
 
         Task DeleteAsync(int id, User actor);
 
+        Task<AppealFile> GetFileAsync(int fileId, User actor);
+
+        Task<int> DeleteFileAsync(int fileId, User actor);
+
         Task<AppealStats> GetStatsAsync(User actor);
 
         Task<IReadOnlyList<SimilarAppeal>> FindSimilarAsync(double lat, double lng, int categoryId, int? excludeId, User actor);

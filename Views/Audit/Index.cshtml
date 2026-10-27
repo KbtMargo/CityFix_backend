@@ -1,0 +1,48 @@
+@model TablePageViewModel<AuditEntry>
+@{
+    ViewData["Title"] = L["Audit.Title"].Value;
+}
+<div>
+    <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+    <div class="cf-page-head">
+        <h1 class="cf-page-title">@L["Audit.Title"]</h1>
+        <div class="cf-toolbar">
+            <div class="cf-page-head__meta">@L["Audit.Total"]: <b>@Model.Page.TotalCount</b></div>
+        </div>
+    </div>
+</div>
+
+<partial name="_TableSearch" model="Model.Q" />
+
+<div class="cf-table-card">
+    <div class="cf-table-scroll">
+        <table class="cf-table">
+            <thead>
+                <tr>
+                    <th scope="col">@L["Audit.Col.When"]</th>
+                    <th scope="col">@L["Audit.Col.Who"]</th>
+                    <th scope="col">@L["Audit.Col.Action"]</th>
+                    <th scope="col">@L["Audit.Col.Target"]</th>
+                    <th scope="col">@L["Audit.Col.Details"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Page.Items.Count == 0)
+                {
+                    <tr><td colspan="5" class="cf-table__empty">@L[string.IsNullOrWhiteSpace(Model.Q) ? "Audit.Empty" : "Empty.Filtered"]</td></tr>
+                }
+                @foreach (var e in Model.Page.Items)
+                {
+                    <tr>
+                        <td>@e.At.ToDateTime()</td>
+                        <td><div class="cf-table__name">@e.ActorName</div><div class="cf-help">@e.IpAddress</div></td>
+                        <td><code>@e.Action</code></td>
+                        <td>@e.Target</td>
+                        <td>@e.Details</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_PaginationBar" model="PaginationModel.For(Model.Page, Model.Q)" />
+</div>

@@ -14,12 +14,16 @@ namespace CityFix_backend.Controllers
         private const string FormFields = "FirstName,LastName,Email,Phone,Role,AcabId";
 
         private readonly ILookupService _lookups;
+        private readonly IAuditLog _audit;
 
-        public UsersController(ILookupService lookups, IUserService users, IStringLocalizer<SharedResource> localizer)
+        public UsersController(ILookupService lookups, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
             : base(users, localizer)
         {
             _lookups = lookups;
+            _audit = audit;
         }
+
+        private static string Target(User user) => $"User #{user.Id} {user.Email}";
 
         public async Task<IActionResult> Index(string? q, int page = 1)
         {
@@ -49,6 +53,7 @@ namespace CityFix_backend.Controllers
                 try
                 {
                     var (user, password) = await Users.CreateAsync(form.ToInput(), await GetActorAsync());
+                    await _audit.RecordAsync(await GetActorAsync(), "user.create", Target(user), $"role={user.Role}, acab={user.AcabId}");
                     FlashSuccess(L["Users.CreatedWithPassword", user.Email, password]);
                     return RedirectToAction(nameof(Index));
                 }
@@ -80,7 +85,11 @@ namespace CityFix_backend.Controllers
             {
                 try
                 {
+                    var before = await Users.GetAsync(id);
                     await Users.UpdateAsync(id, form.ToInput(), await GetActorAsync());
+                    var after = await Users.GetAsync(id);
+                    await _audit.RecordAsync(await GetActorAsync(), "user.update", Target(after),
+                        $"role {before.Role}→{after.Role}, acab {before.AcabId}→{after.AcabId}, email {before.Email}→{after.Email}");
                     FlashSuccess(L["Common.Saved"]);
                     return RedirectToAction(nameof(Index));
                 }
@@ -101,6 +110,7 @@ namespace CityFix_backend.Controllers
         {
             var user = await Users.GetAsync(id);
             var password = await Users.ResetPasswordAsync(id, await GetActorAsync());
+            await _audit.RecordAsync(await GetActorAsync(), "user.reset-password", Target(user));
             FlashSuccess(L["Users.PasswordReset", user.Email, password]);
             return RedirectToAction(nameof(Edit), new { id });
         }
@@ -113,6 +123,7 @@ namespace CityFix_backend.Controllers
             try
             {
                 await Users.SetBlockedAsync(id, blocked, await GetActorAsync());
+                await _audit.RecordAsync(await GetActorAsync(), blocked ? "user.block" : "user.unblock", Target(await Users.GetAsync(id)));
                 FlashSuccess(L[blocked ? "Users.Blocked" : "Users.Unblocked"]);
             }
             catch (ServiceValidationException ex)
@@ -135,7 +146,9 @@ namespace CityFix_backend.Controllers
         {
             try
             {
+                var target = Target(await Users.GetAsync(id));
                 await Users.DeleteAsync(id, await GetActorAsync());
+                await _audit.RecordAsync(await GetActorAsync(), "user.delete", target);
                 FlashSuccess(L["Common.Deleted"]);
                 return RedirectToAction(nameof(Index));
             }

@@ -10,7 +10,9 @@ namespace CityFix_backend.Services.Interfaces
 
         Task AddAssignedAsync(Appeal appeal, string responsibleName, string? responsibleNameEn, int actorId);
 
-        Task<List<Notification>> GetForUserAsync(int userId, bool unreadOnly);
+        Task<PagedResult<Notification>> GetForUserAsync(int userId, bool unreadOnly, int page);
+
+        Task<int> DeleteOldAsync(TimeSpan readAge, TimeSpan anyAge);
 
         Task<int> CountUnreadAsync(int userId);
 

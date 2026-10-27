@@ -16,6 +16,7 @@
             <div><label class="cf-auth__label" asp-for="Email"></label><input asp-for="Email" class="cf-auth__input" autocomplete="email" placeholder="you@example.com" /></div>
             <div><label class="cf-auth__label" asp-for="Password"></label><input asp-for="Password" class="cf-auth__input" autocomplete="current-password" placeholder="••••••••" /></div>
             <label class="cf-check"><input asp-for="RememberMe" /><span>@Html.DisplayNameFor(m => m.RememberMe)</span></label>
+            <p class="cf-auth__foot"><a class="cf-auth__link" asp-action="ForgotPassword" asp-route-email="@Model.Email">@L["Auth.Forgot.Link"]</a></p>
             @if (error != null)
             {
                 <p class="cf-auth__error" role="alert">@error</p>

@@ -25,7 +25,7 @@ namespace CityFix_backend.Services
         AppealPriority NewPriority,
         string? Comment);
 
-    public record SimilarAppeal(int Id, string Title, AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible);
+    public record SimilarAppeal(int Id, string? Title,AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible);
 
     public record AppealPage(PagedResult<Appeal> Page, IReadOnlySet<int> PossibleDuplicates);
 
@@ -89,7 +89,26 @@ namespace CityFix_backend.Services
         string? Phone,
         string? InvitationCode);
 
-    public record RegisterResult(User? User, IReadOnlyDictionary<string, string> Errors)
+    public record LoginResult(User? User, bool LockedOut);
+
+    public record PersonalDataExport(
+        PersonalDataExport.ProfileData Profile,
+        IReadOnlyList<PersonalDataExport.AppealData> Appeals,
+        IReadOnlyList<PersonalDataExport.NotificationData> Notifications,
+        DateTime ExportedAt)
+    {
+        public record ProfileData(string Email, string? PendingEmail, string FirstName, string? LastName, string? Phone, string Role,
+            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, bool NotifySms, DateTime RegisteredAt);
+
+        public record AppealData(int Id, string Title, string? Description, string? Address, decimal? Lat, decimal? Lng, string? Category,
+            string Status, string Priority, DateTime CreatedAt, IReadOnlyList<string> Photos, IReadOnlyList<UpdateData> History);
+
+        public record UpdateData(DateTime At, string OldStatus, string NewStatus, string? Comment, string? By);
+
+        public record NotificationData(DateTime At, string Type, int? AppealId, string Message, bool IsRead);
+    }
+
+    public record RegisterResult(User? User, IReadOnlyDictionary<string, string> Errors, User? ExistingAccount = null)
     {
         public bool Succeeded => User != null;
     }

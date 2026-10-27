@@ -50,7 +50,7 @@ else
                     </div>
                     @if (photo != null)
                     {
-                        <div class="cf-issue__thumb"><img src="~/@photo.FilePath" alt="@L["Appeal.PhotoAlt", a.DisplayTitle()]" /></div>
+                        <div class="cf-issue__thumb"><img src="@Url.Action("Photo", "Appeals", new { id = photo.Id })" alt="@L["Appeal.PhotoAlt", a.DisplayTitle()]" /></div>
                     }
                 </div>
             </a>

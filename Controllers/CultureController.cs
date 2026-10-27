@@ -28,6 +28,7 @@ namespace CityFix_backend.Controllers
                 {
                     Expires = DateTimeOffset.UtcNow.AddYears(1),
                     IsEssential = true,
+                    Secure = Request.IsHttps,
                     SameSite = SameSiteMode.Lax
                 });
 

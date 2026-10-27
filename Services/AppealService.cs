@@ -87,6 +87,31 @@ namespace CityFix_backend.Services
             return appeal;
         }
 
+        public async Task<AppealFile> GetFileAsync(int fileId, User actor)
+        {
+            var file = await _context.AppealFiles.AsNoTracking()
+                .Include(f => f.Appeal)
+                .FirstOrDefaultAsync(f => f.Id == fileId)
+                ?? throw new NotFoundException($"File {fileId} does not exist.");
+            AppealPolicy.EnsureCanView(actor, file.Appeal!);
+            return file;
+        }
+
+        public async Task<int> DeleteFileAsync(int fileId, User actor)
+        {
+            var file = await _context.AppealFiles
+                .Include(f => f.Appeal)
+                .FirstOrDefaultAsync(f => f.Id == fileId)
+                ?? throw new NotFoundException($"File {fileId} does not exist.");
+            AppealPolicy.EnsureCanEdit(actor, file.Appeal!);
+
+            var path = _files.PhysicalPathOf(file);
+            _context.AppealFiles.Remove(file);
+            await _context.SaveChangesAsync();
+            _files.DeleteFiles(new[] { path });
+            return file.AppealId;
+        }
+
         public async Task<AppealStats> GetStatsAsync(User actor)
         {
             var counts = await _context.Appeals.VisibleTo(actor)
@@ -216,6 +241,10 @@ namespace CityFix_backend.Services
             }
 
             var comment = string.IsNullOrWhiteSpace(input.Comment) ? null : input.Comment.Trim();
+            if (comment?.Length > AppealUpdate.MaxCommentLength)
+            {
+                throw new ServiceValidationException("Comment", "Validation.MaxLength", SharedText.Get("Notifications.Comment"), AppealUpdate.MaxCommentLength);
+            }
             var statusChanged = input.NewStatus != appeal.Status;
             var priorityChanged = input.NewPriority != appeal.Priority && Enum.IsDefined(input.NewPriority);
 
@@ -380,10 +409,12 @@ namespace CityFix_backend.Services
                 .Select(a => new { a.Id, a.Title, a.Language, a.TitleTranslated, a.Status, a.CreatedAt, a.AuthorId, a.AcabId, Distance = a.Location!.Distance(point) })
                 .ToListAsync();
 
-            return rows.Select(r => new SimilarAppeal(
-                r.Id, new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated }.DisplayTitle(),
-                r.Status, r.CreatedAt, (int)Math.Round(r.Distance),
-                AppealPolicy.CanView(actor, new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId }))).ToList();
+            return rows.Select(r =>
+            {
+                var visible = AppealPolicy.CanView(actor, new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId });
+                var title = visible ? new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated }.DisplayTitle() : null;
+                return new SimilarAppeal(r.Id, title, r.Status, r.CreatedAt, (int)Math.Round(r.Distance), visible);
+            }).ToList();
         }
 
         private async Task ApplyInputAsync(Appeal appeal, AppealInput input)

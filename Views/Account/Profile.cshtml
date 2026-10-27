@@ -119,6 +119,24 @@
     </div>
 </div>
 
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Profile.Data.Title"]</div>
+        <div class="cf-card__desc">@L["Profile.Data.Hint"]</div>
+    </div>
+    <div class="cf-card__body cf-stack-6">
+        <div><a class="cf-btn cf-btn--outline" asp-action="ExportData">@L["Profile.Data.Export"]</a></div>
+        <form asp-action="DeleteAccount" method="post" class="cf-stack-6">
+            <p class="cf-help">@L["Profile.Delete.Warning"]</p>
+            <div>
+                <label class="cf-label" for="delete-password">@L["Field.CurrentPassword"]</label>
+                <label class="cf-field"><input id="delete-password" name="password" type="password" class="cf-input" autocomplete="current-password" required /></label>
+            </div>
+            <div><button type="submit" class="cf-btn cf-btn--destructive">@L["Profile.Delete.Submit"]</button></div>
+        </form>
+    </div>
+</div>
+
 <form asp-action="Logout" method="post">
     <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
 </form>

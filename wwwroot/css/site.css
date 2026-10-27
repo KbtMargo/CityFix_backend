@@ -55,7 +55,7 @@
 
 :root { --app-rail-w: 76px; }
 
-.app-shell .cf-shell__main { display: flex; flex-direction: column; }
+.app-shell .cf-shell__main { position: relative; display: flex; flex-direction: column; }
 .app-shell.cf-shell--admin .cf-shell__main { padding: 0; }
 .app-content { flex: 1; }
 .app-content--admin { padding: var(--space-8); }
