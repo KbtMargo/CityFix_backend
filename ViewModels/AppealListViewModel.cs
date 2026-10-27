@@ -7,6 +7,10 @@ namespace CityFix_backend.ViewModels
     {
         public PagedResult<Appeal> Page { get; init; } = new();
         public IReadOnlySet<int> PossibleDuplicates { get; init; } = new HashSet<int>();
+        // Appeals on this page the actor has said "affects me too" about.
+        public IReadOnlySet<int> Supported { get; init; } = new HashSet<int>();
+
+        public bool CanSupport(Appeal appeal) => Supported.Contains(appeal.Id) || AppealPolicy.CanSupport(Actor, appeal);
         public AppealFilter Filter { get; init; } = new();
         public AppealLookups Lookups { get; init; } = null!;
 
@@ -18,12 +22,24 @@ namespace CityFix_backend.ViewModels
         public bool IsAdministrator => Actor.Role == UserRole.Administrator;
 
         public AppealDetails? Selected { get; init; }
+
+        // For the "overdue" badges.
+        public DateTime Now { get; init; } = DateTime.UtcNow;
     }
 
     public class DashboardViewModel
     {
         public DashboardKpis Kpis { get; init; } = null!;
         public AppealListViewModel List { get; init; } = null!;
+        public bool Community { get; init; }
+    }
+
+    public class AnalyticsViewModel
+    {
+        public AnalyticsData Data { get; init; } = null!;
+
+        // Staff only.
+        public ManagementData? Management { get; init; }
     }
 
     public class TablePageViewModel<T>
@@ -40,6 +56,21 @@ namespace CityFix_backend.ViewModels
         public string? Q { get; init; }
         public bool IsAdministrator { get; init; }
         public int CurrentUserId { get; init; }
+
+        public IDictionary<string, string>? Route()
+        {
+            var route = new Dictionary<string, string>();
+            if (!string.IsNullOrWhiteSpace(Q)) route["q"] = Q;
+            if (Data.FilterAcab != null) route["acabId"] = Data.FilterAcab.Id.ToString();
+            return route.Count == 0 ? null : route;
+        }
+    }
+
+    public class UserDetailsViewModel
+    {
+        public User User { get; init; } = null!;
+        public PagedResult<Appeal> Appeals { get; init; } = new();
+        public bool IsAdministrator { get; init; }
     }
 
     public class PaginationModel

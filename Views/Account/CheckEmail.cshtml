@@ -2,19 +2,21 @@
 @{
     Layout = "_AuthLayout";
     ViewData["Title"] = L["Auth.CheckEmail.Title"].Value;
+    ViewData["AuthAside"] = true;
 }
 <div class="cf-auth cf-auth--login">
     <div class="cf-auth__card">
         <div class="cf-auth__head">
+            <div class="app-auth-badge" aria-hidden="true"><span class="cf-icon cf-icon--mail cf-icon--6"></span></div>
             <h1 class="cf-auth__title">@L["Auth.CheckEmail.Title"]</h1>
             <p class="cf-auth__sub">@L["Auth.CheckEmail.Sub", Model.Email]</p>
         </div>
         <partial name="_Flash" />
-        <p class="cf-field__hint">@L["Auth.CheckEmail.Hint"]</p>
-        <form asp-action="ResendConfirmation" method="post" class="cf-stack-6">
+        <p class="cf-field__hint app-auth-center">@L["Auth.CheckEmail.Hint"]</p>
+        <form asp-action="ResendConfirmation" method="post">
             <input type="hidden" asp-for="Email" />
-            <div><button type="submit" class="cf-auth__submit">@L["Auth.Resend.Submit"]</button></div>
+            <button type="submit" class="cf-auth__submit cf-auth__submit--outline">@L["Auth.Resend.Submit"]</button>
         </form>
-        <p class="cf-auth__foot"><a class="cf-auth__link" asp-action="Login">@L["Auth.Register.ToLogin"]</a></p>
+        <div class="app-auth-switch"><a class="cf-auth__link app-auth-back" asp-action="Login"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Auth.BackToLogin"]</a></div>
     </div>
 </div>

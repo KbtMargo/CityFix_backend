@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using CityFix_backend.Data;
 using CityFix_backend.Helpers;
 using CityFix_backend.Models;
@@ -37,15 +38,22 @@ namespace CityFix_backend.Services
         public async Task<User> GetActorAsync(int userId) =>
             await FindActorAsync(userId) ?? throw new ForbiddenException($"User {userId} no longer exists or is blocked.");
 
-        public async Task<UsersPage> GetPageAsync(User actor, string? q, int page)
+        public async Task<UsersPage> GetPageAsync(User actor, string? q, int page, int? acabId = null)
         {
             var query = _context.Users.AsNoTracking().Include(u => u.Acab).AsQueryable();
             Acab? ownAcab = null;
+            Acab? filterAcab = null;
             if (actor.Role != UserRole.Administrator)
             {
                 if (actor.Role != UserRole.AcabAdmin) throw new ForbiddenException($"User {actor.Id} may not list users.");
                 ownAcab = actor.AcabId == null ? null : await _context.Acabs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == actor.AcabId);
                 query = actor.AcabId == null ? query.Where(u => u.Id == actor.Id) : query.Where(u => u.AcabId == actor.AcabId);
+            }
+            else if (acabId != null)
+            {
+                filterAcab = await _context.Acabs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == acabId)
+                    ?? throw new NotFoundException($"Association {acabId} does not exist.");
+                query = query.Where(u => u.AcabId == acabId);
             }
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -73,7 +81,20 @@ namespace CityFix_backend.Services
                 return new UserRow(u, appeals, blockedKey);
             });
 
-            return new UsersPage(rows, ownAcab);
+            return new UsersPage(rows, ownAcab, filterAcab);
+        }
+
+        public async Task<User> GetForViewAsync(int id, User actor)
+        {
+            var user = await GetAsync(id);
+            var allowed = actor.Role == UserRole.Administrator
+                || user.Id == actor.Id
+                || (actor.Role == UserRole.AcabAdmin && actor.AcabId != null && user.AcabId == actor.AcabId);
+            if (!allowed)
+            {
+                throw new ForbiddenException($"User {actor.Id} may not view user {id}.");
+            }
+            return user;
         }
 
         public async Task<User> GetAsync(int id) =>
@@ -249,8 +270,53 @@ namespace CityFix_backend.Services
                 .SetProperty(u => u.NotifyInApp, settings.InApp)
                 .SetProperty(u => u.NotifyEmail, settings.Email)
                 .SetProperty(u => u.NotifySms, settings.Sms)
+                .SetProperty(u => u.NotifyTelegram, u => settings.Telegram && u.TelegramChatId != null)
                 .SetProperty(u => u.UpdatedAt, Now));
             if (updated == 0) throw new NotFoundException($"User {userId} does not exist.");
+        }
+
+        public async Task<string> CreateTelegramLinkAsync(int userId, TimeSpan lifetime)
+        {
+            // Goes into a t.me/<bot>?start= link, which allows only letters, digits, "_" and "-".
+            var code = RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 24);
+            var updated = await _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.TelegramLinkCode, code)
+                .SetProperty(u => u.TelegramLinkExpires, Now + lifetime));
+            if (updated == 0) throw new NotFoundException($"User {userId} does not exist.");
+            return code;
+        }
+
+        public async Task<User?> CompleteTelegramLinkAsync(string code, long chatId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.TelegramLinkCode == code);
+            if (user == null || user.IsBlocked || user.TelegramLinkExpires < Now)
+            {
+                return null;
+            }
+
+            user.TelegramChatId = chatId;
+            user.NotifyTelegram = true;
+            user.TelegramLinkCode = null;
+            user.TelegramLinkExpires = null;
+            user.UpdatedAt = Now;
+            await _context.SaveChangesAsync();
+            return user;
+        }
+
+        public Task UnlinkTelegramAsync(int userId) =>
+            _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.TelegramChatId, (long?)null)
+                .SetProperty(u => u.NotifyTelegram, false)
+                .SetProperty(u => u.TelegramLinkCode, (string?)null)
+                .SetProperty(u => u.TelegramLinkExpires, (DateTime?)null));
+
+        public async Task<string?> UnlinkTelegramChatAsync(long chatId)
+        {
+            var language = await _context.Users.Where(u => u.TelegramChatId == chatId).Select(u => u.Language).FirstOrDefaultAsync();
+            await _context.Users.Where(u => u.TelegramChatId == chatId).ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.TelegramChatId, (long?)null)
+                .SetProperty(u => u.NotifyTelegram, false));
+            return language;
         }
 
         public Task SetLanguageAsync(int userId, string language)
@@ -278,7 +344,8 @@ namespace CityFix_backend.Services
 
             return new PersonalDataExport(
                 new PersonalDataExport.ProfileData(user.Email, user.PendingEmail, user.FirstName, user.LastName, user.Phone,
-                    user.Role.ToString(), user.Acab?.Name, user.Language, user.NotifyInApp, user.NotifyEmail, user.NotifySms, user.CreatedAt),
+                    user.Role.ToString(), user.Acab?.Name, user.Language, user.NotifyInApp, user.NotifyEmail, user.NotifySms,
+                    user.NotifyTelegram, user.TelegramChatId != null, user.CreatedAt),
                 appeals.Select(a => new PersonalDataExport.AppealData(
                     a.Id, a.Title, a.Description, a.Address, a.Lat, a.Lng, a.Category?.Name, a.Status.ToString(), a.Priority.ToString(), a.CreatedAt,
                     a.Files.Select(f => f.FileName).ToList(),
@@ -312,7 +379,10 @@ namespace CityFix_backend.Services
             user.Role = UserRole.Resident;
             user.AcabId = null;
             user.IsBlocked = true;
-            user.NotifyInApp = user.NotifyEmail = user.NotifySms = false;
+            user.NotifyInApp = user.NotifyEmail = user.NotifySms = user.NotifyTelegram = false;
+            user.TelegramChatId = null;
+            user.TelegramLinkCode = null;
+            user.TelegramLinkExpires = null;
             user.MustChangePassword = false;
             user.UpdatedAt = Now;
             await _context.SaveChangesAsync();

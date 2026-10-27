@@ -28,7 +28,25 @@
         </nav>
     </div>
     <div class="cf-sidebar__foot cf-stack-4 app-sidebar__foot">
-        <div class="cf-box cf-help-box app-sidebar__help"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+        @* Contacts open on hover or keyboard focus; on touch screens they are always shown. *@
+        <div class="cf-box cf-help-box app-sidebar__help app-help" tabindex="0" aria-describedby="help-contacts">
+            <div class="cf-help-box__title app-help__title"><span class="cf-icon cf-icon--help-circle cf-icon--4" aria-hidden="true"></span>@L["Help.Title"]</div>
+            <div class="cf-help-box__text">@L["Help.Text"]</div>
+            <div class="app-help__contacts" id="help-contacts">
+                @if (Model.Support.Email != null)
+                {
+                    <a class="app-help__contact" href="mailto:@Model.Support.Email"><span class="cf-icon cf-icon--mail cf-icon--4" aria-hidden="true"></span><span>@Model.Support.Email</span></a>
+                }
+                @if (Model.Support.Phone != null)
+                {
+                    <a class="app-help__contact" href="@Model.Support.PhoneLink"><span class="cf-icon cf-icon--phone cf-icon--4" aria-hidden="true"></span><span>@Model.Support.Phone</span></a>
+                }
+                @if (Model.Support.Hours != null)
+                {
+                    <p class="app-help__hours">@Model.Support.Hours</p>
+                }
+            </div>
+        </div>
         <div class="app-user">
             <a class="app-user__main" asp-controller="Account" asp-action="Profile" aria-current="@(Model.ProfileActive ? "page" : null)" data-tip="@L["Nav.Profile"]">
                 <span class="app-user__avatar" aria-hidden="true">@Model.Initials</span>

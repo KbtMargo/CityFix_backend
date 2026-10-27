@@ -16,20 +16,22 @@ public class AppealPolicyTests
         new() { Id = 100, AuthorId = author.Id, AcabId = author.AcabId, Status = status };
 
     [Fact]
-    public void Residents_see_only_their_own_appeals()
+    public void Neighbours_can_view_but_not_change_an_appeal()
     {
         var appeal = AppealBy(Author);
-        Assert.True(AppealPolicy.CanView(Author, appeal));
-        Assert.False(AppealPolicy.CanView(Neighbour, appeal));
+        Assert.True(AppealPolicy.CanView(Neighbour, appeal));
+        Assert.False(AppealPolicy.CanEdit(Neighbour, appeal));
+        Assert.False(AppealPolicy.CanDelete(Neighbour, appeal));
+        Assert.False(AppealPolicy.CanProcess(Neighbour, appeal));
     }
 
     [Fact]
-    public void Heads_see_and_process_only_their_association()
+    public void Heads_process_only_their_association()
     {
         var appeal = AppealBy(Author);
         Assert.True(AppealPolicy.CanProcess(Head, appeal));
-        Assert.False(AppealPolicy.CanView(OtherHead, appeal));
         Assert.False(AppealPolicy.CanProcess(OtherHead, appeal));
+        Assert.False(AppealPolicy.CanEdit(OtherHead, appeal));
         Assert.True(AppealPolicy.CanProcess(Admin, appeal));
     }
 

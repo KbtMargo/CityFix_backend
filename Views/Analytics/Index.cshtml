@@ -1,28 +1,36 @@
-@model AnalyticsData
+@model AnalyticsViewModel
 @{
     ViewData["Title"] = L["Analytics.Title"].Value;
+    var d = Model.Data;
+    var m = Model.Management;
+    var culture = CultureInfo.CurrentUICulture;
     var stats = new[]
     {
-        (Icon: "list-lucide", Label: "Analytics.Total", Value: Model.Total),
-        (Icon: "alert-circle", Label: "Analytics.Waiting", Value: Model.New),
-        (Icon: "trending-up", Label: "Analytics.InProgress", Value: Model.InProgress),
-        (Icon: "check-circle", Label: "Analytics.Resolved", Value: Model.Done)
+        (Icon: "list-lucide", Label: "Analytics.Total", Value: d.Total),
+        (Icon: "alert-circle", Label: "Analytics.Waiting", Value: d.New),
+        (Icon: "trending-up", Label: "Analytics.InProgress", Value: d.InProgress),
+        (Icon: "check-circle", Label: "Analytics.Resolved", Value: d.Done)
     };
     var data = new
     {
-        byCategory = Model.ByCategory,
-        perDay = Model.PerDay,
-        byStatus = Model.ByStatus,
-        byPriority = Model.ByPriority,
-        statusKeys = Model.StatusKeys
+        byCategory = d.ByCategory,
+        perDay = d.PerDay,
+        byStatus = d.ByStatus,
+        byPriority = d.ByPriority,
+        statusKeys = d.StatusKeys,
+        flow = m?.Flow,
+        ratings = m?.Ratings,
+        resolution = m?.ResolutionByCategory,
+        labels = new { created = L["Mgmt.Flow.Created"].Value, closed = L["Mgmt.Flow.Closed"].Value, days = L["Kpi.Days"].Value }
     };
+    string AppealUrl(int id) => Url.Action("Index", "Appeals", new { appealId = id })!;
 }
 <div class="cf-page-head">
     <div>
         <h1 class="cf-page-title">@L["Analytics.Title"]</h1>
         <p class="cf-page-sub">@L["Analytics.Sub"]</p>
     </div>
-    @if (Model.Total > 0)
+    @if (d.Total > 0)
     {
         <div class="cf-toolbar">
             <partial name="_ExportMenu" model="@(new ExportMenuModel("Analytics", new Dictionary<string, string>(), "xlsx", "pdf"))" />
@@ -35,12 +43,12 @@
     {
         <div class="cf-statcard">
             <div class="cf-statcard__tile"><span class="cf-icon cf-icon--@s.Icon cf-icon--6" aria-hidden="true"></span></div>
-            <div><p class="cf-statcard__title">@L[s.Label]</p><p class="cf-statcard__value">@s.Value.ToString("N0", CultureInfo.CurrentUICulture)</p></div>
+            <div><p class="cf-statcard__title">@L[s.Label]</p><p class="cf-statcard__value">@s.Value.ToString("N0", culture)</p></div>
         </div>
     }
 </div>
 
-@if (Model.Total == 0)
+@if (d.Total == 0)
 {
     <div class="cf-empty">
         <div class="cf-empty__tile"><span class="cf-icon cf-icon--chart-bar cf-icon--6" aria-hidden="true"></span></div>
@@ -50,6 +58,185 @@
 }
 else
 {
+    @if (m != null)
+    {
+        <section class="app-mgmt" aria-labelledby="mgmt-title">
+            <div>
+                <h2 class="app-mgmt__title" id="mgmt-title">@L["Mgmt.Title"]</h2>
+                <p class="cf-page-sub">@L["Mgmt.Sub"]</p>
+            </div>
+
+            <div class="app-mgmt__kpis">
+                <div class="app-mgmt-kpi">
+                    <span class="app-mgmt-kpi__icon app-mgmt-kpi__icon--emerald"><span class="cf-icon cf-icon--timer cf-icon--5" aria-hidden="true"></span></span>
+                    <div>
+                        <p class="app-mgmt-kpi__label">@L["Mgmt.OnTime"]</p>
+                        <p class="app-mgmt-kpi__value">@(m.OnTimePercent is int p ? $"{p}%" : "—")</p>
+                        @if (m.OnTimePercent is int pct)
+                        {
+                            <progress class="app-meter" value="@pct" max="100" aria-label="@L["Mgmt.OnTime"]: @pct%"></progress>
+                        }
+                        <p class="app-mgmt-kpi__note">@L["Mgmt.OnTimeNote", m.ClosedWithDeadline]</p>
+                    </div>
+                </div>
+                <div class="app-mgmt-kpi">
+                    <span class="app-mgmt-kpi__icon app-mgmt-kpi__icon--red"><span class="cf-icon cf-icon--alert-circle cf-icon--5" aria-hidden="true"></span></span>
+                    <div>
+                        <p class="app-mgmt-kpi__label">@L["Mgmt.OverdueNow"]</p>
+                        <p class="app-mgmt-kpi__value @(m.OverdueNow > 0 ? "app-overdue" : "")">@m.OverdueNow</p>
+                        <p class="app-mgmt-kpi__note">@L["Mgmt.AvgResolution", m.AvgResolutionDays?.ToString("0.#", culture) ?? "—"]</p>
+                    </div>
+                </div>
+                <div class="app-mgmt-kpi">
+                    <span class="app-mgmt-kpi__icon app-mgmt-kpi__icon--amber"><span class="cf-icon cf-icon--star cf-icon--5" aria-hidden="true"></span></span>
+                    <div>
+                        <p class="app-mgmt-kpi__label">@L["Mgmt.Rating"]</p>
+                        <p class="app-mgmt-kpi__value">@(m.AvgRating?.ToString("0.0", culture) ?? "—")<span class="app-mgmt-kpi__unit"> / 5</span></p>
+                        <p class="app-mgmt-kpi__note">@L["Mgmt.RatingNote", m.RatedCount]</p>
+                    </div>
+                </div>
+                <div class="app-mgmt-kpi">
+                    <span class="app-mgmt-kpi__icon app-mgmt-kpi__icon--violet"><span class="cf-icon cf-icon--rotate-ccw cf-icon--5" aria-hidden="true"></span></span>
+                    <div>
+                        <p class="app-mgmt-kpi__label">@L["Mgmt.Reopened"]</p>
+                        <p class="app-mgmt-kpi__value">@m.ReopenedCount</p>
+                        <p class="app-mgmt-kpi__note">@L["Mgmt.SupportNote", m.SupportTotal]</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cf-grid-2">
+                <div class="cf-card cf-card--p6 app-span-2">
+                    <h5 class="cf-card__h">@L["Mgmt.Flow"]</h5>
+                    <p class="app-card-hint">@L["Mgmt.FlowHint"]</p>
+                    <div class="cf-chart-box"><canvas id="chart-flow" role="img" aria-label="@L["Mgmt.Flow"]"></canvas></div>
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.OverdueList"]</h5>
+                    @if (m.Overdue.Count == 0)
+                    {
+                        <p class="app-list-empty"><span class="cf-icon cf-icon--check-circle cf-icon--4" aria-hidden="true"></span>@L["Mgmt.NoOverdue"]</p>
+                    }
+                    else
+                    {
+                        <ul class="app-rank">
+                            @foreach (var o in m.Overdue)
+                            {
+                                <li>
+                                    <a class="app-rank__main" href="@AppealUrl(o.Id)">
+                                        <span class="app-rank__title">@o.Title</span>
+                                        <span class="app-rank__meta">@o.Responsible · @o.Priority.GetDisplayName()</span>
+                                    </a>
+                                    <span class="cf-badge cf-badge--danger">@L["Mgmt.DaysLate", o.DaysOverdue]</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.MostSupported"]</h5>
+                    @if (m.MostSupported.Count == 0)
+                    {
+                        <p class="app-list-empty">@L["Mgmt.NoSupported"]</p>
+                    }
+                    else
+                    {
+                        var top = m.MostSupported.Max(s => s.Supporters);
+                        <ul class="app-rank">
+                            @foreach (var s in m.MostSupported)
+                            {
+                                <li>
+                                    <a class="app-rank__main" href="@AppealUrl(s.Id)">
+                                        <span class="app-rank__title">@s.Title</span>
+                                        <progress class="app-rank__bar" value="@s.Supporters" max="@top" aria-hidden="true"></progress>
+                                    </a>
+                                    <span class="app-rank__count"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span>@s.Supporters</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.Load"]</h5>
+                    @if (m.Load.Count == 0)
+                    {
+                        <p class="app-list-empty"><span class="cf-icon cf-icon--check-circle cf-icon--4" aria-hidden="true"></span>@L["Mgmt.NoOpen"]</p>
+                    }
+                    else
+                    {
+                        <table class="app-mini-table">
+                            <thead><tr><th scope="col">@L["Field.Responsible"]</th><th scope="col">@L["Mgmt.Load.Open"]</th><th scope="col">@L["Mgmt.Load.Overdue"]</th><th scope="col">@L["Mgmt.Load.Age"]</th></tr></thead>
+                            <tbody>
+                                @foreach (var l in m.Load)
+                                {
+                                    <tr>
+                                        <th scope="row">@l.Name</th>
+                                        <td>@l.Open</td>
+                                        <td class="@(l.Overdue > 0 ? "app-overdue" : "")">@l.Overdue</td>
+                                        <td>@l.AvgAgeDays.ToString("0.#", culture)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.HotSpots"]</h5>
+                    <p class="app-card-hint">@L["Mgmt.HotSpotsHint"]</p>
+                    @if (m.HotSpots.Count == 0)
+                    {
+                        <p class="app-list-empty">@L["Mgmt.NoHotSpots"]</p>
+                    }
+                    else
+                    {
+                        <ul class="app-rank">
+                            @foreach (var h in m.HotSpots)
+                            {
+                                <li>
+                                    <span class="app-rank__main">
+                                        <span class="app-rank__title"><span class="cf-icon cf-icon--flame cf-icon--4 app-flame" aria-hidden="true"></span>@h.Address</span>
+                                        <span class="app-rank__meta">@L["Mgmt.HotSpotOpen", h.Open]</span>
+                                    </span>
+                                    <span class="app-rank__count">@h.Total</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.Ratings"]</h5>
+                    @if (m.RatedCount == 0)
+                    {
+                        <p class="app-list-empty">@L["Mgmt.NoRatings"]</p>
+                    }
+                    else
+                    {
+                        <div class="cf-chart-box"><canvas id="chart-ratings" role="img" aria-label="@L["Mgmt.Ratings"]"></canvas></div>
+                    }
+                </div>
+
+                <div class="cf-card cf-card--p6">
+                    <h5 class="cf-card__h">@L["Mgmt.Resolution"]</h5>
+                    @if (m.ResolutionByCategory.Labels.Count == 0)
+                    {
+                        <p class="app-list-empty">@L["Mgmt.NoResolved"]</p>
+                    }
+                    else
+                    {
+                        <div class="cf-chart-box" data-rows="@m.ResolutionByCategory.Labels.Count"><canvas id="chart-resolution" role="img" aria-label="@L["Mgmt.Resolution"]"></canvas></div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <h2 class="app-mgmt__title">@L["Mgmt.Overview"]</h2>
+    }
+
     <div class="cf-grid-2">
         <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.ByCategory"]</h5><div class="cf-chart-box"><canvas id="chart-category" role="img" aria-label="@L["Analytics.ByCategory"]"></canvas></div></div>
         <div class="cf-card cf-card--p6"><h5 class="cf-card__h">@L["Analytics.PerDay"]</h5><div class="cf-chart-box"><canvas id="chart-day" role="img" aria-label="@L["Analytics.PerDay"]"></canvas></div></div>
@@ -61,7 +248,7 @@ else
 }
 
 @section Scripts {
-    @if (Model.Total > 0)
+    @if (d.Total > 0)
     {
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
                 integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>

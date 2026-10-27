@@ -17,6 +17,7 @@ namespace CityFix_backend.Controllers
             {
                 Page = page.Page,
                 PossibleDuplicates = page.PossibleDuplicates,
+                Supported = page.Supported,
                 Filter = filter,
                 Lookups = await lookups.GetAsync(),
                 Controller = controller,

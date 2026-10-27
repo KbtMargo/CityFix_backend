@@ -1,6 +1,7 @@
 using CityFix_backend.Data;
 using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
@@ -68,21 +69,54 @@ namespace CityFix_backend.Services
                     content = ImageMetadata.Strip(buffer.ToArray(), contentType);
                 }
 
-                var storedName = $"{Guid.NewGuid():N}{Accepted[contentType].Extension}";
+                var name = Guid.NewGuid().ToString("N");
+                var storedName = name + Accepted[contentType].Extension;
                 var fullPath = Path.Combine(folder, storedName);
                 await File.WriteAllBytesAsync(fullPath, content);
                 written.Add(fullPath);
+
+                string? thumbnailPath = null;
+                if (Thumbnails.Create(content) is byte[] thumbnail)
+                {
+                    var thumbnailName = $"{name}_thumb.jpg";
+                    var thumbnailFullPath = Path.Combine(folder, thumbnailName);
+                    await File.WriteAllBytesAsync(thumbnailFullPath, thumbnail);
+                    written.Add(thumbnailFullPath);
+                    thumbnailPath = $"uploads/appeals/{appeal.Id}/{thumbnailName}";
+                }
 
                 _context.AppealFiles.Add(new AppealFile
                 {
                     AppealId = appeal.Id,
                     FileName = Path.GetFileName(photo.FileName),
                     FilePath = $"uploads/appeals/{appeal.Id}/{storedName}",
+                    ThumbnailPath = thumbnailPath,
                     ContentType = contentType,
                     UploadedAt = _clock.GetUtcNow().UtcDateTime
                 });
             }
             return written;
+        }
+
+        public async Task<int> CreateMissingThumbnailsAsync(CancellationToken cancellationToken = default)
+        {
+            var files = await _context.AppealFiles.Where(f => f.ThumbnailPath == null).OrderBy(f => f.Id).ToListAsync(cancellationToken);
+            var created = 0;
+            foreach (var file in files)
+            {
+                var path = PhysicalPathOf(file);
+                if (!File.Exists(path) || Thumbnails.Create(await File.ReadAllBytesAsync(path, cancellationToken)) is not byte[] thumbnail)
+                {
+                    continue;
+                }
+
+                var thumbnailName = $"{Path.GetFileNameWithoutExtension(path)}_thumb.jpg";
+                await File.WriteAllBytesAsync(Path.Combine(Path.GetDirectoryName(path)!, thumbnailName), thumbnail, cancellationToken);
+                file.ThumbnailPath = $"{file.FilePath[..(file.FilePath.LastIndexOf('/') + 1)]}{thumbnailName}";
+                created++;
+            }
+            await _context.SaveChangesAsync(cancellationToken);
+            return created;
         }
 
         public void DeleteFiles(IEnumerable<string> paths)
@@ -102,9 +136,16 @@ namespace CityFix_backend.Services
             }
         }
 
-        public string PhysicalPathOf(AppealFile file)
+        public string PhysicalPathOf(AppealFile file) => Resolve(file, file.FilePath);
+
+        public string? ThumbnailPathOf(AppealFile file) => file.ThumbnailPath == null ? null : Resolve(file, file.ThumbnailPath);
+
+        public IReadOnlyList<string> PhysicalPathsOf(AppealFile file) =>
+            ThumbnailPathOf(file) is string thumbnail ? [PhysicalPathOf(file), thumbnail] : [PhysicalPathOf(file)];
+
+        private string Resolve(AppealFile file, string relative)
         {
-            var path = Path.GetFullPath(Path.Combine(Root, file.FilePath));
+            var path = Path.GetFullPath(Path.Combine(Root, relative));
             if (!path.StartsWith(Root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             {
                 throw new NotFoundException($"File {file.Id} points outside the upload folder.");

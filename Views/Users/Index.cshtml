@@ -3,11 +3,19 @@
     ViewData["Title"] = L["Users.Title"].Value;
     var rows = Model.Data.Page;
     var ownAcab = Model.Data.OwnAcab;
+    var filterAcab = Model.Data.FilterAcab;
 }
 <div>
-    <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+    @if (filterAcab != null)
+    {
+        <a class="cf-back-link" asp-controller="Acabs" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Users.BackToAcabs"]</a>
+    }
+    else
+    {
+        <a class="cf-back-link" asp-controller="Dashboard" asp-action="Index"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Common.BackToDashboard"]</a>
+    }
     <div class="cf-page-head">
-        <h1 class="cf-page-title">@L["Users.Title"]</h1>
+        <h1 class="cf-page-title">@(filterAcab != null ? L["Users.AcabMembers", filterAcab.DisplayName()] : L["Users.Title"])</h1>
         <div class="cf-toolbar">
             <div class="cf-page-head__meta">@L["Users.Total"]: <b>@rows.TotalCount</b></div>
             @if (Model.IsAdministrator)
@@ -29,7 +37,22 @@
     </div>
 }
 
-<partial name="_TableSearch" model="Model.Q" />
+@if (filterAcab != null)
+{
+    <p class="cf-page-sub">
+        @L["Users.AcabMembersHint"]
+        <a class="app-link" asp-action="Index">@L["Users.ShowAll"]</a>
+    </p>
+}
+
+@{
+    var searchData = new ViewDataDictionary(ViewData);
+    if (filterAcab != null)
+    {
+        searchData["SearchKeep"] = new Dictionary<string, string> { ["acabId"] = filterAcab.Id.ToString() };
+    }
+}
+<partial name="_TableSearch" model="Model.Q" view-data="searchData" />
 
 <div class="cf-table-card">
     <div class="cf-table-scroll">
@@ -58,7 +81,7 @@
                     var u = row.User;
                     <tr>
                         <td class="cf-strong">
-                            <div class="cf-table__name">@u.DisplayName()</div>
+                            <div class="cf-table__name"><a class="app-table-link" asp-action="Details" asp-route-id="@u.Id">@u.DisplayName()</a></div>
                             @if (!string.IsNullOrWhiteSpace(u.Phone))
                             {
                                 <div class="cf-table__sub">@u.Phone</div>
@@ -94,5 +117,5 @@
             </tbody>
         </table>
     </div>
-    <partial name="_PaginationBar" model="PaginationModel.For(rows, Model.Q)" />
+    <partial name="_PaginationBar" model="PaginationModel.For(rows, Model.Route())" />
 </div>

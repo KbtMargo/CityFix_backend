@@ -1,9 +1,23 @@
 @model string?
+@{
+    // Extra query values (e.g. an association filter) that searching and resetting must not drop.
+    var keep = ViewData["SearchKeep"] as IDictionary<string, string>;
+    var resetHref = keep == null || keep.Count == 0
+        ? "?"
+        : "?" + string.Join("&", keep.Select(k => $"{Uri.EscapeDataString(k.Key)}={Uri.EscapeDataString(k.Value)}"));
+}
 <form method="get" class="cf-toolbar" role="search">
+    @if (keep != null)
+    {
+        foreach (var (name, value) in keep)
+        {
+            <input type="hidden" name="@name" value="@value" />
+        }
+    }
     <div class="cf-toolbar__grow"><input class="cf-input" type="search" name="q" value="@Model" placeholder="@L["Table.SearchPlaceholder"]" aria-label="@L["Table.Search"]" /></div>
     <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--search cf-icon--4" aria-hidden="true"></span>@L["Table.Search"]</button>
     @if (!string.IsNullOrWhiteSpace(Model))
     {
-        <a class="cf-btn cf-btn--ghost" href="?">@L["Filters.Reset"]</a>
+        <a class="cf-btn cf-btn--ghost" href="@resetHref">@L["Filters.Reset"]</a>
     }
 </form>

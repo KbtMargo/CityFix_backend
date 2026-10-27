@@ -584,4 +584,124 @@
   <data name="Audit.Empty" xml:space="preserve"><value>No entries yet.</value></data>
   <data name="Nav.Audit" xml:space="preserve"><value>Audit log</value></data>
   <data name="Nav.Audit.Sub" xml:space="preserve"><value>Who changed what</value></data>
+  <data name="Users.AcabMembers" xml:space="preserve"><value>Residents: {0}</value></data>
+  <data name="Users.AcabMembersHint" xml:space="preserve"><value>Only users of this association are shown.</value></data>
+  <data name="Users.ShowAll" xml:space="preserve"><value>Show all users</value></data>
+  <data name="Users.BackToAcabs" xml:space="preserve"><value>Back to associations</value></data>
+  <data name="Users.BackToList" xml:space="preserve"><value>Back to users</value></data>
+  <data name="Users.EditUser" xml:space="preserve"><value>Edit</value></data>
+  <data name="Users.Details.Profile" xml:space="preserve"><value>User details</value></data>
+  <data name="Users.Details.Appeals" xml:space="preserve"><value>Appeals</value></data>
+  <data name="Users.Details.AppealsHeadHint" xml:space="preserve"><value>Appeals related to your association are shown.</value></data>
+  <data name="Users.Details.NoAppeals" xml:space="preserve"><value>No appeals.</value></data>
+  <data name="Deadline.Label" xml:space="preserve"><value>Due</value></data>
+  <data name="Deadline.Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Deadline.OverdueSince" xml:space="preserve"><value>Was due {0}</value></data>
+  <data name="Deadline.Closed" xml:space="preserve"><value>Closed</value></data>
+  <data name="Rating.Label" xml:space="preserve"><value>Author's rating</value></data>
+  <data name="Rating.OutOf" xml:space="preserve"><value>{0} out of 5</value></data>
+  <data name="Rating.Title" xml:space="preserve"><value>Rate the result</value></data>
+  <data name="Rating.Hint" xml:space="preserve"><value>Is the problem fixed? Your rating helps the association and city services work better.</value></data>
+  <data name="Rating.Comment" xml:space="preserve"><value>Comment (optional)</value></data>
+  <data name="Rating.Submit" xml:space="preserve"><value>Send rating</value></data>
+  <data name="Reopen.Title" xml:space="preserve"><value>Not fixed?</value></data>
+  <data name="Reopen.Comment" xml:space="preserve"><value>What is still wrong</value></data>
+  <data name="Reopen.Placeholder" xml:space="preserve"><value>For example: the pothole was filled with sand and came back after the rain.</value></data>
+  <data name="Reopen.Hint" xml:space="preserve"><value>The appeal goes back into work with a new deadline.</value></data>
+  <data name="Reopen.Submit" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Appeal.Rated" xml:space="preserve"><value>Thank you for the rating!</value></data>
+  <data name="Appeal.Reopened" xml:space="preserve"><value>The appeal is back in work.</value></data>
+  <data name="Timeline.Rated" xml:space="preserve"><value>The author rated the result: {0} out of 5</value></data>
+  <data name="Validation.RatingClosed" xml:space="preserve"><value>You can rate only your own finished appeal, once, and for a limited time after it was done.</value></data>
+  <data name="Validation.ReopenClosed" xml:space="preserve"><value>This appeal can no longer be reopened. Please file a new one.</value></data>
+  <data name="Validation.ReopenNeedsComment" xml:space="preserve"><value>Describe what is still not fixed.</value></data>
+  <data name="Validation.SupportNotAllowed" xml:space="preserve"><value>You can support only another resident's open appeal.</value></data>
+  <data name="Support.Button" xml:space="preserve"><value>This affects me too</value></data>
+  <data name="Support.Done" xml:space="preserve"><value>You support this</value></data>
+  <data name="Support.Count" xml:space="preserve"><value>Supported by {0}</value></data>
+  <data name="Support.Label" xml:space="preserve"><value>Residents' support</value></data>
+  <data name="Support.Hint" xml:space="preserve"><value>How many residents said the problem affects them too</value></data>
+  <data name="Notifications.SupportedTitle" xml:space="preserve"><value>Update on an appeal you support</value></data>
+  <data name="Notifications.SupportedText" xml:space="preserve"><value>The appeal &quot;{0}&quot; you support is now &quot;{1}&quot;.</value></data>
+  <data name="Notifications.ReopenedTitle" xml:space="preserve"><value>Appeal reopened</value></data>
+  <data name="Notifications.ReopenedText" xml:space="preserve"><value>The author reopened "{0}": the problem is not fixed.</value></data>
+  <data name="Notifications.RatedTitle" xml:space="preserve"><value>New rating</value></data>
+  <data name="Notifications.RatedText" xml:space="preserve"><value>The author rated the result of "{0}": {1} out of 5.</value></data>
+  <data name="Notifications.OverdueTitle" xml:space="preserve"><value>Deadline passed</value></data>
+  <data name="Notifications.OverdueText" xml:space="preserve"><value>The deadline for "{0}" has passed.</value></data>
+  <data name="Sms.Supported" xml:space="preserve"><value>the appeal &quot;{0}&quot; you support is now &quot;{1}&quot;.</value></data>
+  <data name="Sms.Reopened" xml:space="preserve"><value>appeal "{0}" was reopened by its author.</value></data>
+  <data name="Sms.Rated" xml:space="preserve"><value>appeal "{0}" was rated {1} out of 5.</value></data>
+  <data name="Sms.Overdue" xml:space="preserve"><value>the deadline for appeal "{0}" has passed.</value></data>
+  <data name="Profile.Notify.Telegram" xml:space="preserve"><value>In Telegram</value></data>
+  <data name="Profile.Telegram.Title" xml:space="preserve"><value>Telegram</value></data>
+  <data name="Profile.Telegram.Hint" xml:space="preserve"><value>Connect the bot to get notifications in Telegram.</value></data>
+  <data name="Profile.Telegram.LinkedHint" xml:space="preserve"><value>The bot is connected. Turn Telegram notifications on or off under "Notifications".</value></data>
+  <data name="Profile.Telegram.LinkedTo" xml:space="preserve"><value>Messages come from the bot @{0}.</value></data>
+  <data name="Profile.Telegram.Connect" xml:space="preserve"><value>Connect Telegram</value></data>
+  <data name="Profile.Telegram.LinkReady" xml:space="preserve"><value>Open the bot and press "Start". The link works once, for 15 minutes.</value></data>
+  <data name="Profile.Telegram.Open" xml:space="preserve"><value>Open @{0}</value></data>
+  <data name="Profile.Telegram.Check" xml:space="preserve"><value>Check connection</value></data>
+  <data name="Profile.Telegram.Disconnect" xml:space="preserve"><value>Disconnect Telegram</value></data>
+  <data name="Profile.Telegram.Disconnected" xml:space="preserve"><value>Telegram disconnected.</value></data>
+  <data name="Telegram.Linked" xml:space="preserve"><value>Welcome, {0}! Telegram is connected to CityFix; notifications about your appeals will come here. Send /stop to disconnect.</value></data>
+  <data name="Telegram.LinkInvalid" xml:space="preserve"><value>This link is invalid or has expired. Open your profile on the CityFix site and press "Connect Telegram" again.</value></data>
+  <data name="Telegram.OpenFromProfile" xml:space="preserve"><value>To get notifications, open your profile on the CityFix site and press "Connect Telegram".</value></data>
+  <data name="Telegram.Unlinked" xml:space="preserve"><value>Telegram disconnected. Notifications will no longer come here.</value></data>
+  <data name="Telegram.NotLinked" xml:space="preserve"><value>This chat is not connected to any account.</value></data>
+  <data name="Telegram.Help" xml:space="preserve"><value>This is the CityFix notification bot. Connect it from your profile on the site; send /stop to disconnect.</value></data>
+  <data name="Auth.Password.Show" xml:space="preserve"><value>Show password</value></data>
+  <data name="Auth.Password.Hide" xml:space="preserve"><value>Hide password</value></data>
+  <data name="Auth.CapsLock" xml:space="preserve"><value>Caps Lock is on</value></data>
+  <data name="Auth.Password.Rule" xml:space="preserve"><value>At least {0} characters</value></data>
+  <data name="Auth.Password.Match" xml:space="preserve"><value>Passwords match</value></data>
+  <data name="Auth.Password.NoMatch" xml:space="preserve"><value>Passwords do not match</value></data>
+  <data name="Auth.Register.FixErrors" xml:space="preserve"><value>Please check the fields marked below.</value></data>
+  <data name="Auth.Register.AboutYou" xml:space="preserve"><value>About you</value></data>
+  <data name="Auth.Register.SignIn" xml:space="preserve"><value>Sign-in details</value></data>
+  <data name="Auth.Register.PhoneHint" xml:space="preserve"><value>Optional. Needed only for SMS notifications.</value></data>
+  <data name="Auth.Register.EmailHint" xml:space="preserve"><value>We will send a letter to confirm the address.</value></data>
+  <data name="Auth.Forgot.Hint" xml:space="preserve"><value>If the letter does not arrive within a few minutes, check your spam folder.</value></data>
+  <data name="Auth.BackToLogin" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Support.Undo" xml:space="preserve"><value>Press again to undo</value></data>
+  <data name="Dashboard.CommunitySub" xml:space="preserve"><value>All problems in the community. If one affects you too, press &quot;This affects me too&quot; instead of filing a new appeal.</value></data>
+  <data name="Mgmt.Title" xml:space="preserve"><value>Managing appeals</value></data>
+  <data name="Mgmt.Sub" xml:space="preserve"><value>Deadlines, quality and workload: what needs attention right now.</value></data>
+  <data name="Mgmt.Overview" xml:space="preserve"><value>Overall statistics</value></data>
+  <data name="Mgmt.OnTime" xml:space="preserve"><value>Done on time</value></data>
+  <data name="Mgmt.OnTimeNote" xml:space="preserve"><value>of {0} finished appeals with a deadline</value></data>
+  <data name="Mgmt.OverdueNow" xml:space="preserve"><value>Overdue now</value></data>
+  <data name="Mgmt.AvgResolution" xml:space="preserve"><value>Resolved in {0} days on average</value></data>
+  <data name="Mgmt.Rating" xml:space="preserve"><value>Residents&apos; rating</value></data>
+  <data name="Mgmt.RatingNote" xml:space="preserve"><value>ratings: {0}</value></data>
+  <data name="Mgmt.Reopened" xml:space="preserve"><value>Reopened</value></data>
+  <data name="Mgmt.SupportNote" xml:space="preserve"><value>Residents&apos; support on open appeals: {0}</value></data>
+  <data name="Mgmt.Flow" xml:space="preserve"><value>Received and closed per week</value></data>
+  <data name="Mgmt.FlowHint" xml:space="preserve"><value>If the blue bars keep topping the green ones, the backlog is growing.</value></data>
+  <data name="Mgmt.Flow.Created" xml:space="preserve"><value>Received</value></data>
+  <data name="Mgmt.Flow.Closed" xml:space="preserve"><value>Closed</value></data>
+  <data name="Mgmt.OverdueList" xml:space="preserve"><value>Most overdue</value></data>
+  <data name="Mgmt.NoOverdue" xml:space="preserve"><value>No overdue appeals.</value></data>
+  <data name="Mgmt.DaysLate" xml:space="preserve"><value>+{0} d</value></data>
+  <data name="Mgmt.MostSupported" xml:space="preserve"><value>Most supported by residents</value></data>
+  <data name="Mgmt.NoSupported" xml:space="preserve"><value>No open appeals with support yet.</value></data>
+  <data name="Mgmt.Load" xml:space="preserve"><value>Workload by responsible</value></data>
+  <data name="Mgmt.NoOpen" xml:space="preserve"><value>No open appeals.</value></data>
+  <data name="Mgmt.Load.Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Mgmt.Load.Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Mgmt.Load.Age" xml:space="preserve"><value>Avg age, d</value></data>
+  <data name="Mgmt.HotSpots" xml:space="preserve"><value>Problem addresses</value></data>
+  <data name="Mgmt.HotSpotsHint" xml:space="preserve"><value>Addresses with repeated appeals: look for the cause instead of patching the effects.</value></data>
+  <data name="Mgmt.HotSpotOpen" xml:space="preserve"><value>open: {0}</value></data>
+  <data name="Mgmt.NoHotSpots" xml:space="preserve"><value>No repeated appeals at one address.</value></data>
+  <data name="Mgmt.Ratings" xml:space="preserve"><value>Rating distribution</value></data>
+  <data name="Mgmt.NoRatings" xml:space="preserve"><value>Residents have not rated any results yet.</value></data>
+  <data name="Mgmt.Resolution" xml:space="preserve"><value>Average resolution time by category, days</value></data>
+  <data name="Mgmt.NoResolved" xml:space="preserve"><value>No finished appeals yet.</value></data>
+  <data name="Profile.Telegram.Off" xml:space="preserve"><value>not set up</value></data>
+  <data name="Profile.Telegram.SetupHint" xml:space="preserve"><value>Only administrators see this. Once it is set up, residents can connect the bot in their profiles.</value></data>
+  <data name="Profile.Telegram.Step1" xml:space="preserve"><value>In Telegram, open @BotFather and send /newbot.</value></data>
+  <data name="Profile.Telegram.Step2" xml:space="preserve"><value>Choose a name and a username for the bot (it must end with &quot;bot&quot;). BotFather sends you a token.</value></data>
+  <data name="Profile.Telegram.Step3" xml:space="preserve"><value>In the project folder, save the token and the bot&apos;s username (without @):</value></data>
+  <data name="Profile.Telegram.Step4" xml:space="preserve"><value>Restart the app. The &quot;Connect Telegram&quot; button appears in the profile.</value></data>
 </root>

@@ -153,6 +153,57 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Rate(int appealId, int rating, string? comment, string? returnUrl)
+        {
+            try
+            {
+                await _appeals.RateAsync(appealId, new AppealRatingInput(rating, comment), await GetActorAsync());
+                FlashSuccess(L["Appeal.Rated"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+
+            return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reopen(int appealId, string? comment, string? returnUrl)
+        {
+            try
+            {
+                await _appeals.ReopenAsync(appealId, comment, await GetActorAsync());
+                FlashSuccess(L["Appeal.Reopened"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+                TempData["ReopenComment"] = comment;
+            }
+
+            return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("lookup")]
+        public async Task<IActionResult> Support(int id)
+        {
+            try
+            {
+                var result = await _appeals.ToggleSupportAsync(id, await GetActorAsync());
+                return Json(new { result.Supported, result.Count, Label = L["Support.Count", result.Count].Value });
+            }
+            catch (ServiceValidationException ex)
+            {
+                return BadRequest(new { Error = Message(ex) });
+            }
+        }
+
         public async Task<IActionResult> Delete(int id)
         {
             var details = await _appeals.GetDetailsAsync(id, await GetActorAsync());
@@ -186,10 +237,17 @@ namespace CityFix_backend.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Photo(int id)
+        public async Task<IActionResult> Photo(int id, bool thumb = false)
         {
             var file = await _appeals.GetFileAsync(id, await GetActorAsync());
             var path = _files.PhysicalPathOf(file);
+            var contentType = file.ContentType;
+            // Photos uploaded before thumbnails existed fall back to the full image.
+            if (thumb && _files.ThumbnailPathOf(file) is string thumbnail && System.IO.File.Exists(thumbnail))
+            {
+                path = thumbnail;
+                contentType = "image/jpeg";
+            }
             if (!System.IO.File.Exists(path))
             {
                 return NotFound();
@@ -197,7 +255,7 @@ namespace CityFix_backend.Controllers
 
             Response.Headers.CacheControl = "private, max-age=86400";
             Response.Headers.XContentTypeOptions = "nosniff";
-            return PhysicalFile(path, file.ContentType);
+            return PhysicalFile(path, contentType);
         }
 
         [HttpGet]
@@ -217,7 +275,10 @@ namespace CityFix_backend.Controllers
                 Status = s.Status.GetDisplayName(),
                 Date = s.CreatedAt.ToDate(),
                 Distance = L["Appeal.Distance", s.DistanceMeters].Value,
-                Url = s.Visible ? Url.Action(nameof(Index), new { appealId = s.Id }) : null
+                Url = s.Visible ? Url.Action(nameof(Index), new { appealId = s.Id }) : null,
+                s.Supported,
+                s.CanSupport,
+                Supporters = s.SupportCount > 0 ? L["Support.Count", s.SupportCount].Value : null
             }));
         }
 

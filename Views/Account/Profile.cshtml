@@ -84,11 +84,71 @@
                     <label class="cf-check"><input asp-for="Notifications.Sms" /><span>@Html.DisplayNameFor(m => m.Notifications.Sms)</span></label>
                     <p class="cf-field__hint">@(PhoneNumber.ToE164(user.Phone) is string phone ? L["Profile.Notify.SmsTo", phone] : L["Profile.Notify.SmsNoPhone"])</p>
                 </div>
+                @if (Model.TelegramBot != null && Model.TelegramLinked)
+                {
+                    <div>
+                        <label class="cf-check"><input asp-for="Notifications.Telegram" /><span>@Html.DisplayNameFor(m => m.Notifications.Telegram)</span></label>
+                        <p class="cf-field__hint">@L["Profile.Telegram.LinkedTo", Model.TelegramBot]</p>
+                    </div>
+                }
             </div>
             <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
         </form>
     </div>
 </div>
+
+@if (Model.TelegramBot == null && user.Role == UserRole.Administrator)
+{
+    @* Residents never see an unconfigured channel; the administrator learns how to turn it on. *@
+    <div class="cf-card" id="telegram">
+        <div class="cf-card__head">
+            <div class="cf-card__title">@L["Profile.Telegram.Title"] <span class="cf-badge cf-badge--neutral">@L["Profile.Telegram.Off"]</span></div>
+            <div class="cf-card__desc">@L["Profile.Telegram.SetupHint"]</div>
+        </div>
+        <div class="cf-card__body">
+            <ol class="app-steps">
+                <li>@L["Profile.Telegram.Step1"]</li>
+                <li>@L["Profile.Telegram.Step2"]</li>
+                <li>@L["Profile.Telegram.Step3"]<pre class="app-code">dotnet user-secrets set "Telegram:BotToken" "123456:ABC..."
+dotnet user-secrets set "Telegram:BotUsername" "CityFixBot"</pre></li>
+                <li>@L["Profile.Telegram.Step4"]</li>
+            </ol>
+        </div>
+    </div>
+}
+
+@if (Model.TelegramBot != null)
+{
+    var telegramLink = Model.TelegramLink(DateTime.UtcNow);
+    <div class="cf-card" id="telegram">
+        <div class="cf-card__head">
+            <div class="cf-card__title">@L["Profile.Telegram.Title"]</div>
+            <div class="cf-card__desc">@L[Model.TelegramLinked ? "Profile.Telegram.LinkedHint" : "Profile.Telegram.Hint"]</div>
+        </div>
+        <div class="cf-card__body cf-stack-4">
+            @if (Model.TelegramLinked)
+            {
+                <form asp-action="DisconnectTelegram" method="post">
+                    <button type="submit" class="cf-btn cf-btn--outline">@L["Profile.Telegram.Disconnect"]</button>
+                </form>
+            }
+            else if (telegramLink != null)
+            {
+                <p class="cf-help">@L["Profile.Telegram.LinkReady"]</p>
+                <div class="cf-toolbar">
+                    <a class="cf-btn" href="@telegramLink" target="_blank" rel="noopener">@L["Profile.Telegram.Open", Model.TelegramBot]</a>
+                    <a class="cf-btn cf-btn--outline" asp-action="Profile">@L["Profile.Telegram.Check"]</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="ConnectTelegram" method="post">
+                    <button type="submit" class="cf-btn">@L["Profile.Telegram.Connect"]</button>
+                </form>
+            }
+        </div>
+    </div>
+}
 
 <div class="cf-card">
     <div class="cf-card__head">
@@ -99,18 +159,19 @@
         <form asp-action="ChangePassword" method="post" class="cf-stack-6">
             <div>
                 <label class="cf-label" asp-for="ChangePassword.CurrentPassword"></label>
-                <label class="cf-field"><input asp-for="ChangePassword.CurrentPassword" class="cf-input" autocomplete="current-password" /></label>
+                <div class="cf-field app-password"><input asp-for="ChangePassword.CurrentPassword" class="cf-input" autocomplete="current-password" /><partial name="_PasswordToggle" /></div>
                 <span asp-validation-for="ChangePassword.CurrentPassword" class="cf-field__error"></span>
             </div>
             <div class="cf-form-grid">
                 <div>
                     <label class="cf-label" asp-for="ChangePassword.NewPassword"></label>
-                    <label class="cf-field"><input asp-for="ChangePassword.NewPassword" class="cf-input" autocomplete="new-password" /><span class="cf-field__hint">@L["Profile.PasswordHint"]</span></label>
+                    <div class="cf-field app-password"><input asp-for="ChangePassword.NewPassword" class="cf-input" autocomplete="new-password" /><partial name="_PasswordToggle" /></div>
+                    <span class="cf-field__hint">@L["Profile.PasswordHint"]</span>
                     <span asp-validation-for="ChangePassword.NewPassword" class="cf-field__error"></span>
                 </div>
                 <div>
                     <label class="cf-label" asp-for="ChangePassword.ConfirmPassword"></label>
-                    <label class="cf-field"><input asp-for="ChangePassword.ConfirmPassword" class="cf-input" autocomplete="new-password" /></label>
+                    <div class="cf-field app-password"><input asp-for="ChangePassword.ConfirmPassword" class="cf-input" autocomplete="new-password" /><partial name="_PasswordToggle" /></div>
                     <span asp-validation-for="ChangePassword.ConfirmPassword" class="cf-field__error"></span>
                 </div>
             </div>
@@ -130,7 +191,7 @@
             <p class="cf-help">@L["Profile.Delete.Warning"]</p>
             <div>
                 <label class="cf-label" for="delete-password">@L["Field.CurrentPassword"]</label>
-                <label class="cf-field"><input id="delete-password" name="password" type="password" class="cf-input" autocomplete="current-password" required /></label>
+                <div class="cf-field app-password"><input id="delete-password" name="password" type="password" class="cf-input" autocomplete="current-password" required /><partial name="_PasswordToggle" /></div>
             </div>
             <div><button type="submit" class="cf-btn cf-btn--destructive">@L["Profile.Delete.Submit"]</button></div>
         </form>

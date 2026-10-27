@@ -61,10 +61,28 @@ namespace CityFix_backend.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
+        // Deadline from the priority (Appeals:DueDays); recalculated when the priority changes or the appeal is reopened.
+        public DateTime? DueAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+        // Heads are told once when the deadline passes; cleared whenever a new deadline is set.
+        public DateTime? OverdueNotifiedAt { get; set; }
+
+        // The author's verdict after "Done": a 1–5 rating, or a reopen when the problem is still there.
+        public int? Rating { get; set; }
+        [MaxLength(MaxRatingCommentLength)]
+        public string? RatingComment { get; set; }
+        public const int MaxRatingCommentLength = 500;
+        public DateTime? RatedAt { get; set; }
+        public int ReopenCount { get; set; }
+
+        // Residents who reported "this affects me too" instead of filing a duplicate; kept in step with AppealSupports.
+        public int SupportCount { get; set; }
+
         [Timestamp]
         public uint Version { get; set; }
 
         public List<AppealUpdate> Updates { get; set; } = new();
         public List<AppealFile> Files { get; set; } = new();
+        public List<AppealSupport> Supports { get; set; } = new();
     }
 }

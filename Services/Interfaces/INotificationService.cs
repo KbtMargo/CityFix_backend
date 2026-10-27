@@ -10,6 +10,11 @@ namespace CityFix_backend.Services.Interfaces
 
         Task AddAssignedAsync(Appeal appeal, string responsibleName, string? responsibleNameEn, int actorId);
 
+        Task AddSupportersStatusChangedAsync(Appeal appeal, AppealStatus newStatus, int actorId);
+
+        /// <summary>Notifies whoever processes the appeal: the association's heads, or the administrators without one.</summary>
+        Task AddForHeadsAsync(Appeal appeal, NotificationType type, string? message, int? actorId);
+
         Task<PagedResult<Notification>> GetForUserAsync(int userId, bool unreadOnly, int page);
 
         Task<int> DeleteOldAsync(TimeSpan readAge, TimeSpan anyAge);

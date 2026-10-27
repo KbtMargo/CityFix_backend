@@ -10,7 +10,9 @@
     var keptComment = TempData["Comment"] as string;
     var keptStatus = Enum.TryParse<AppealStatus>(TempData["Status"] as string, out var s) ? s : a.Status;
     var keptPriority = Enum.TryParse<AppealPriority>(TempData["Priority"] as string, out var p) ? p : a.Priority;
-    if (updateError != null) { ViewData["FlashHandled"] = true; }
+    // HttpContext.Items rather than ViewData: a <partial> works on a copy of ViewData, so the layout would never see the flag.
+    // Only when a form footer below shows the error; otherwise the page-level flash must.
+    if (updateError != null && (d.CanRate || d.CanProcess)) { Context.Items["FlashHandled"] = true; }
 
     var statuses = new[] { a.Status }.Concat(d.NextStatuses).ToList();
     var responsibleName = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.DisplayName() : a.Recipient?.DisplayName();
@@ -37,7 +39,15 @@
                 <partial name="_StatusPill" model="a.Status" />
                 <span class="cf-pill cf-pill--neutral">@a.Category?.DisplayName()</span>
                 <partial name="_PriorityPill" model="a.Priority" />
+                @if (d.Overdue)
+                {
+                    <span class="cf-badge cf-badge--danger">@L["Deadline.Overdue"]</span>
+                }
             </div>
+            @if (d.CanSupport)
+            {
+                <partial name="_SupportButton" model="(a.Id, d.Supported, a.SupportCount)" />
+            }
         </div>
 
         <div class="cf-modal__body">
@@ -62,7 +72,7 @@
                         <div class="cf-thumbs">
                             @for (var i = 0; i < a.Files.Count; i++)
                             {
-                                <button type="button" class="cf-thumb @(i == 0 ? "is-active" : "")" data-gallery-src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id })" aria-label="@L["Modal.PhotoN", i + 1]"><img src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id })" alt="" /></button>
+                                <button type="button" class="cf-thumb @(i == 0 ? "is-active" : "")" data-gallery-src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id })" aria-label="@L["Modal.PhotoN", i + 1]"><img src="@Url.Action("Photo", "Appeals", new { id = a.Files[i].Id, thumb = true })" alt="" /></button>
                             }
                         </div>
                     }
@@ -94,6 +104,34 @@
                     <div class="cf-fact__label"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span> @L["Modal.Reported"]</div>
                     <p class="cf-fact__value">@a.CreatedAt.ToDateTime()</p>
                 </div>
+                @if (a.DueAt != null && AppealWorkflow.Open.Contains(a.Status))
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--clock cf-icon--4" aria-hidden="true"></span> @L["Deadline.Label"]</div>
+                        <p class="cf-fact__value @(d.Overdue ? "app-overdue" : "")">@a.DueAt.Value.ToDate()@(d.Overdue ? $" · {L["Deadline.Overdue"].Value}" : "")</p>
+                    </div>
+                }
+                @if (a.ClosedAt != null && AppealWorkflow.Closed.Contains(a.Status))
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span> @L["Deadline.Closed"]</div>
+                        <p class="cf-fact__value">@a.ClosedAt.Value.ToDateTime()</p>
+                    </div>
+                }
+                @if (a.Rating != null)
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--check cf-icon--4" aria-hidden="true"></span> @L["Rating.Label"]</div>
+                        <p class="cf-fact__value"><span class="app-stars" aria-hidden="true">@(new string('★', a.Rating.Value))@(new string('☆', 5 - a.Rating.Value))</span> @L["Rating.OutOf", a.Rating.Value]</p>
+                    </div>
+                }
+                @if (a.SupportCount > 0 && !d.CanSupport)
+                {
+                    <div class="cf-fact">
+                        <div class="cf-fact__label"><span class="cf-icon cf-icon--users cf-icon--4" aria-hidden="true"></span> @L["Support.Label"]</div>
+                        <p class="cf-fact__value">@L["Support.Count", a.SupportCount]</p>
+                    </div>
+                }
                 <div class="cf-fact">
                     <div class="cf-fact__label"><span class="cf-icon cf-icon--wrench cf-icon--4" aria-hidden="true"></span> @L["Field.Responsible"]</div>
                     <p class="cf-fact__value">@(responsibleName ?? L["Appeal.NoResponsible"].Value)</p>
@@ -152,6 +190,7 @@
                         if (u.StatusChanged) titles.Add(L["Timeline.StatusChanged", u.OldStatus.GetDisplayName(), u.NewStatus.GetDisplayName()].Value);
                         if (u.PriorityChanged) titles.Add(L["Timeline.PriorityChanged", u.OldPriority!.Value.GetDisplayName(), u.NewPriority!.Value.GetDisplayName()].Value);
                         if (u.AssignedTo != null) titles.Add(L["Timeline.Assigned", u.DisplayAssignedTo()!].Value);
+                        if (u.Rating != null) titles.Add(L["Timeline.Rated", u.Rating.Value].Value);
                         if (titles.Count == 0) titles.Add(L["Timeline.CommentAdded"].Value);
                         <div class="cf-timeline__item">
                             <div class="cf-timeline__dot cf-timeline__dot--@u.NewStatus.PillModifier()"></div>
@@ -171,6 +210,51 @@
                 </div>
             </div>
         </div>
+
+        @if (d.CanRate)
+        {
+            var keptReopen = TempData["ReopenComment"] as string;
+            <div class="cf-modal__foot cf-stack-4">
+                @if (updateError != null)
+                {
+                    <div class="cf-alert" role="alert">@updateError</div>
+                }
+                <form class="cf-update-panel" asp-controller="Appeals" asp-action="Rate" method="post">
+                    <h3 class="cf-update-panel__title">@L["Rating.Title"]</h3>
+                    <p class="cf-help">@L["Rating.Hint"]</p>
+                    <input type="hidden" name="appealId" value="@a.Id" />
+                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                    <fieldset class="app-rating">
+                        <legend class="cf-sr-only">@L["Rating.Label"]</legend>
+                        @for (var r = 5; r >= 1; r--)
+                        {
+                            <input type="radio" id="rating-@r" name="rating" value="@r" required />
+                            <label for="rating-@r" title="@L["Rating.OutOf", r]"><span aria-hidden="true">★</span><span class="cf-sr-only">@L["Rating.OutOf", r]</span></label>
+                        }
+                    </fieldset>
+                    <div>
+                        <label class="cf-label cf-label--muted" for="rating-comment">@L["Rating.Comment"]</label>
+                        <textarea id="rating-comment" name="comment" class="cf-textarea app-control-gap" rows="2" maxlength="@Appeal.MaxRatingCommentLength"></textarea>
+                    </div>
+                    <button type="submit" class="cf-btn cf-btn--block">@L["Rating.Submit"]</button>
+                </form>
+
+                @if (d.CanReopen)
+                {
+                    <form class="cf-update-panel" asp-controller="Appeals" asp-action="Reopen" method="post">
+                        <h3 class="cf-update-panel__title">@L["Reopen.Title"]</h3>
+                        <input type="hidden" name="appealId" value="@a.Id" />
+                        <input type="hidden" name="returnUrl" value="@currentUrl" />
+                        <div>
+                            <label class="cf-label cf-label--muted" for="reopen-comment">@L["Reopen.Comment"]</label>
+                            <textarea id="reopen-comment" name="comment" class="cf-textarea app-control-gap" rows="3" maxlength="@AppealUpdate.MaxCommentLength" required placeholder="@L["Reopen.Placeholder"]">@keptReopen</textarea>
+                            <p class="cf-help">@L["Reopen.Hint"]</p>
+                        </div>
+                        <button type="submit" class="cf-btn cf-btn--outline cf-btn--block">@L["Reopen.Submit"]</button>
+                    </form>
+                }
+            </div>
+        }
 
         @if (d.CanProcess)
         {

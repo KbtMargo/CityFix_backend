@@ -1,5 +1,7 @@
 @{
     var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    // Sign-in pages show the product panel beside the form; error pages that share this layout do not.
+    var aside = ViewData["AuthAside"] is true;
 }
 <!DOCTYPE html>
 <html lang="@lang">
@@ -14,10 +16,29 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="app-auth">
-        <div class="app-auth__home"><partial name="_Logo" /></div>
-        <div class="app-auth__lang"><partial name="_ThemeToggle" /><partial name="_CultureSwitch" /></div>
-        @RenderBody()
+    <div class="app-auth @(aside ? "app-auth--split" : "")">
+        @if (aside)
+        {
+            <aside class="app-auth__aside">
+                <div class="app-auth__aside-logo"><partial name="_Logo" /></div>
+                <div class="app-auth__pitch">
+                    <h2 class="app-auth__pitch-title">@L["Landing.Hero.Title"]</h2>
+                    <p class="app-auth__pitch-text">@L["Landing.Hero.Text"]</p>
+                    <ul class="app-auth__features">
+                        <li><span class="app-auth__feature-icon"><span class="cf-icon cf-icon--map-pin cf-icon--5" aria-hidden="true"></span></span><span><b>@L["Landing.Feature.Map.Title"]</b>@L["Landing.Feature.Map.Text"]</span></li>
+                        <li><span class="app-auth__feature-icon"><span class="cf-icon cf-icon--clock cf-icon--5" aria-hidden="true"></span></span><span><b>@L["Landing.Feature.Status.Title"]</b>@L["Landing.Feature.Status.Text"]</span></li>
+                        <li><span class="app-auth__feature-icon"><span class="cf-icon cf-icon--bell-lucide cf-icon--5" aria-hidden="true"></span></span><span><b>@L["Landing.Feature.Notifications.Title"]</b>@L["Landing.Feature.Notifications.Text"]</span></li>
+                    </ul>
+                </div>
+            </aside>
+        }
+        <div class="app-auth__main">
+            <div class="app-auth__bar">
+                <div class="app-auth__home"><partial name="_Logo" /></div>
+                <div class="app-auth__lang"><partial name="_ThemeToggle" /><partial name="_CultureSwitch" /></div>
+            </div>
+            @RenderBody()
+        </div>
     </div>
     <script src="~/js/site.js" asp-append-version="true"></script>
 </body>

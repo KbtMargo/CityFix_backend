@@ -1,4 +1,5 @@
 using CityFix_backend.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CityFix_backend.Services
 {
@@ -23,7 +24,13 @@ namespace CityFix_backend.Services
         public string? Tab { get; set; }
         public int Page { get; set; } = 1;
 
+        // Both are set by the controller, never from the query string.
+        [BindNever]
         public bool MineOnly { get; set; }
+
+        /// <summary>Every appeal in the community rather than the actor's working scope (the residents' dashboard).</summary>
+        [BindNever]
+        public bool Community { get; set; }
 
         public string CurrentTab => Tab is TabNew or TabInProgress or TabClosed ? Tab : TabAll;
 

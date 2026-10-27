@@ -2,6 +2,7 @@ using CityFix_backend.Data;
 using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
@@ -9,11 +10,13 @@ namespace CityFix_backend.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly TimeProvider _clock;
+        private readonly bool _telegramEnabled;
 
-        public NotificationService(ApplicationDbContext context, TimeProvider clock)
+        public NotificationService(ApplicationDbContext context, TimeProvider clock, IOptions<TelegramOptions> telegram)
         {
             _context = context;
             _clock = clock;
+            _telegramEnabled = telegram.Value.Enabled;
         }
 
         public Task AddStatusChangedAsync(Appeal appeal, AppealStatus? newStatus, string? comment) =>
@@ -38,6 +41,26 @@ namespace CityFix_backend.Services
             await AddAsync(recipients, appeal, NotificationType.Assigned, null, responsibleName, responsibleNameEn);
         }
 
+        public async Task AddSupportersStatusChangedAsync(Appeal appeal, AppealStatus newStatus, int actorId)
+        {
+            // Supporters get the status only: the staff comment is addressed to the author and may be personal.
+            var supporters = await _context.AppealSupports
+                .Where(s => s.AppealId == appeal.Id && s.UserId != actorId && s.UserId != appeal.AuthorId)
+                .Select(s => s.UserId)
+                .ToListAsync();
+            await AddAsync(supporters, appeal, NotificationType.StatusChanged, newStatus, null);
+        }
+
+        public async Task AddForHeadsAsync(Appeal appeal, NotificationType type, string? message, int? actorId)
+        {
+            // Appeals outside an association are processed by the administrators.
+            var heads = appeal.AcabId != null
+                ? await HeadsOfAsync(appeal.AcabId)
+                : await _context.Users.Where(u => u.Role == UserRole.Administrator && !u.IsBlocked).Select(u => u.Id).ToListAsync();
+            if (actorId != null) heads.Remove(actorId.Value);
+            await AddAsync(heads, appeal, type, null, message);
+        }
+
         public const int PageSize = 20;
 
         public Task<PagedResult<Notification>> GetForUserAsync(int userId, bool unreadOnly, int page)
@@ -57,9 +80,9 @@ namespace CityFix_backend.Services
             var now = _clock.GetUtcNow().UtcDateTime;
             var readBefore = now - readAge;
             var anyBefore = now - anyAge;
-            // Rows still waiting for an e-mail/SMS copy are kept until the dispatcher settles them.
+            // Rows still waiting for an e-mail/SMS/Telegram copy are kept until the dispatcher settles them.
             return _context.Notifications
-                .Where(n => n.EmailState != DeliveryState.Pending && n.SmsState != DeliveryState.Pending)
+                .Where(n => n.EmailState != DeliveryState.Pending && n.SmsState != DeliveryState.Pending && n.TelegramState != DeliveryState.Pending)
                 .Where(n => (n.IsRead && n.CreatedAt < readBefore) || n.CreatedAt < anyBefore)
                 .ExecuteDeleteAsync();
         }
@@ -69,7 +92,8 @@ namespace CityFix_backend.Services
 
         public async Task<Notification?> MarkReadAsync(int id, int userId)
         {
-            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId && n.InApp);
+            var notification = await _context.Notifications.Include(n => n.Appeal)
+                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId && n.InApp);
             if (notification != null && !notification.IsRead)
             {
                 notification.IsRead = true;
@@ -90,10 +114,14 @@ namespace CityFix_backend.Services
 
             var recipients = await _context.Users.AsNoTracking()
                 .Where(u => ids.Contains(u.Id))
-                .Select(u => new { u.Id, u.NotifyInApp, Email = u.NotifyEmail && u.EmailConfirmed, Sms = u.NotifySms && u.Phone != null })
+                .Select(u => new
+                {
+                    u.Id, u.NotifyInApp, Email = u.NotifyEmail && u.EmailConfirmed, Sms = u.NotifySms && u.Phone != null,
+                    Telegram = _telegramEnabled && u.NotifyTelegram && u.TelegramChatId != null
+                })
                 .ToListAsync();
 
-            foreach (var user in recipients.Where(u => u.NotifyInApp || u.Email || u.Sms))
+            foreach (var user in recipients.Where(u => u.NotifyInApp || u.Email || u.Sms || u.Telegram))
             {
                 _context.Notifications.Add(new Notification
                 {
@@ -107,6 +135,7 @@ namespace CityFix_backend.Services
                     IsRead = !user.NotifyInApp,
                     EmailState = user.Email ? DeliveryState.Pending : DeliveryState.None,
                     SmsState = user.Sms ? DeliveryState.Pending : DeliveryState.None,
+                    TelegramState = user.Telegram ? DeliveryState.Pending : DeliveryState.None,
                     CreatedAt = _clock.GetUtcNow().UtcDateTime,
                     NextAttemptAt = _clock.GetUtcNow().UtcDateTime
                 });

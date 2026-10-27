@@ -1,6 +1,6 @@
 namespace CityFix_backend.Models
 {
-    public enum NotificationType { StatusChanged, NewAppeal, Assigned }
+    public enum NotificationType { StatusChanged, NewAppeal, Assigned, Reopened, Rated, Overdue }
 
     public enum DeliveryState { None, Pending, Sent, Failed }
 
@@ -25,6 +25,7 @@ namespace CityFix_backend.Models
         public bool InApp { get; set; } = true;
         public DeliveryState EmailState { get; set; }
         public DeliveryState SmsState { get; set; }
+        public DeliveryState TelegramState { get; set; }
 
         public int Attempts { get; set; }
 

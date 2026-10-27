@@ -19,6 +19,7 @@ namespace CityFix_backend.Data
         public DbSet<AppealFile> AppealFiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<AuditEntry> AuditLog { get; set; } = null!;
+        public DbSet<AppealSupport> AppealSupports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,6 +93,15 @@ namespace CityFix_backend.Data
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.EmailState, n.SmsState });
+
+            modelBuilder.Entity<AppealSupport>().HasKey(s => new { s.AppealId, s.UserId });
+            modelBuilder.Entity<AppealSupport>()
+                .HasOne(s => s.Appeal).WithMany(a => a.Supports).HasForeignKey(s => s.AppealId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AppealSupport>()
+                .HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
+
+            appeal.HasIndex(a => a.DueAt);
+            modelBuilder.Entity<User>().HasIndex(u => u.TelegramLinkCode).IsUnique();
 
             modelBuilder.Entity<AuditEntry>().ToTable("AuditLog");
             modelBuilder.Entity<AuditEntry>().HasIndex(e => e.At);

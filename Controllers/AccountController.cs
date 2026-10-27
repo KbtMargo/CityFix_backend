@@ -21,15 +21,17 @@ namespace CityFix_backend.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly string? _publicUrl;
         private readonly IAuditLog _audit;
+        private readonly TelegramOptions _telegram;
 
         public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger,
-            IOptions<NotificationOptions> notifications, IAuditLog audit)
+            IOptions<NotificationOptions> notifications, IAuditLog audit, IOptions<TelegramOptions> telegram)
             : base(users, localizer)
         {
             _auth = auth;
             _logger = logger;
             _publicUrl = notifications.Value.PublicUrl;
             _audit = audit;
+            _telegram = telegram.Value;
         }
 
         public IActionResult Register()
@@ -154,6 +156,11 @@ namespace CityFix_backend.Controllers
             {
                 await TrySendAsync(user.Email, () => _auth.SendPasswordResetAsync(user, ResetLink(user)));
             }
+            else
+            {
+                // Only the log says so; the page answers the same either way.
+                _logger.LogInformation("Password reset requested for {Email}, which has no active account.", EmailAddress.Normalize(model.Email));
+            }
             // The same answer whether or not the address has an account.
             FlashSuccess(L["Auth.Forgot.Sent", EmailAddress.Normalize(model.Email)]);
             return RedirectToAction(nameof(Login));
@@ -248,7 +255,7 @@ namespace CityFix_backend.Controllers
         [Authorize]
         public async Task<IActionResult> Profile()
         {
-            return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId)));
+            return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram));
         }
 
         [Authorize]
@@ -277,7 +284,7 @@ namespace CityFix_backend.Controllers
                 }
             }
 
-            var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+            var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram);
             view.Profile = model;
             return View(nameof(Profile), view);
         }
@@ -306,6 +313,32 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
+        // Issues a one-time code; the profile then shows the bot's start link until it expires. The link is not a redirect
+        // from here, because the form-action policy would block a form post that ends on t.me.
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ConnectTelegram()
+        {
+            if (!_telegram.Enabled)
+            {
+                return NotFound();
+            }
+            await Users.CreateTelegramLinkAsync(CurrentUserId, _telegram.LinkLifetime);
+            return Redirect(Url.Action(nameof(Profile))! + "#telegram");
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DisconnectTelegram()
+        {
+            await Users.UnlinkTelegramAsync(CurrentUserId);
+            FlashSuccess(L["Profile.Telegram.Disconnected"]);
+            return RedirectToAction(nameof(Profile));
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -320,7 +353,7 @@ namespace CityFix_backend.Controllers
 
             if (!ModelState.IsValid)
             {
-                var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+                var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram);
                 view.ChangePassword = model;
                 return View(nameof(Profile), view);
             }

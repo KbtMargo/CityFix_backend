@@ -15,25 +15,40 @@ namespace CityFix_backend.Controllers
 
         private readonly ILookupService _lookups;
         private readonly IAuditLog _audit;
+        private readonly IAppealService _appeals;
 
-        public UsersController(ILookupService lookups, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
+        public UsersController(ILookupService lookups, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit,
+            IAppealService appeals)
             : base(users, localizer)
         {
             _lookups = lookups;
             _audit = audit;
+            _appeals = appeals;
         }
 
         private static string Target(User user) => $"User #{user.Id} {user.Email}";
 
-        public async Task<IActionResult> Index(string? q, int page = 1)
+        // acabId narrows the list to one association's members; heads always see only their own, so it is ignored for them.
+        public async Task<IActionResult> Index(string? q, int page = 1, int? acabId = null)
         {
             var actor = await GetActorAsync();
             return View(new UsersIndexViewModel
             {
-                Data = await Users.GetPageAsync(actor, q, page),
+                Data = await Users.GetPageAsync(actor, q, page, acabId),
                 Q = q,
                 IsAdministrator = actor.Role == UserRole.Administrator,
                 CurrentUserId = actor.Id
+            });
+        }
+
+        public async Task<IActionResult> Details(int id, int page = 1)
+        {
+            var actor = await GetActorAsync();
+            return View(new UserDetailsViewModel
+            {
+                User = await Users.GetForViewAsync(id, actor),
+                Appeals = await _appeals.GetByAuthorAsync(id, actor, page),
+                IsAdministrator = actor.Role == UserRole.Administrator
             });
         }
 

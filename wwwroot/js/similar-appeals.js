@@ -27,13 +27,44 @@
                     if (s.url) { title.href = s.url; title.target = '_blank'; title.rel = 'noopener'; }
                     var meta = document.createElement('span');
                     meta.className = 'app-similar__meta';
-                    meta.textContent = s.status + ' · ' + s.date + ' · ' + s.distance;
+                    meta.textContent = [s.status, s.date, s.distance, s.supporters].filter(Boolean).join(' · ');
                     li.append(title, meta);
+                    if (s.canSupport) li.appendChild(supportButton(s, meta));
                     list.appendChild(li);
                 });
                 box.hidden = items.length === 0;
             })
             .catch(function () { box.hidden = true; });
+    }
+
+    // "Affects me too" instead of a duplicate appeal; pressing it again takes the support back.
+    function supportButton(s, meta) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'cf-btn cf-btn--outline cf-btn--sm app-similar__support';
+        function render(supported) {
+            button.textContent = supported ? box.dataset.supportedLabel : box.dataset.supportLabel;
+            button.setAttribute('aria-pressed', supported ? 'true' : 'false');
+        }
+        render(s.supported);
+        button.addEventListener('click', function () {
+            var token = document.querySelector('input[name="__RequestVerificationToken"]');
+            button.disabled = true;
+            fetch(box.dataset.supportUrl + '/' + s.id, {
+                method: 'POST',
+                headers: { Accept: 'application/json', RequestVerificationToken: token ? token.value : '' }
+            })
+                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                .then(function (result) {
+                    s.supported = result.supported;
+                    s.supporters = result.count > 0 ? result.label : null;
+                    render(result.supported);
+                    meta.textContent = [s.status, s.date, s.distance, s.supporters].filter(Boolean).join(' · ');
+                })
+                .catch(function () { })
+                .finally(function () { button.disabled = false; });
+        });
+        return button;
     }
 
     document.addEventListener('cf:point', check);

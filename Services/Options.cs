@@ -1,3 +1,5 @@
+using CityFix_backend.Models;
+
 namespace CityFix_backend.Services
 {
     public class UploadOptions
@@ -17,6 +19,45 @@ namespace CityFix_backend.Services
 
         public double SimilarRadiusMeters { get; set; } = 500;
         public int SimilarLimit { get; set; } = 5;
+
+        // Days to resolve an appeal, by priority.
+        public int UrgentDays { get; set; } = 2;
+        public int NormalDays { get; set; } = 7;
+        public int LowDays { get; set; } = 14;
+
+        // How long after "Done" the author may confirm or reopen, and how many times an appeal may be reopened.
+        public int FeedbackDays { get; set; } = 14;
+        public int MaxReopens { get; set; } = 3;
+
+        public TimeSpan DueIn(AppealPriority priority) => TimeSpan.FromDays(priority switch
+        {
+            AppealPriority.Urgent => UrgentDays,
+            AppealPriority.Low => LowDays,
+            _ => NormalDays
+        });
+    }
+
+    public class TelegramOptions
+    {
+        public const string Section = "Telegram";
+
+        // From @BotFather. Without a token the Telegram channel is hidden.
+        public string? BotToken { get; set; }
+        public string? BotUsername { get; set; }
+
+        public TimeSpan LinkLifetime { get; set; } = TimeSpan.FromMinutes(15);
+
+        public bool Enabled => !string.IsNullOrWhiteSpace(BotToken) && !string.IsNullOrWhiteSpace(BotUsername);
+    }
+
+    public class SupportOptions
+    {
+        public const string Section = "Support";
+
+        // Shown in the sidebar's help box; without an address the letters' sender (Email:FromAddress) is used.
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Hours { get; set; }
     }
 
     public class GeocodingOptions

@@ -38,7 +38,7 @@
                     var a = row.Acab;
                     <tr>
                         <td class="cf-strong">
-                            <div class="cf-table__name">@a.DisplayName()</div>
+                            <div class="cf-table__name"><a class="app-table-link" asp-controller="Users" asp-action="Index" asp-route-acabId="@a.Id">@a.DisplayName()</a></div>
                             @if (!string.IsNullOrWhiteSpace(a.Address))
                             {
                                 <div class="cf-table__sub">@a.DisplayAddress()</div>
@@ -46,7 +46,7 @@
                         </td>
                         <td><code>@a.ResidentCode</code></td>
                         <td><code>@a.HeadCode</code></td>
-                        <td><span class="cf-tag @(row.MemberCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.MemberCount</span></td>
+                        <td><a class="app-table-link" asp-controller="Users" asp-action="Index" asp-route-acabId="@a.Id" aria-label="@L["Users.AcabMembers", a.DisplayName()]"><span class="cf-tag @(row.MemberCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.MemberCount</span></a></td>
                         <td><span class="cf-tag @(row.AppealCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@row.AppealCount</span></td>
                         <td>
                             <div class="cf-row-actions">

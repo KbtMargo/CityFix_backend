@@ -25,9 +25,10 @@ namespace CityFix_backend.Services
         AppealPriority NewPriority,
         string? Comment);
 
-    public record SimilarAppeal(int Id, string? Title,AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible);
+    public record SimilarAppeal(int Id, string? Title, AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible,
+        int SupportCount = 0, bool Supported = false, bool CanSupport = false);
 
-    public record AppealPage(PagedResult<Appeal> Page, IReadOnlySet<int> PossibleDuplicates);
+    public record AppealPage(PagedResult<Appeal> Page, IReadOnlySet<int> PossibleDuplicates, IReadOnlySet<int> Supported);
 
     public record AppealDetails(
         Appeal Appeal,
@@ -36,7 +37,16 @@ namespace CityFix_backend.Services
         bool CanDelete,
         bool CanProcess,
         bool CanAssign,
-        IReadOnlyList<AppealStatus> NextStatuses);
+        IReadOnlyList<AppealStatus> NextStatuses,
+        bool CanRate = false,
+        bool CanReopen = false,
+        bool Overdue = false,
+        bool CanSupport = false,
+        bool Supported = false);
+
+    public record AppealRatingInput(int Rating, string? Comment);
+
+    public record SupportResult(bool Supported, int Count);
 
     public record AppealExportRow(
         int Id,
@@ -56,14 +66,14 @@ namespace CityFix_backend.Services
 
     public record ProfileInput(string FirstName, string? LastName, string Email, string? Phone);
 
-    public record NotificationSettings(bool InApp, bool Email, bool Sms);
+    public record NotificationSettings(bool InApp, bool Email, bool Sms, bool Telegram = false);
 
     public record UserRow(User User, int AppealCount, string? DeleteBlockedKey)
     {
         public bool CanDelete => DeleteBlockedKey == null;
     }
 
-    public record UsersPage(PagedResult<UserRow> Page, Acab? OwnAcab);
+    public record UsersPage(PagedResult<UserRow> Page, Acab? OwnAcab, Acab? FilterAcab = null);
 
     public record AcabInput(string Name, string? Address, string? NameEn = null, string? AddressEn = null);
 
@@ -98,7 +108,7 @@ namespace CityFix_backend.Services
         DateTime ExportedAt)
     {
         public record ProfileData(string Email, string? PendingEmail, string FirstName, string? LastName, string? Phone, string Role,
-            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, bool NotifySms, DateTime RegisteredAt);
+            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, bool NotifySms, bool NotifyTelegram, bool TelegramLinked, DateTime RegisteredAt);
 
         public record AppealData(int Id, string Title, string? Description, string? Address, decimal? Lat, decimal? Lng, string? Category,
             string Status, string Priority, DateTime CreatedAt, IReadOnlyList<string> Photos, IReadOnlyList<UpdateData> History);
@@ -131,6 +141,26 @@ namespace CityFix_backend.Services
     public record DashboardKpis(Kpi Active, Kpi ClosedThisMonth, Kpi Total, Kpi AvgResponse);
 
     public record ChartData(IReadOnlyList<string> Labels, IReadOnlyList<int> Values);
+
+    public record ChartSeries(IReadOnlyList<string> Labels, IReadOnlyList<double> Values);
+
+    public record WeeklyFlow(IReadOnlyList<string> Labels, IReadOnlyList<int> Created, IReadOnlyList<int> Closed);
+
+    public record OverdueItem(int Id, string Title, int DaysOverdue, string Responsible, AppealPriority Priority);
+
+    public record SupportedItem(int Id, string Title, int Supporters, AppealStatus Status);
+
+    public record ResponsibleLoad(string Name, int Open, int Overdue, double AvgAgeDays);
+
+    public record HotSpot(string Address, int Total, int Open);
+
+    /// <summary>What a head of an association or an administrator needs to run the work: deadlines, quality, load, hot spots.</summary>
+    public record ManagementData(
+        int? OnTimePercent, int ClosedWithDeadline, int OverdueNow, double? AvgResolutionDays,
+        double? AvgRating, int RatedCount, int ReopenedCount, int SupportTotal,
+        WeeklyFlow Flow, ChartData Ratings, ChartSeries ResolutionByCategory,
+        IReadOnlyList<OverdueItem> Overdue, IReadOnlyList<SupportedItem> MostSupported,
+        IReadOnlyList<ResponsibleLoad> Load, IReadOnlyList<HotSpot> HotSpots);
 
     public record AnalyticsData(
         int Total, int New, int InProgress, int Done, int Rejected,

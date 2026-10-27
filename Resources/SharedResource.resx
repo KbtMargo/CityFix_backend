@@ -584,4 +584,124 @@
   <data name="Audit.Empty" xml:space="preserve"><value>Записів ще немає.</value></data>
   <data name="Nav.Audit" xml:space="preserve"><value>Журнал дій</value></data>
   <data name="Nav.Audit.Sub" xml:space="preserve"><value>Хто що змінював</value></data>
+  <data name="Users.AcabMembers" xml:space="preserve"><value>Мешканці: {0}</value></data>
+  <data name="Users.AcabMembersHint" xml:space="preserve"><value>Показано лише користувачів цього ОСББ.</value></data>
+  <data name="Users.ShowAll" xml:space="preserve"><value>Показати всіх користувачів</value></data>
+  <data name="Users.BackToAcabs" xml:space="preserve"><value>До списку ОСББ</value></data>
+  <data name="Users.BackToList" xml:space="preserve"><value>До списку користувачів</value></data>
+  <data name="Users.EditUser" xml:space="preserve"><value>Редагувати</value></data>
+  <data name="Users.Details.Profile" xml:space="preserve"><value>Дані користувача</value></data>
+  <data name="Users.Details.Appeals" xml:space="preserve"><value>Звернення</value></data>
+  <data name="Users.Details.AppealsHeadHint" xml:space="preserve"><value>Показано звернення, що стосуються вашого ОСББ.</value></data>
+  <data name="Users.Details.NoAppeals" xml:space="preserve"><value>Звернень немає.</value></data>
+  <data name="Deadline.Label" xml:space="preserve"><value>Термін виконання</value></data>
+  <data name="Deadline.Overdue" xml:space="preserve"><value>Прострочено</value></data>
+  <data name="Deadline.OverdueSince" xml:space="preserve"><value>Термін минув {0}</value></data>
+  <data name="Deadline.Closed" xml:space="preserve"><value>Закрито</value></data>
+  <data name="Rating.Label" xml:space="preserve"><value>Оцінка автора</value></data>
+  <data name="Rating.OutOf" xml:space="preserve"><value>{0} з 5</value></data>
+  <data name="Rating.Title" xml:space="preserve"><value>Оцініть виконання</value></data>
+  <data name="Rating.Hint" xml:space="preserve"><value>Проблему усунено? Поставте оцінку — це допоможе ОСББ і службам працювати краще.</value></data>
+  <data name="Rating.Comment" xml:space="preserve"><value>Коментар (необов'язково)</value></data>
+  <data name="Rating.Submit" xml:space="preserve"><value>Надіслати оцінку</value></data>
+  <data name="Reopen.Title" xml:space="preserve"><value>Проблему не усунено?</value></data>
+  <data name="Reopen.Comment" xml:space="preserve"><value>Що саме не так</value></data>
+  <data name="Reopen.Placeholder" xml:space="preserve"><value>Наприклад: яму засипали піском, після дощу вона знову з'явилася.</value></data>
+  <data name="Reopen.Hint" xml:space="preserve"><value>Звернення повернеться в роботу з новим терміном виконання.</value></data>
+  <data name="Reopen.Submit" xml:space="preserve"><value>Повернути в роботу</value></data>
+  <data name="Appeal.Rated" xml:space="preserve"><value>Дякуємо за оцінку!</value></data>
+  <data name="Appeal.Reopened" xml:space="preserve"><value>Звернення повернуто в роботу.</value></data>
+  <data name="Timeline.Rated" xml:space="preserve"><value>Автор оцінив виконання: {0} з 5</value></data>
+  <data name="Validation.RatingClosed" xml:space="preserve"><value>Оцінити можна лише власне виконане звернення, один раз і протягом обмеженого часу після виконання.</value></data>
+  <data name="Validation.ReopenClosed" xml:space="preserve"><value>Це звернення вже не можна повернути в роботу. Створіть нове звернення.</value></data>
+  <data name="Validation.ReopenNeedsComment" xml:space="preserve"><value>Опишіть, що саме не усунено.</value></data>
+  <data name="Validation.SupportNotAllowed" xml:space="preserve"><value>Підтримати можна лише відкрите звернення іншого мешканця.</value></data>
+  <data name="Support.Button" xml:space="preserve"><value>Мене це теж стосується</value></data>
+  <data name="Support.Done" xml:space="preserve"><value>Ви підтримали</value></data>
+  <data name="Support.Count" xml:space="preserve"><value>Підтримали: {0}</value></data>
+  <data name="Support.Label" xml:space="preserve"><value>Підтримка мешканців</value></data>
+  <data name="Support.Hint" xml:space="preserve"><value>Скільки мешканців повідомили, що проблема стосується і їх</value></data>
+  <data name="Notifications.SupportedTitle" xml:space="preserve"><value>Оновлення звернення, яке ви підтримали</value></data>
+  <data name="Notifications.SupportedText" xml:space="preserve"><value>Звернення «{0}», яке ви підтримали, тепер має статус «{1}».</value></data>
+  <data name="Notifications.ReopenedTitle" xml:space="preserve"><value>Звернення повернуто в роботу</value></data>
+  <data name="Notifications.ReopenedText" xml:space="preserve"><value>Автор повернув звернення «{0}» у роботу: проблему не усунено.</value></data>
+  <data name="Notifications.RatedTitle" xml:space="preserve"><value>Нова оцінка виконання</value></data>
+  <data name="Notifications.RatedText" xml:space="preserve"><value>Автор оцінив виконання звернення «{0}»: {1} з 5.</value></data>
+  <data name="Notifications.OverdueTitle" xml:space="preserve"><value>Термін виконання минув</value></data>
+  <data name="Notifications.OverdueText" xml:space="preserve"><value>Минув термін виконання звернення «{0}».</value></data>
+  <data name="Sms.Supported" xml:space="preserve"><value>звернення «{0}», яке ви підтримали, — новий статус «{1}».</value></data>
+  <data name="Sms.Reopened" xml:space="preserve"><value>звернення «{0}» повернуто в роботу автором.</value></data>
+  <data name="Sms.Rated" xml:space="preserve"><value>звернення «{0}» оцінено на {1} з 5.</value></data>
+  <data name="Sms.Overdue" xml:space="preserve"><value>минув термін виконання звернення «{0}».</value></data>
+  <data name="Profile.Notify.Telegram" xml:space="preserve"><value>У Telegram</value></data>
+  <data name="Profile.Telegram.Title" xml:space="preserve"><value>Telegram</value></data>
+  <data name="Profile.Telegram.Hint" xml:space="preserve"><value>Підключіть бота, щоб отримувати сповіщення в Telegram.</value></data>
+  <data name="Profile.Telegram.LinkedHint" xml:space="preserve"><value>Бот підключено. Сповіщення в Telegram вмикаються і вимикаються в розділі «Сповіщення».</value></data>
+  <data name="Profile.Telegram.LinkedTo" xml:space="preserve"><value>Повідомлення надсилає бот @{0}.</value></data>
+  <data name="Profile.Telegram.Connect" xml:space="preserve"><value>Підключити Telegram</value></data>
+  <data name="Profile.Telegram.LinkReady" xml:space="preserve"><value>Відкрийте бота і натисніть «Start». Посилання діє 15 хвилин і лише один раз.</value></data>
+  <data name="Profile.Telegram.Open" xml:space="preserve"><value>Відкрити @{0}</value></data>
+  <data name="Profile.Telegram.Check" xml:space="preserve"><value>Перевірити підключення</value></data>
+  <data name="Profile.Telegram.Disconnect" xml:space="preserve"><value>Відключити Telegram</value></data>
+  <data name="Profile.Telegram.Disconnected" xml:space="preserve"><value>Telegram відключено.</value></data>
+  <data name="Telegram.Linked" xml:space="preserve"><value>Вітаємо, {0}! Telegram підключено до CityFix — сюди надходитимуть сповіщення про ваші звернення. Щоб відключити, надішліть /stop.</value></data>
+  <data name="Telegram.LinkInvalid" xml:space="preserve"><value>Посилання недійсне або застаріло. Відкрийте профіль на сайті CityFix і натисніть «Підключити Telegram» ще раз.</value></data>
+  <data name="Telegram.OpenFromProfile" xml:space="preserve"><value>Щоб отримувати сповіщення, відкрийте профіль на сайті CityFix і натисніть «Підключити Telegram».</value></data>
+  <data name="Telegram.Unlinked" xml:space="preserve"><value>Telegram відключено. Сповіщення сюди більше не надходитимуть.</value></data>
+  <data name="Telegram.NotLinked" xml:space="preserve"><value>Цей чат не підключено до жодного облікового запису.</value></data>
+  <data name="Telegram.Help" xml:space="preserve"><value>Це бот сповіщень CityFix. Підключення — з профілю на сайті, відключення — командою /stop.</value></data>
+  <data name="Auth.Password.Show" xml:space="preserve"><value>Показати пароль</value></data>
+  <data name="Auth.Password.Hide" xml:space="preserve"><value>Сховати пароль</value></data>
+  <data name="Auth.CapsLock" xml:space="preserve"><value>Увімкнено Caps Lock</value></data>
+  <data name="Auth.Password.Rule" xml:space="preserve"><value>Щонайменше {0} символів</value></data>
+  <data name="Auth.Password.Match" xml:space="preserve"><value>Паролі збігаються</value></data>
+  <data name="Auth.Password.NoMatch" xml:space="preserve"><value>Паролі не збігаються</value></data>
+  <data name="Auth.Register.FixErrors" xml:space="preserve"><value>Перевірте поля, позначені нижче.</value></data>
+  <data name="Auth.Register.AboutYou" xml:space="preserve"><value>Про вас</value></data>
+  <data name="Auth.Register.SignIn" xml:space="preserve"><value>Дані для входу</value></data>
+  <data name="Auth.Register.PhoneHint" xml:space="preserve"><value>Необов&apos;язково. Потрібен лише для SMS-сповіщень.</value></data>
+  <data name="Auth.Register.EmailHint" xml:space="preserve"><value>Надішлемо лист для підтвердження адреси.</value></data>
+  <data name="Auth.Forgot.Hint" xml:space="preserve"><value>Якщо лист не прийшов за кілька хвилин, перевірте папку «Спам».</value></data>
+  <data name="Auth.BackToLogin" xml:space="preserve"><value>Повернутися до входу</value></data>
+  <data name="Support.Undo" xml:space="preserve"><value>Натисніть ще раз, щоб скасувати</value></data>
+  <data name="Dashboard.CommunitySub" xml:space="preserve"><value>Усі проблеми громади. Якщо проблема стосується і вас, натисніть «Мене це теж стосується» замість нового звернення.</value></data>
+  <data name="Mgmt.Title" xml:space="preserve"><value>Керування зверненнями</value></data>
+  <data name="Mgmt.Sub" xml:space="preserve"><value>Терміни, якість роботи і навантаження: що потребує уваги просто зараз.</value></data>
+  <data name="Mgmt.Overview" xml:space="preserve"><value>Загальна статистика</value></data>
+  <data name="Mgmt.OnTime" xml:space="preserve"><value>Виконано вчасно</value></data>
+  <data name="Mgmt.OnTimeNote" xml:space="preserve"><value>з {0} виконаних звернень із терміном</value></data>
+  <data name="Mgmt.OverdueNow" xml:space="preserve"><value>Прострочено зараз</value></data>
+  <data name="Mgmt.AvgResolution" xml:space="preserve"><value>У середньому вирішуємо за {0} дн.</value></data>
+  <data name="Mgmt.Rating" xml:space="preserve"><value>Оцінка мешканців</value></data>
+  <data name="Mgmt.RatingNote" xml:space="preserve"><value>оцінок: {0}</value></data>
+  <data name="Mgmt.Reopened" xml:space="preserve"><value>Повернуто в роботу</value></data>
+  <data name="Mgmt.SupportNote" xml:space="preserve"><value>Підтримок мешканців у відкритих: {0}</value></data>
+  <data name="Mgmt.Flow" xml:space="preserve"><value>Надходження і закриття по тижнях</value></data>
+  <data name="Mgmt.FlowHint" xml:space="preserve"><value>Якщо сині стовпці стабільно вищі за зелені, черга звернень росте.</value></data>
+  <data name="Mgmt.Flow.Created" xml:space="preserve"><value>Надійшло</value></data>
+  <data name="Mgmt.Flow.Closed" xml:space="preserve"><value>Закрито</value></data>
+  <data name="Mgmt.OverdueList" xml:space="preserve"><value>Найдовше прострочені</value></data>
+  <data name="Mgmt.NoOverdue" xml:space="preserve"><value>Прострочених звернень немає.</value></data>
+  <data name="Mgmt.DaysLate" xml:space="preserve"><value>+{0} дн.</value></data>
+  <data name="Mgmt.MostSupported" xml:space="preserve"><value>Найбільше підтримки мешканців</value></data>
+  <data name="Mgmt.NoSupported" xml:space="preserve"><value>Відкритих звернень з підтримкою поки немає.</value></data>
+  <data name="Mgmt.Load" xml:space="preserve"><value>Навантаження відповідальних</value></data>
+  <data name="Mgmt.NoOpen" xml:space="preserve"><value>Відкритих звернень немає.</value></data>
+  <data name="Mgmt.Load.Open" xml:space="preserve"><value>Відкрито</value></data>
+  <data name="Mgmt.Load.Overdue" xml:space="preserve"><value>Прострочено</value></data>
+  <data name="Mgmt.Load.Age" xml:space="preserve"><value>Сер. вік, дн.</value></data>
+  <data name="Mgmt.HotSpots" xml:space="preserve"><value>Проблемні адреси</value></data>
+  <data name="Mgmt.HotSpotsHint" xml:space="preserve"><value>Адреси з повторними зверненнями: варто шукати причину, а не латати наслідки.</value></data>
+  <data name="Mgmt.HotSpotOpen" xml:space="preserve"><value>відкритих: {0}</value></data>
+  <data name="Mgmt.NoHotSpots" xml:space="preserve"><value>Повторних звернень за однією адресою немає.</value></data>
+  <data name="Mgmt.Ratings" xml:space="preserve"><value>Розподіл оцінок</value></data>
+  <data name="Mgmt.NoRatings" xml:space="preserve"><value>Мешканці ще не оцінювали виконання.</value></data>
+  <data name="Mgmt.Resolution" xml:space="preserve"><value>Середній час вирішення за категоріями, дні</value></data>
+  <data name="Mgmt.NoResolved" xml:space="preserve"><value>Поки немає виконаних звернень.</value></data>
+  <data name="Profile.Telegram.Off" xml:space="preserve"><value>не налаштовано</value></data>
+  <data name="Profile.Telegram.SetupHint" xml:space="preserve"><value>Цей блок бачать лише адміністратори. Після налаштування мешканці зможуть підключити бота у своєму профілі.</value></data>
+  <data name="Profile.Telegram.Step1" xml:space="preserve"><value>У Telegram відкрийте @BotFather і надішліть команду /newbot.</value></data>
+  <data name="Profile.Telegram.Step2" xml:space="preserve"><value>Придумайте назву та ім&apos;я бота (має закінчуватися на «bot»). BotFather надішле токен.</value></data>
+  <data name="Profile.Telegram.Step3" xml:space="preserve"><value>У папці проєкту збережіть токен та ім&apos;я бота (без @):</value></data>
+  <data name="Profile.Telegram.Step4" xml:space="preserve"><value>Перезапустіть застосунок. У профілі з&apos;явиться кнопка «Підключити Telegram».</value></data>
 </root>

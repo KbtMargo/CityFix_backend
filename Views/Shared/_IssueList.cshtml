@@ -6,7 +6,7 @@
     {
         <div class="cf-empty cf-empty--text">@L["Empty.Filtered"]</div>
     }
-    else if (!Model.IsStaff)
+    else if (!Model.IsStaff && !Model.Filter.Community)
     {
         <div class="cf-empty cf-empty--page cf-empty--text">@L["Empty.NoAppealsYet"]</div>
     }
@@ -28,10 +28,13 @@ else
             route["appealId"] = a.Id.ToString();
             var photo = a.Files.FirstOrDefault();
             var responsible = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.DisplayName() : a.Recipient?.DisplayName();
-            <a class="cf-issue cf-card" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">
+            var canSupport = Model.CanSupport(a);
+            var supported = Model.Supported.Contains(a.Id);
+            @* The title link stretches over the whole card, so the support button can sit inside without nesting it in a link. *@
+            <div class="cf-issue cf-card app-issue">
                 <div class="cf-issue__row">
                     <div class="cf-issue__main">
-                        <h4 class="cf-issue__title">@a.DisplayTitle()</h4>
+                        <h4 class="cf-issue__title"><a class="app-issue__link" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="route">@a.DisplayTitle()</a></h4>
                         <div class="cf-issue__tags">
                             <partial name="_StatusPill" model="a.Status" />
                             <partial name="_PriorityPill" model="a.Priority" />
@@ -40,6 +43,14 @@ else
                             {
                                 <span class="cf-badge cf-badge--warning" title="@L["Similar.DuplicateHint"]">@L["Similar.Duplicate"]</span>
                             }
+                            @if (a.IsOverdue(Model.Now))
+                            {
+                                <span class="cf-badge cf-badge--danger" title="@L["Deadline.OverdueSince", a.DueAt!.Value.ToDate()]">@L["Deadline.Overdue"]</span>
+                            }
+                            @if (a.SupportCount > 0 && !canSupport)
+                            {
+                                <span class="cf-badge cf-badge--neutral" title="@L["Support.Hint"]">@L["Support.Count", a.SupportCount]</span>
+                            }
                         </div>
                         <p class="cf-issue__excerpt">@(a.Description ?? L["Appeal.NoDescription"].Value)</p>
                         <div class="cf-issue__meta">
@@ -47,13 +58,17 @@ else
                             <span><span class="cf-icon cf-icon--clock cf-icon--4" aria-hidden="true"></span>@a.CreatedAt.ToDate()</span>
                             <span><span class="cf-icon cf-icon--wrench cf-icon--4" aria-hidden="true"></span>@(responsible ?? L["Appeal.NoResponsible"].Value)</span>
                         </div>
+                        @if (canSupport)
+                        {
+                            <partial name="_SupportButton" model="(a.Id, supported, a.SupportCount)" />
+                        }
                     </div>
                     @if (photo != null)
                     {
-                        <div class="cf-issue__thumb"><img src="@Url.Action("Photo", "Appeals", new { id = photo.Id })" alt="@L["Appeal.PhotoAlt", a.DisplayTitle()]" /></div>
+                        <div class="cf-issue__thumb"><img src="@Url.Action("Photo", "Appeals", new { id = photo.Id, thumb = true })" loading="lazy" alt="@L["Appeal.PhotoAlt", a.DisplayTitle()]" /></div>
                     }
                 </div>
-            </a>
+            </div>
         }
     </div>
     @if (Model.Page.TotalPages > 1)

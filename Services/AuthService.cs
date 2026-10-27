@@ -351,6 +351,7 @@ namespace CityFix_backend.Services
                 }
             }.Render();
             await _email.SendAsync(user.Email, message);
+            _logger.LogInformation("Password letter sent to {Email}.", user.Email);
         }
 
         // Sign-up, "resend" and "forgot password" can be triggered by anyone for any address; cap letters per address to stop mail bombing.

@@ -40,4 +40,47 @@
         data: { labels: data.perDay.labels, datasets: [{ data: data.perDay.values, borderColor: series.blue, backgroundColor: series.blue, borderWidth: 2, tension: 0.4, pointRadius: 3 }] },
         options: base
     });
+
+    // Staff section: inflow vs outflow, residents' ratings, resolution time by category.
+    var flow = document.getElementById('chart-flow');
+    if (flow && data.flow) {
+        new Chart(flow, {
+            type: 'bar',
+            data: {
+                labels: data.flow.labels,
+                datasets: [
+                    { label: data.labels.created, data: data.flow.created, backgroundColor: series.blue, borderRadius: 4, borderSkipped: false },
+                    { label: data.labels.closed, data: data.flow.closed, backgroundColor: series.emerald, borderRadius: 4, borderSkipped: false }
+                ]
+            },
+            options: Object.assign({}, base, {
+                plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2 } } },
+                interaction: { mode: 'index', intersect: false }
+            })
+        });
+    }
+
+    var ratings = document.getElementById('chart-ratings');
+    if (ratings && data.ratings) {
+        bars('chart-ratings', data.ratings, [series.red, series.amber, series.gray, series.cyan, series.emerald]);
+    }
+
+    var resolution = document.getElementById('chart-resolution');
+    if (resolution && data.resolution) {
+        // One row per category; the height follows the number of rows so long lists stay readable.
+        var box = resolution.parentElement;
+        box.style.height = Math.max(160, Number(box.dataset.rows || 1) * 36 + 40) + 'px';
+        new Chart(resolution, {
+            type: 'bar',
+            data: { labels: data.resolution.labels, datasets: [{ data: data.resolution.values, backgroundColor: series.violet, borderRadius: 4, borderSkipped: false, barThickness: 18 }] },
+            options: Object.assign({}, base, {
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#ccc', drawTicks: false }, border: { display: false }, ticks: { color: '#666', font: { size: 12 } } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { color: '#666', font: { size: 12 } } }
+                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.x + ' ' + data.labels.days; } } } }
+            })
+        });
+    }
 })();

@@ -4,12 +4,19 @@ using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.ViewComponents
 {
     public record NavItem(string Controller, string Action, string Icon, string LabelKey, string SubKey, int? Count, bool Active);
 
-    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive)
+    public record SupportContacts(string? Email, string? Phone, string? Hours)
+    {
+        // tel: links take digits and a leading plus only.
+        public string? PhoneLink => Phone == null ? null : "tel:" + new string(Phone.Where(c => char.IsDigit(c) || c == '+').ToArray());
+    }
+
+    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive, SupportContacts Support)
     {
         public string Initials => string.Concat(UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
     }
@@ -19,12 +26,16 @@ namespace CityFix_backend.ViewComponents
         private readonly IUserService _users;
         private readonly IAppealService _appeals;
         private readonly INotificationService _notifications;
+        private readonly SupportContacts _support;
 
-        public SidebarViewComponent(IUserService users, IAppealService appeals, INotificationService notifications)
+        public SidebarViewComponent(IUserService users, IAppealService appeals, INotificationService notifications,
+            IOptions<SupportOptions> support, IOptions<EmailOptions> email)
         {
             _users = users;
             _appeals = appeals;
             _notifications = notifications;
+            static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            _support = new SupportContacts(Clean(support.Value.Email) ?? Clean(email.Value.FromAddress), Clean(support.Value.Phone), Clean(support.Value.Hours));
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -72,7 +83,7 @@ namespace CityFix_backend.ViewComponents
                 }
             }
 
-            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account")));
+            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account"), _support));
         }
     }
 }

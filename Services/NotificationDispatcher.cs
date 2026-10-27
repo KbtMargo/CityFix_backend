@@ -66,6 +66,7 @@ namespace CityFix_backend.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var email = scope.ServiceProvider.GetRequiredService<IEmailSender>();
             var sms = scope.ServiceProvider.GetRequiredService<ISmsSender>();
+            var telegram = scope.ServiceProvider.GetService<ITelegramClient>();
 
             // Lease the batch: pushing NextAttemptAt forward under FOR UPDATE SKIP LOCKED means a second app instance
             // (or a run that crashed mid-batch) cannot pick the same rows and send duplicates until the lease runs out.
@@ -75,7 +76,8 @@ namespace CityFix_backend.Services
                 UPDATE "Notifications" SET "NextAttemptAt" = {leaseUntil}
                 WHERE "Id" IN (
                     SELECT "Id" FROM "Notifications"
-                    WHERE ("EmailState" = {(int)DeliveryState.Pending} OR "SmsState" = {(int)DeliveryState.Pending}) AND "NextAttemptAt" <= {now}
+                    WHERE ("EmailState" = {(int)DeliveryState.Pending} OR "SmsState" = {(int)DeliveryState.Pending}
+                           OR "TelegramState" = {(int)DeliveryState.Pending}) AND "NextAttemptAt" <= {now}
                     ORDER BY "Id"
                     LIMIT {_options.BatchSize}
                     FOR UPDATE SKIP LOCKED)
@@ -99,6 +101,7 @@ namespace CityFix_backend.Services
                 {
                     if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.None;
                     if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.None;
+                    if (notification.TelegramState == DeliveryState.Pending) notification.TelegramState = DeliveryState.None;
                     await db.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -135,6 +138,36 @@ namespace CityFix_backend.Services
                         }
                         else failed = true;
                     }
+
+                    if (notification.TelegramState == DeliveryState.Pending)
+                    {
+                        if (telegram == null || !user.NotifyTelegram || user.TelegramChatId is not long chatId)
+                        {
+                            notification.TelegramState = DeliveryState.None;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                await telegram.SendMessageAsync(chatId, NotificationText.Telegram(notification, AppealLink(notification)), cancellationToken);
+                                notification.TelegramState = DeliveryState.Sent;
+                            }
+                            catch (TelegramChatGoneException)
+                            {
+                                // Retrying cannot help; stop using the chat until the user connects the bot again.
+                                notification.TelegramState = DeliveryState.None;
+                                user.TelegramChatId = null;
+                                user.NotifyTelegram = false;
+                                _logger.LogInformation("User {UserId} blocked the Telegram bot; the chat was disconnected.", user.Id);
+                            }
+                            catch (Exception ex) when (ex is not OperationCanceledException)
+                            {
+                                _logger.LogWarning(ex, "Could not send the Telegram copy of notification {Id} (attempt {Attempt}).",
+                                    notification.Id, notification.Attempts + 1);
+                                failed = true;
+                            }
+                        }
+                    }
                 }
                 finally
                 {
@@ -145,6 +178,7 @@ namespace CityFix_backend.Services
                 {
                     if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.Failed;
                     if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.Failed;
+                    if (notification.TelegramState == DeliveryState.Pending) notification.TelegramState = DeliveryState.Failed;
                 }
                 else if (failed)
                 {

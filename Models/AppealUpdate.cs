@@ -17,6 +17,7 @@ namespace CityFix_backend.Models
         public string? Comment { get; set; }
         public const int MaxCommentLength = 1000;
         public DateTime ChangedAt { get; set; }
+        public int? Rating { get; set; }
         public bool StatusChanged => OldStatus != NewStatus;
         public bool PriorityChanged => NewPriority != null && OldPriority != NewPriority;
     }

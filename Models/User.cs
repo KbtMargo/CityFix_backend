@@ -29,6 +29,13 @@ namespace CityFix_backend.Models
         public bool NotifyInApp { get; set; } = true;
         public bool NotifyEmail { get; set; } = true;
         public bool NotifySms { get; set; }
+        public bool NotifyTelegram { get; set; }
+
+        // Chat with the CityFix bot, set when the user opens the bot from the profile link.
+        public long? TelegramChatId { get; set; }
+        [MaxLength(32)]
+        public string? TelegramLinkCode { get; set; }
+        public DateTime? TelegramLinkExpires { get; set; }
 
         [Display(Name = "Field.FirstName")]
         public string FirstName { get; set; } = "";

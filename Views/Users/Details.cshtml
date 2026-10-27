@@ -1,0 +1,107 @@
+@model UserDetailsViewModel
+@{
+    var user = Model.User;
+    var appeals = Model.Appeals;
+    ViewData["Title"] = user.DisplayName();
+}
+<div>
+    <a class="cf-back-link" asp-action="Index" asp-route-acabId="@(Model.IsAdministrator ? user.AcabId : null)"><span class="cf-icon cf-icon--arrow-left cf-icon--4" aria-hidden="true"></span>@L["Users.BackToList"]</a>
+    <div class="cf-page-head">
+        <h1 class="cf-page-title">@user.DisplayName()</h1>
+        @if (Model.IsAdministrator)
+        {
+            <div class="cf-toolbar">
+                <a class="cf-btn cf-btn--outline cf-btn--icon-gap" asp-action="Edit" asp-route-id="@user.Id"><span class="cf-icon cf-icon--edit cf-icon--4" aria-hidden="true"></span>@L["Users.EditUser"]</a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="cf-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Users.Details.Profile"]</div>
+        <div class="cf-card__desc">
+            <span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span>
+            @if (user.IsBlocked)
+            {
+                <span class="cf-badge cf-badge--danger">@L["Users.BlockedBadge"]</span>
+            }
+        </div>
+    </div>
+    <div class="cf-card__body">
+        <div class="cf-form-grid">
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Email"]</div><p class="cf-fact__value"><a class="app-link" href="mailto:@user.Email">@user.Email</a></p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Phone"]</div><p class="cf-fact__value">
+                @if (string.IsNullOrWhiteSpace(user.Phone))
+                {
+                    @L["Common.NotSpecified"]
+                }
+                else
+                {
+                    <a class="app-link" href="tel:@user.Phone">@user.Phone</a>
+                }
+            </p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">
+                @if (user.Acab == null)
+                {
+                    @L["Common.NotSpecified"]
+                }
+                else if (Model.IsAdministrator)
+                {
+                    <a class="app-link" asp-action="Index" asp-route-acabId="@user.AcabId">@user.Acab.DisplayName()</a>
+                }
+                else
+                {
+                    @user.Acab.DisplayName()
+                }
+            </p></div>
+            <div class="cf-fact"><div class="cf-fact__label">@L["Users.Col.Registered"]</div><p class="cf-fact__value">@user.CreatedAt.ToDate()</p></div>
+        </div>
+    </div>
+</div>
+
+<div class="cf-table-card">
+    <div class="cf-card__head">
+        <div class="cf-card__title">@L["Users.Details.Appeals"] <span class="cf-tag @(appeals.TotalCount > 0 ? "cf-tag--count" : "cf-tag--zero")">@appeals.TotalCount</span></div>
+        @if (!Model.IsAdministrator)
+        {
+            <div class="cf-card__desc">@L["Users.Details.AppealsHeadHint"]</div>
+        }
+    </div>
+    <div class="cf-table-scroll">
+        <table class="cf-table">
+            <thead>
+                <tr>
+                    <th scope="col">@L["Field.Title"]</th>
+                    <th scope="col">@L["Field.Status"]</th>
+                    <th scope="col">@L["Field.Priority"]</th>
+                    <th scope="col">@L["Field.Category"]</th>
+                    <th scope="col">@L["Field.CreatedAt"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (appeals.Items.Count == 0)
+                {
+                    <tr><td colspan="5" class="cf-table__empty">@L["Users.Details.NoAppeals"]</td></tr>
+                }
+                @foreach (var a in appeals.Items)
+                {
+                    <tr>
+                        <td class="cf-strong">
+                            <div class="cf-table__name"><a class="app-table-link" asp-controller="Appeals" asp-action="Index" asp-route-appealId="@a.Id">@a.DisplayTitle()</a></div>
+                            @if (a.Address != null)
+                            {
+                                <div class="cf-table__sub">@a.DisplayAddress()</div>
+                            }
+                        </td>
+                        <td><partial name="_StatusPill" model="a.Status" /></td>
+                        <td><partial name="_PriorityPill" model="a.Priority" /></td>
+                        <td>@a.Category?.DisplayName()</td>
+                        <td>@a.CreatedAt.ToDate()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_PaginationBar" model="PaginationModel.For(appeals)" />
+</div>

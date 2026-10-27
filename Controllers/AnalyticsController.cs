@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using CityFix_backend.Services.Interfaces;
 using CityFix_backend.Services.Reports;
+using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
@@ -19,7 +20,12 @@ namespace CityFix_backend.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _analytics.GetAnalyticsAsync(await GetActorAsync()));
+            var actor = await GetActorAsync();
+            return View(new AnalyticsViewModel
+            {
+                Data = await _analytics.GetAnalyticsAsync(actor),
+                Management = actor.IsStaff ? await _analytics.GetManagementAsync(actor) : null
+            });
         }
 
         [HttpGet]

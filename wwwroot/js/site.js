@@ -287,3 +287,88 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     });
     menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu.open = false; }); });
 });
+
+// "Affects me too" buttons on appeal cards and in the appeal dialog.
+document.querySelectorAll('[data-support]').forEach(function (button) {
+    var box = button.parentElement;
+    var label = button.querySelector('[data-support-label]');
+    var count = box.querySelector('[data-support-count]');
+    var template = count ? count.textContent.replace(/\d+/, '{0}') : '';
+    button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
+        button.disabled = true;
+        fetch(button.dataset.url, { method: 'POST', headers: { Accept: 'application/json', RequestVerificationToken: token ? token.value : '' } })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (result) {
+                button.setAttribute('aria-pressed', result.supported ? 'true' : 'false');
+                button.classList.toggle('cf-btn--outline', !result.supported);
+                button.title = result.supported ? button.dataset.titleOn : '';
+                label.textContent = result.supported ? button.dataset.labelOn : button.dataset.labelOff;
+                if (count) {
+                    count.textContent = template.replace('{0}', result.count);
+                    count.hidden = result.count === 0;
+                }
+            })
+            .catch(function () { })
+            .finally(function () { button.disabled = false; });
+    });
+});
+
+// Password fields: a show/hide button, a Caps Lock warning, and on new-password forms a live length and match check.
+(function () {
+    document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+        var input = button.parentElement.querySelector('input');
+        if (!input) return;
+        var icon = button.querySelector('.cf-icon');
+        button.hidden = false;
+        button.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            var label = show ? button.dataset.labelHide : button.dataset.labelShow;
+            button.setAttribute('aria-pressed', show ? 'true' : 'false');
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            icon.classList.toggle('cf-icon--eye', !show);
+            icon.classList.toggle('cf-icon--eye-off', show);
+            // Keep the caret where it was, so the user can carry on typing.
+            var at = input.selectionStart;
+            input.focus();
+            if (at != null) input.setSelectionRange(at, at);
+        });
+        // A visible password must not end up in the browser's form history or be submitted as text in a back-forward page.
+        input.form && input.form.addEventListener('submit', function () { input.type = 'password'; });
+    });
+
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        var field = input.closest('.app-auth-field');
+        var hint = field && field.querySelector('[data-capslock]');
+        if (!hint) return;
+        function check(e) { if (e.getModifierState) hint.hidden = !e.getModifierState('CapsLock'); }
+        input.addEventListener('keydown', check);
+        input.addEventListener('keyup', check);
+        input.addEventListener('blur', function () { hint.hidden = true; });
+    });
+
+    var password = document.querySelector('[data-password-new]');
+    if (!password) return;
+    var rule = document.querySelector('[data-password-rule]');
+    var confirm = document.querySelector('[data-password-confirm]');
+    var match = document.querySelector('[data-password-match]');
+    function update() {
+        if (rule) {
+            var ok = password.value.length >= Number(rule.dataset.min || 8);
+            rule.classList.toggle('is-ok', ok);
+        }
+        if (confirm && match) {
+            match.hidden = confirm.value.length === 0;
+            var same = confirm.value === password.value;
+            match.textContent = same ? match.dataset.textOk : match.dataset.textBad;
+            match.classList.toggle('is-ok', same);
+            match.classList.toggle('is-bad', !same);
+        }
+    }
+    password.addEventListener('input', update);
+    if (confirm) confirm.addEventListener('input', update);
+    update();
+})();

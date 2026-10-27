@@ -106,6 +106,8 @@ builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOpt
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.Section));
 builder.Services.Configure<SmsOptions>(builder.Configuration.GetSection(SmsOptions.Section));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.Section));
+builder.Services.Configure<SupportOptions>(builder.Configuration.GetSection(SupportOptions.Section));
+builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection(TelegramOptions.Section));
 
 builder.Services.Configure<TranslationOptions>(builder.Configuration.GetSection(TranslationOptions.Section));
 
@@ -158,7 +160,15 @@ else
 {
     builder.Services.AddSingleton<ISmsSender, LogSmsSender>();
 }
+if (builder.Configuration.GetSection(TelegramOptions.Section).Get<TelegramOptions>() is { Enabled: true })
+{
+    // Longer than the 30 s long poll. The bot token is part of every request URL, so these requests are not logged.
+    builder.Services.AddHttpClient<ITelegramClient, TelegramClient>(client => client.Timeout = TimeSpan.FromSeconds(60))
+        .RemoveAllLoggers();
+    builder.Services.AddHostedService<TelegramBotWorker>();
+}
 builder.Services.AddHostedService<NotificationDispatcher>();
+builder.Services.AddHostedService<DeadlineWorker>();
 
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{TranslationOptions.Section}:{nameof(TranslationOptions.DeepLApiKey)}"]))
 {
@@ -174,13 +184,15 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
+// Visual Studio's Browser Link and hot reload load a script from, and talk to, the IDE on another localhost port.
+// Those sources are allowed in development only.
+var devTools = app.Environment.IsDevelopment() ? " http://localhost:* https://localhost:* ws://localhost:* wss://localhost:*" : "";
 var contentSecurityPolicy = string.Join("; ",
     "default-src 'self'",
-    "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+    "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com" + devTools,
     "style-src 'self' https://cdnjs.cloudflare.com",
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com",
-    // Hot reload talks to the dev server over a websocket.
-    app.Environment.IsDevelopment() ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+    "connect-src 'self'" + devTools,
     "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -237,6 +249,12 @@ app.MapControllerRoute(
 
 FileService.MoveLegacyUploads(app.Environment, app.Services.GetRequiredService<IOptions<UploadOptions>>().Value, app.Logger);
 await DbSeeder.SeedAdminAsync(app.Services, app.Logger);
+
+using (var scope = app.Services.CreateScope())
+{
+    var thumbnails = await scope.ServiceProvider.GetRequiredService<IFileService>().CreateMissingThumbnailsAsync();
+    if (thumbnails > 0) app.Logger.LogInformation("Created {Count} missing photo thumbnails.", thumbnails);
+}
 
 if (args.Contains("--seed-demo"))
 {

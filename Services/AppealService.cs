@@ -45,7 +45,12 @@ namespace CityFix_backend.Services
                 .ThenByDescending(a => a.Id)
                 .ToPagedResultAsync(filter.Page);
 
-            return new AppealPage(page, await PossibleDuplicatesAsync(page.Items.Select(a => a.Id).ToList()));
+            var ids = page.Items.Select(a => a.Id).ToList();
+            var supported = await _context.AppealSupports
+                .Where(s => s.UserId == actor.Id && ids.Contains(s.AppealId))
+                .Select(s => s.AppealId)
+                .ToListAsync();
+            return new AppealPage(page, await PossibleDuplicatesAsync(ids), supported.ToHashSet());
         }
 
         public async Task<AppealDetails> GetDetailsAsync(int id, User actor)
@@ -67,6 +72,8 @@ namespace CityFix_backend.Services
                 : Array.Empty<SimilarAppeal>();
 
             var canProcess = AppealPolicy.CanProcess(actor, appeal);
+            var now = Now;
+            var supported = await _context.AppealSupports.AnyAsync(s => s.AppealId == id && s.UserId == actor.Id);
             return new AppealDetails(
                 appeal,
                 similar,
@@ -74,7 +81,12 @@ namespace CityFix_backend.Services
                 AppealPolicy.CanDelete(actor, appeal),
                 canProcess,
                 canProcess && !AppealWorkflow.IsFinal(appeal.Status),
-                AppealWorkflow.NextStatuses(appeal.Status));
+                AppealWorkflow.NextStatuses(appeal.Status),
+                AppealPolicy.CanRate(actor, appeal, now, _options),
+                AppealPolicy.CanReopen(actor, appeal, now, _options),
+                appeal.IsOverdue(now),
+                supported || AppealPolicy.CanSupport(actor, appeal),
+                supported);
         }
 
         public async Task<Appeal> GetForEditAsync(int id, User actor)
@@ -97,6 +109,16 @@ namespace CityFix_backend.Services
             return file;
         }
 
+        public Task<PagedResult<Appeal>> GetByAuthorAsync(int authorId, User actor, int page) =>
+            // VisibleTo keeps a head to the appeals of their own association, even for a resident who later moved in.
+            _context.Appeals.AsNoTracking()
+                .VisibleTo(actor)
+                .Where(a => a.AuthorId == authorId)
+                .Include(a => a.Category)
+                .OrderByDescending(a => a.CreatedAt)
+                .ThenByDescending(a => a.Id)
+                .ToPagedResultAsync(page);
+
         public async Task<int> DeleteFileAsync(int fileId, User actor)
         {
             var file = await _context.AppealFiles
@@ -105,10 +127,10 @@ namespace CityFix_backend.Services
                 ?? throw new NotFoundException($"File {fileId} does not exist.");
             AppealPolicy.EnsureCanEdit(actor, file.Appeal!);
 
-            var path = _files.PhysicalPathOf(file);
+            var paths = _files.PhysicalPathsOf(file);
             _context.AppealFiles.Remove(file);
             await _context.SaveChangesAsync();
-            _files.DeleteFiles(new[] { path });
+            _files.DeleteFiles(paths);
             return file.AppealId;
         }
 
@@ -167,6 +189,7 @@ namespace CityFix_backend.Services
                 CreatedAt = Now
             };
             appeal.UpdatedAt = appeal.CreatedAt;
+            appeal.DueAt = appeal.CreatedAt + _options.DueIn(appeal.Priority);
             await ApplyInputAsync(appeal, input);
             _files.ValidatePhotos(photos);
 
@@ -269,16 +292,160 @@ namespace CityFix_backend.Services
                 Comment = comment,
                 ChangedAt = now
             });
+            if (priorityChanged)
+            {
+                // The deadline keeps its starting point (creation or the last reopen) and takes the new priority's length.
+                var start = (appeal.DueAt ?? appeal.CreatedAt + _options.DueIn(appeal.Priority)) - _options.DueIn(appeal.Priority);
+                appeal.Priority = input.NewPriority;
+                appeal.DueAt = start + _options.DueIn(appeal.Priority);
+                appeal.OverdueNotifiedAt = null;
+            }
+            if (statusChanged && AppealWorkflow.Closed.Contains(input.NewStatus))
+            {
+                appeal.ClosedAt = now;
+            }
             appeal.Status = input.NewStatus;
-            if (priorityChanged) appeal.Priority = input.NewPriority;
             appeal.UpdatedAt = now;
 
             if (appeal.AuthorId != actor.Id && (statusChanged || comment != null))
             {
                 await _notifications.AddStatusChangedAsync(appeal, statusChanged ? input.NewStatus : null, comment);
             }
+            if (statusChanged)
+            {
+                await _notifications.AddSupportersStatusChangedAsync(appeal, input.NewStatus, actor.Id);
+            }
 
             await SaveOrConflictAsync();
+        }
+
+        public async Task RateAsync(int id, AppealRatingInput input, User actor)
+        {
+            var appeal = await _context.Appeals.FirstOrDefaultAsync(a => a.Id == id)
+                ?? throw new NotFoundException($"Appeal {id} does not exist.");
+            AppealPolicy.EnsureCanView(actor, appeal);
+            if (!AppealPolicy.CanRate(actor, appeal, Now, _options))
+            {
+                throw new ServiceValidationException("Rating", "Validation.RatingClosed");
+            }
+            if (input.Rating is < 1 or > 5)
+            {
+                throw new ServiceValidationException("Rating", "Validation.Choose");
+            }
+            var comment = CleanComment(input.Comment, Appeal.MaxRatingCommentLength);
+
+            var now = Now;
+            appeal.Rating = input.Rating;
+            appeal.RatingComment = comment;
+            appeal.RatedAt = now;
+            appeal.UpdatedAt = now;
+            _context.AppealUpdates.Add(new AppealUpdate
+            {
+                AppealId = appeal.Id,
+                OldStatus = appeal.Status,
+                NewStatus = appeal.Status,
+                Rating = input.Rating,
+                Comment = comment,
+                ChangedById = actor.Id,
+                ChangedAt = now
+            });
+            await _notifications.AddForHeadsAsync(appeal, NotificationType.Rated, comment, actor.Id);
+            await SaveOrConflictAsync();
+        }
+
+        public async Task ReopenAsync(int id, string? comment, User actor)
+        {
+            var appeal = await _context.Appeals.FirstOrDefaultAsync(a => a.Id == id)
+                ?? throw new NotFoundException($"Appeal {id} does not exist.");
+            AppealPolicy.EnsureCanView(actor, appeal);
+            if (!AppealPolicy.CanReopen(actor, appeal, Now, _options))
+            {
+                throw new ServiceValidationException("Comment", "Validation.ReopenClosed");
+            }
+            var reason = CleanComment(comment, AppealUpdate.MaxCommentLength)
+                ?? throw new ServiceValidationException("Comment", "Validation.ReopenNeedsComment");
+
+            var now = Now;
+            _context.AppealUpdates.Add(new AppealUpdate
+            {
+                AppealId = appeal.Id,
+                OldStatus = appeal.Status,
+                NewStatus = AppealStatus.InProgress,
+                Comment = reason,
+                ChangedById = actor.Id,
+                ChangedAt = now
+            });
+            appeal.Status = AppealStatus.InProgress;
+            appeal.ReopenCount++;
+            appeal.ClosedAt = null;
+            appeal.DueAt = now + _options.DueIn(appeal.Priority);
+            appeal.OverdueNotifiedAt = null;
+            appeal.UpdatedAt = now;
+            await _notifications.AddForHeadsAsync(appeal, NotificationType.Reopened, reason, actor.Id);
+            await SaveOrConflictAsync();
+        }
+
+        public async Task<SupportResult> ToggleSupportAsync(int id, User actor)
+        {
+            var appeal = await _context.Appeals.FirstOrDefaultAsync(a => a.Id == id)
+                ?? throw new NotFoundException($"Appeal {id} does not exist.");
+            var existing = await _context.AppealSupports.FirstOrDefaultAsync(s => s.AppealId == id && s.UserId == actor.Id);
+
+            if (existing != null)
+            {
+                _context.AppealSupports.Remove(existing);
+            }
+            else if (AppealPolicy.CanSupport(actor, appeal))
+            {
+                _context.AppealSupports.Add(new AppealSupport { AppealId = id, UserId = actor.Id, CreatedAt = Now });
+            }
+            else
+            {
+                throw new ServiceValidationException("Support", "Validation.SupportNotAllowed");
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // A double click raced the first request, which already added or removed the row.
+                _context.ChangeTracker.Clear();
+            }
+
+            // Counted rather than incremented, so concurrent clicks cannot drift the number.
+            var count = await _context.AppealSupports.CountAsync(s => s.AppealId == id);
+            await _context.Appeals.Where(a => a.Id == id).ExecuteUpdateAsync(s => s.SetProperty(a => a.SupportCount, count));
+            return new SupportResult(existing == null, count);
+        }
+
+        public async Task<int> NotifyOverdueAsync()
+        {
+            var now = Now;
+            var overdue = await _context.Appeals
+                .Where(a => a.DueAt != null && a.DueAt < now && a.OverdueNotifiedAt == null && AppealWorkflow.Open.Contains(a.Status))
+                .OrderBy(a => a.DueAt)
+                .Take(100)
+                .ToListAsync();
+
+            foreach (var appeal in overdue)
+            {
+                appeal.OverdueNotifiedAt = now;
+                await _notifications.AddForHeadsAsync(appeal, NotificationType.Overdue, null, actorId: null);
+            }
+            await _context.SaveChangesAsync();
+            return overdue.Count;
+        }
+
+        private static string? CleanComment(string? comment, int max)
+        {
+            var clean = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
+            if (clean?.Length > max)
+            {
+                throw new ServiceValidationException("Comment", "Validation.MaxLength", SharedText.Get("Notifications.Comment"), max);
+            }
+            return clean;
         }
 
         public async Task AssignAsync(int id, ResponsibleKind responsible, int? recipientId, User actor)
@@ -323,7 +490,7 @@ namespace CityFix_backend.Services
 
         private IQueryable<Appeal> Filtered(AppealFilter filter, User actor)
         {
-            var query = _context.Appeals.AsNoTracking().VisibleTo(actor);
+            var query = filter.Community ? _context.Appeals.AsNoTracking() : _context.Appeals.AsNoTracking().VisibleTo(actor);
 
             if (filter.MineOnly)
             {
@@ -406,14 +573,21 @@ namespace CityFix_backend.Services
                 .Where(a => a.Location!.IsWithinDistance(point, radius))
                 .OrderBy(a => a.Location!.Distance(point))
                 .Take(_options.SimilarLimit)
-                .Select(a => new { a.Id, a.Title, a.Language, a.TitleTranslated, a.Status, a.CreatedAt, a.AuthorId, a.AcabId, Distance = a.Location!.Distance(point) })
+                .Select(a => new
+                {
+                    a.Id, a.Title, a.Language, a.TitleTranslated, a.Status, a.CreatedAt, a.AuthorId, a.AcabId, a.SupportCount,
+                    Supported = a.Supports.Any(s => s.UserId == actor.Id),
+                    Distance = a.Location!.Distance(point)
+                })
                 .ToListAsync();
 
             return rows.Select(r =>
             {
-                var visible = AppealPolicy.CanView(actor, new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId });
+                var stub = new Appeal { Id = r.Id, AuthorId = r.AuthorId, AcabId = r.AcabId, Status = r.Status };
+                var visible = AppealPolicy.CanView(actor, stub);
                 var title = visible ? new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated }.DisplayTitle() : null;
-                return new SimilarAppeal(r.Id, title, r.Status, r.CreatedAt, (int)Math.Round(r.Distance), visible);
+                return new SimilarAppeal(r.Id, title, r.Status, r.CreatedAt, (int)Math.Round(r.Distance), visible,
+                    r.SupportCount, r.Supported, r.Supported || AppealPolicy.CanSupport(actor, stub));
             }).ToList();
         }
 
