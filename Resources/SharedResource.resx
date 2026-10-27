@@ -486,11 +486,6 @@
   <data name="Email.ButtonFallback" xml:space="preserve"><value>Якщо кнопка не працює, скопіюйте це посилання в адресний рядок браузера:</value></data>
   <data name="Email.OpenAppeal" xml:space="preserve"><value>Переглянути звернення</value></data>
   <data name="Email.AutoReply" xml:space="preserve"><value>Цей лист надіслано автоматично, відповідати на нього не потрібно.</value></data>
-  <data name="Sms.Status" xml:space="preserve"><value>звернення «{0}» — новий статус «{1}».</value></data>
-  <data name="Sms.Comment" xml:space="preserve"><value>новий коментар до звернення «{0}».</value></data>
-  <data name="Sms.NewAppeal" xml:space="preserve"><value>нове звернення «{0}» у вашому ОСББ.</value></data>
-  <data name="Sms.Assigned" xml:space="preserve"><value>звернення «{0}» передано: {1}.</value></data>
-  <data name="Sms.Details" xml:space="preserve"><value>Деталі: {0}</value></data>
   <data name="Email.NotificationFooter" xml:space="preserve"><value>Канали сповіщень можна змінити в профілі (Профіль → Сповіщення).</value></data>
   <data name="Profile.EmailPending" xml:space="preserve"><value>Ми надіслали лист на {0}. Адреса зміниться після переходу за посиланням.</value></data>
   <data name="Profile.EmailPendingNote" xml:space="preserve"><value>Нова адреса {0} очікує підтвердження. До того для входу і листів використовується {1}.</value></data>
@@ -499,11 +494,8 @@
   <data name="Profile.NotificationsSaved" xml:space="preserve"><value>Налаштування сповіщень збережено.</value></data>
   <data name="Profile.Notify.InApp" xml:space="preserve"><value>У системі (сторінка «Сповіщення»)</value></data>
   <data name="Profile.Notify.Email" xml:space="preserve"><value>На email</value></data>
-  <data name="Profile.Notify.Sms" xml:space="preserve"><value>SMS на телефон</value></data>
   <data name="Profile.Notify.EmailTo" xml:space="preserve"><value>Листи надходитимуть на {0}.</value></data>
   <data name="Profile.Notify.EmailUnconfirmed" xml:space="preserve"><value>Email ще не підтверджено — листи не надсилаються.</value></data>
-  <data name="Profile.Notify.SmsTo" xml:space="preserve"><value>SMS надходитимуть на {0}.</value></data>
-  <data name="Profile.Notify.SmsNoPhone" xml:space="preserve"><value>Вкажіть номер телефону в особистих даних, щоб отримувати SMS.</value></data>
   <data name="Enum.AppealStatus.UnderReview" xml:space="preserve"><value>На розгляді</value></data>
   <data name="Enum.AppealStatus.NeedsInfo" xml:space="preserve"><value>Потребує уточнення</value></data>
   <data name="Enum.AppealStatus.OnHold" xml:space="preserve"><value>Призупинено</value></data>
@@ -629,27 +621,6 @@
   <data name="Notifications.RatedText" xml:space="preserve"><value>Автор оцінив виконання звернення «{0}»: {1} з 5.</value></data>
   <data name="Notifications.OverdueTitle" xml:space="preserve"><value>Термін виконання минув</value></data>
   <data name="Notifications.OverdueText" xml:space="preserve"><value>Минув термін виконання звернення «{0}».</value></data>
-  <data name="Sms.Supported" xml:space="preserve"><value>звернення «{0}», яке ви підтримали, — новий статус «{1}».</value></data>
-  <data name="Sms.Reopened" xml:space="preserve"><value>звернення «{0}» повернуто в роботу автором.</value></data>
-  <data name="Sms.Rated" xml:space="preserve"><value>звернення «{0}» оцінено на {1} з 5.</value></data>
-  <data name="Sms.Overdue" xml:space="preserve"><value>минув термін виконання звернення «{0}».</value></data>
-  <data name="Profile.Notify.Telegram" xml:space="preserve"><value>У Telegram</value></data>
-  <data name="Profile.Telegram.Title" xml:space="preserve"><value>Telegram</value></data>
-  <data name="Profile.Telegram.Hint" xml:space="preserve"><value>Підключіть бота, щоб отримувати сповіщення в Telegram.</value></data>
-  <data name="Profile.Telegram.LinkedHint" xml:space="preserve"><value>Бот підключено. Сповіщення в Telegram вмикаються і вимикаються в розділі «Сповіщення».</value></data>
-  <data name="Profile.Telegram.LinkedTo" xml:space="preserve"><value>Повідомлення надсилає бот @{0}.</value></data>
-  <data name="Profile.Telegram.Connect" xml:space="preserve"><value>Підключити Telegram</value></data>
-  <data name="Profile.Telegram.LinkReady" xml:space="preserve"><value>Відкрийте бота і натисніть «Start». Посилання діє 15 хвилин і лише один раз.</value></data>
-  <data name="Profile.Telegram.Open" xml:space="preserve"><value>Відкрити @{0}</value></data>
-  <data name="Profile.Telegram.Check" xml:space="preserve"><value>Перевірити підключення</value></data>
-  <data name="Profile.Telegram.Disconnect" xml:space="preserve"><value>Відключити Telegram</value></data>
-  <data name="Profile.Telegram.Disconnected" xml:space="preserve"><value>Telegram відключено.</value></data>
-  <data name="Telegram.Linked" xml:space="preserve"><value>Вітаємо, {0}! Telegram підключено до CityFix — сюди надходитимуть сповіщення про ваші звернення. Щоб відключити, надішліть /stop.</value></data>
-  <data name="Telegram.LinkInvalid" xml:space="preserve"><value>Посилання недійсне або застаріло. Відкрийте профіль на сайті CityFix і натисніть «Підключити Telegram» ще раз.</value></data>
-  <data name="Telegram.OpenFromProfile" xml:space="preserve"><value>Щоб отримувати сповіщення, відкрийте профіль на сайті CityFix і натисніть «Підключити Telegram».</value></data>
-  <data name="Telegram.Unlinked" xml:space="preserve"><value>Telegram відключено. Сповіщення сюди більше не надходитимуть.</value></data>
-  <data name="Telegram.NotLinked" xml:space="preserve"><value>Цей чат не підключено до жодного облікового запису.</value></data>
-  <data name="Telegram.Help" xml:space="preserve"><value>Це бот сповіщень CityFix. Підключення — з профілю на сайті, відключення — командою /stop.</value></data>
   <data name="Auth.Password.Show" xml:space="preserve"><value>Показати пароль</value></data>
   <data name="Auth.Password.Hide" xml:space="preserve"><value>Сховати пароль</value></data>
   <data name="Auth.CapsLock" xml:space="preserve"><value>Увімкнено Caps Lock</value></data>
@@ -659,7 +630,6 @@
   <data name="Auth.Register.FixErrors" xml:space="preserve"><value>Перевірте поля, позначені нижче.</value></data>
   <data name="Auth.Register.AboutYou" xml:space="preserve"><value>Про вас</value></data>
   <data name="Auth.Register.SignIn" xml:space="preserve"><value>Дані для входу</value></data>
-  <data name="Auth.Register.PhoneHint" xml:space="preserve"><value>Необов&apos;язково. Потрібен лише для SMS-сповіщень.</value></data>
   <data name="Auth.Register.EmailHint" xml:space="preserve"><value>Надішлемо лист для підтвердження адреси.</value></data>
   <data name="Auth.Forgot.Hint" xml:space="preserve"><value>Якщо лист не прийшов за кілька хвилин, перевірте папку «Спам».</value></data>
   <data name="Auth.BackToLogin" xml:space="preserve"><value>Повернутися до входу</value></data>
@@ -698,10 +668,52 @@
   <data name="Mgmt.NoRatings" xml:space="preserve"><value>Мешканці ще не оцінювали виконання.</value></data>
   <data name="Mgmt.Resolution" xml:space="preserve"><value>Середній час вирішення за категоріями, дні</value></data>
   <data name="Mgmt.NoResolved" xml:space="preserve"><value>Поки немає виконаних звернень.</value></data>
-  <data name="Profile.Telegram.Off" xml:space="preserve"><value>не налаштовано</value></data>
-  <data name="Profile.Telegram.SetupHint" xml:space="preserve"><value>Цей блок бачать лише адміністратори. Після налаштування мешканці зможуть підключити бота у своєму профілі.</value></data>
-  <data name="Profile.Telegram.Step1" xml:space="preserve"><value>У Telegram відкрийте @BotFather і надішліть команду /newbot.</value></data>
-  <data name="Profile.Telegram.Step2" xml:space="preserve"><value>Придумайте назву та ім&apos;я бота (має закінчуватися на «bot»). BotFather надішле токен.</value></data>
-  <data name="Profile.Telegram.Step3" xml:space="preserve"><value>У папці проєкту збережіть токен та ім&apos;я бота (без @):</value></data>
-  <data name="Profile.Telegram.Step4" xml:space="preserve"><value>Перезапустіть застосунок. У профілі з&apos;явиться кнопка «Підключити Telegram».</value></data>
+  <data name="Profile.Security" xml:space="preserve"><value>Безпека</value></data>
+  <data name="Profile.WithUsSince" xml:space="preserve"><value>З нами з {0}</value></data>
+  <data name="Profile.EmailConfirmed" xml:space="preserve"><value>Підтверджено</value></data>
+  <data name="Profile.EmailNotConfirmed" xml:space="preserve"><value>Не підтверджено</value></data>
+  <data name="Profile.Stats.Appeals" xml:space="preserve"><value>Мої звернення</value></data>
+  <data name="Profile.Stats.Open" xml:space="preserve"><value>У роботі</value></data>
+  <data name="Profile.Stats.Done" xml:space="preserve"><value>Вирішено</value></data>
+  <data name="Profile.Stats.Supported" xml:space="preserve"><value>Підтримую</value></data>
+  <data name="Profile.Stats.Unread" xml:space="preserve"><value>Нові сповіщення</value></data>
+  <data name="Profile.EmailChangeHint" xml:space="preserve"><value>Після зміни надішлемо лист для підтвердження нової адреси.</value></data>
+  <data name="Profile.PhoneHint" xml:space="preserve"><value>Бачать лише голова ОСББ та адміністратор, щоб зв&apos;язатися щодо звернення.</value></data>
+  <data name="Profile.Notify.InAppTitle" xml:space="preserve"><value>На сайті</value></data>
+  <data name="Profile.Notify.InAppDesc" xml:space="preserve"><value>Дзвіночок і сторінка «Сповіщення».</value></data>
+  <data name="Profile.Notify.EmailTitle" xml:space="preserve"><value>Електронна пошта</value></data>
+  <data name="Profile.Notify.AllOff" xml:space="preserve"><value>Усі сповіщення вимкнено: ви не дізнаєтеся про зміни у своїх зверненнях.</value></data>
+  <data name="Profile.Data.ExportTitle" xml:space="preserve"><value>Копія ваших даних</value></data>
+  <data name="Profile.Data.ExportDesc" xml:space="preserve"><value>Профіль, звернення та сповіщення одним файлом JSON.</value></data>
+  <data name="Profile.Data.Download" xml:space="preserve"><value>Завантажити</value></data>
+  <data name="Profile.Acab.Title" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Profile.Acab.Hint" xml:space="preserve"><value>Переїхали або стали головою? Змініть ОСББ за кодом від голови чи адміністратора.</value></data>
+  <data name="Profile.Acab.YouAreHead" xml:space="preserve"><value>Ви голова цього ОСББ</value></data>
+  <data name="Profile.Acab.YouAreResident" xml:space="preserve"><value>Ви мешканець</value></data>
+  <data name="Profile.Acab.NoneTitle" xml:space="preserve"><value>Ви не приєднані до ОСББ</value></data>
+  <data name="Profile.Acab.NoneDesc" xml:space="preserve"><value>Ваші звернення надходять до міських служб та адміністраторів.</value></data>
+  <data name="Profile.Acab.JoinLabel" xml:space="preserve"><value>Код ОСББ</value></data>
+  <data name="Profile.Acab.ChangeLabel" xml:space="preserve"><value>Код нового ОСББ або код голови</value></data>
+  <data name="Profile.Acab.Apply" xml:space="preserve"><value>Застосувати</value></data>
+  <data name="Profile.Acab.CodeHint" xml:space="preserve"><value>Код мешканця приєднує вас до ОСББ як мешканця, код голови робить вас головою. Коди видає голова ОСББ або адміністратор.</value></data>
+  <data name="Profile.Acab.OpenStay" xml:space="preserve"><value>Ваші відкриті звернення ({0}) залишаться в поточному ОСББ: їх і далі опрацьовуватиме його голова, а сповіщення надходитимуть вам. Нові звернення підуть до нового ОСББ.</value></data>
+  <data name="Profile.Acab.Leave" xml:space="preserve"><value>Я більше не живу в цьому ОСББ</value></data>
+  <data name="Profile.Acab.LeaveText" xml:space="preserve"><value>Ви вийдете з ОСББ. Подані звернення залишаться в ньому, нові надходитимуть до міських служб, доки ви не приєднаєтеся до іншого ОСББ за кодом.</value></data>
+  <data name="Profile.Acab.LeaveConfirm" xml:space="preserve"><value>Вийти з ОСББ</value></data>
+  <data name="Profile.Acab.StepDown" xml:space="preserve"><value>Скласти повноваження голови</value></data>
+  <data name="Profile.Acab.StepDownText" xml:space="preserve"><value>Ви залишитеся мешканцем цього ОСББ, але більше не опрацьовуватимете звернення. Новий голова приєднається за кодом голови зі сторінки адміністратора.</value></data>
+  <data name="Profile.Acab.StepDownConfirm" xml:space="preserve"><value>Скласти повноваження</value></data>
+  <data name="Profile.Acab.LastHead" xml:space="preserve"><value>Ви єдиний голова цього ОСББ. Доки не з&apos;явиться новий, звернення й сповіщення отримуватимуть адміністратори.</value></data>
+  <data name="Profile.Acab.AlreadyThere" xml:space="preserve"><value>Ви вже в цьому ОСББ з такою роллю.</value></data>
+  <data name="Profile.Acab.None" xml:space="preserve"><value>Ви не приєднані до жодного ОСББ.</value></data>
+  <data name="Profile.Acab.Moved" xml:space="preserve"><value>Готово! Тепер ваше ОСББ: {0}.</value></data>
+  <data name="Profile.Acab.NowHead" xml:space="preserve"><value>Готово! Тепер ви голова: {0}.</value></data>
+  <data name="Profile.Acab.Left" xml:space="preserve"><value>Ви вийшли з ОСББ.</value></data>
+  <data name="Profile.Acab.SteppedDown" xml:space="preserve"><value>Повноваження голови складено. Ви залишаєтеся мешканцем ОСББ.</value></data>
+  <data name="Acabs.NoHead" xml:space="preserve"><value>Без голови</value></data>
+  <data name="Acabs.NoHeadHint" xml:space="preserve"><value>Звернення цього ОСББ отримують адміністратори, доки хтось не приєднається з кодом голови.</value></data>
+  <data name="Nav.Reorder.Hint" xml:space="preserve"><value>Перетягніть пункт на нове місце й відпустіть.</value></data>
+  <data name="Nav.Reorder.Saved" xml:space="preserve"><value>Порядок меню збережено.</value></data>
+  <data name="Nav.Reorder.Reset" xml:space="preserve"><value>Повернути як було</value></data>
+  <data name="Nav.Reorder.Moved" xml:space="preserve"><value>Пункт переміщено на позицію {0}.</value></data>
 </root>

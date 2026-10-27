@@ -39,7 +39,11 @@ namespace CityFix_backend.Services
                 .GroupBy(a => a.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
 
-            return acabs.Map(a => new AcabRow(a, members.GetValueOrDefault(a.Id), appeals.GetValueOrDefault(a.Id)));
+            var heads = await _context.Users.Where(u => u.AcabId != null && ids.Contains(u.AcabId.Value) && u.Role == UserRole.AcabAdmin && !u.IsBlocked)
+                .GroupBy(u => u.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count);
+
+            return acabs.Map(a => new AcabRow(a, members.GetValueOrDefault(a.Id), appeals.GetValueOrDefault(a.Id), heads.GetValueOrDefault(a.Id)));
         }
 
         public async Task<Acab> GetAsync(int id) =>

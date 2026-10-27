@@ -32,17 +32,7 @@ namespace CityFix_backend.Services.Interfaces
 
         Task SetLanguageAsync(int userId, string language);
 
-        /// <summary>Issues a one-time code for the bot's start link; a newer code replaces the previous one.</summary>
-        Task<string> CreateTelegramLinkAsync(int userId, TimeSpan lifetime);
-
-        /// <summary>Connects the chat that sent a valid code; null when the code is unknown or expired.</summary>
-        Task<User?> CompleteTelegramLinkAsync(string code, long chatId);
-
-        Task UnlinkTelegramAsync(int userId);
-
-        /// <summary>Disconnects every account using the chat; returns the language of one of them, or null if none was linked.</summary>
-        Task<string?> UnlinkTelegramChatAsync(long chatId);
-
+        Task<ProfileStats> GetProfileStatsAsync(int userId);
         Task<PersonalDataExport> ExportPersonalDataAsync(int userId);
 
         Task AnonymizeAsync(int userId);

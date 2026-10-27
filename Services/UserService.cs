@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using CityFix_backend.Data;
 using CityFix_backend.Helpers;
 using CityFix_backend.Models;
@@ -269,54 +268,26 @@ namespace CityFix_backend.Services
             var updated = await _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.NotifyInApp, settings.InApp)
                 .SetProperty(u => u.NotifyEmail, settings.Email)
-                .SetProperty(u => u.NotifySms, settings.Sms)
-                .SetProperty(u => u.NotifyTelegram, u => settings.Telegram && u.TelegramChatId != null)
                 .SetProperty(u => u.UpdatedAt, Now));
             if (updated == 0) throw new NotFoundException($"User {userId} does not exist.");
         }
 
-        public async Task<string> CreateTelegramLinkAsync(int userId, TimeSpan lifetime)
+        public async Task<ProfileStats> GetProfileStatsAsync(int userId)
         {
-            // Goes into a t.me/<bot>?start= link, which allows only letters, digits, "_" and "-".
-            var code = RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 24);
-            var updated = await _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.TelegramLinkCode, code)
-                .SetProperty(u => u.TelegramLinkExpires, Now + lifetime));
-            if (updated == 0) throw new NotFoundException($"User {userId} does not exist.");
-            return code;
-        }
-
-        public async Task<User?> CompleteTelegramLinkAsync(string code, long chatId)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.TelegramLinkCode == code);
-            if (user == null || user.IsBlocked || user.TelegramLinkExpires < Now)
-            {
-                return null;
-            }
-
-            user.TelegramChatId = chatId;
-            user.NotifyTelegram = true;
-            user.TelegramLinkCode = null;
-            user.TelegramLinkExpires = null;
-            user.UpdatedAt = Now;
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public Task UnlinkTelegramAsync(int userId) =>
-            _context.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.TelegramChatId, (long?)null)
-                .SetProperty(u => u.NotifyTelegram, false)
-                .SetProperty(u => u.TelegramLinkCode, (string?)null)
-                .SetProperty(u => u.TelegramLinkExpires, (DateTime?)null));
-
-        public async Task<string?> UnlinkTelegramChatAsync(long chatId)
-        {
-            var language = await _context.Users.Where(u => u.TelegramChatId == chatId).Select(u => u.Language).FirstOrDefaultAsync();
-            await _context.Users.Where(u => u.TelegramChatId == chatId).ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.TelegramChatId, (long?)null)
-                .SetProperty(u => u.NotifyTelegram, false));
-            return language;
+            var acabId = await _context.Users.Where(u => u.Id == userId).Select(u => u.AcabId).FirstOrDefaultAsync();
+            var byStatus = await _context.Appeals.Where(a => a.AuthorId == userId)
+                .GroupBy(a => new { a.Status, Here = acabId != null && a.AcabId == acabId })
+                .Select(g => new { g.Key.Status, g.Key.Here, Count = g.Count() })
+                .ToListAsync();
+            var open = byStatus.Where(s => AppealWorkflow.Open.Contains(s.Status)).ToList();
+            return new ProfileStats(
+                byStatus.Sum(s => s.Count),
+                open.Sum(s => s.Count),
+                byStatus.Where(s => s.Status == AppealStatus.Done).Sum(s => s.Count),
+                await _context.AppealSupports.CountAsync(s => s.UserId == userId),
+                await _context.Notifications.CountAsync(n => n.UserId == userId && n.InApp && !n.IsRead),
+                open.Where(s => s.Here).Sum(s => s.Count),
+                acabId == null ? 0 : await _context.Users.CountAsync(u => u.AcabId == acabId && u.Role == UserRole.AcabAdmin && !u.IsBlocked && u.Id != userId));
         }
 
         public Task SetLanguageAsync(int userId, string language)
@@ -344,8 +315,7 @@ namespace CityFix_backend.Services
 
             return new PersonalDataExport(
                 new PersonalDataExport.ProfileData(user.Email, user.PendingEmail, user.FirstName, user.LastName, user.Phone,
-                    user.Role.ToString(), user.Acab?.Name, user.Language, user.NotifyInApp, user.NotifyEmail, user.NotifySms,
-                    user.NotifyTelegram, user.TelegramChatId != null, user.CreatedAt),
+                    user.Role.ToString(), user.Acab?.Name, user.Language, user.NotifyInApp, user.NotifyEmail, user.CreatedAt),
                 appeals.Select(a => new PersonalDataExport.AppealData(
                     a.Id, a.Title, a.Description, a.Address, a.Lat, a.Lng, a.Category?.Name, a.Status.ToString(), a.Priority.ToString(), a.CreatedAt,
                     a.Files.Select(f => f.FileName).ToList(),
@@ -379,10 +349,7 @@ namespace CityFix_backend.Services
             user.Role = UserRole.Resident;
             user.AcabId = null;
             user.IsBlocked = true;
-            user.NotifyInApp = user.NotifyEmail = user.NotifySms = user.NotifyTelegram = false;
-            user.TelegramChatId = null;
-            user.TelegramLinkCode = null;
-            user.TelegramLinkExpires = null;
+            user.NotifyInApp = user.NotifyEmail = false;
             user.MustChangePassword = false;
             user.UpdatedAt = Now;
             await _context.SaveChangesAsync();

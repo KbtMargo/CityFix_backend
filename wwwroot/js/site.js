@@ -288,6 +288,159 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu.open = false; }); });
 });
 
+// Sidebar order: press and hold an item to drag it elsewhere (Alt+↑/↓ from the keyboard). The order is kept per user in
+// this browser; items that appear later (a new role, a new page) keep their default place.
+(function () {
+    var nav = document.querySelector('[data-nav-reorder]');
+    if (!nav) return;
+    var storageKey = 'cf_nav_order_' + nav.dataset.navReorder;
+    var toast = document.querySelector('[data-nav-toast]');
+    var HOLD_MS = 450, SLOP_PX = 8;
+
+    function items() { return Array.prototype.slice.call(nav.querySelectorAll('[data-nav-key]')); }
+    var defaults = items().map(function (i) { return i.dataset.navKey; });
+
+    function arrange(keys) {
+        var byKey = {};
+        items().forEach(function (i) { byKey[i.dataset.navKey] = i; });
+        keys.forEach(function (k) { if (byKey[k]) { nav.appendChild(byKey[k]); delete byKey[k]; } });
+        // Whatever the saved order does not know goes in its default position relative to the rest.
+        defaults.forEach(function (k, index) {
+            if (!byKey[k]) return;
+            var next = defaults.slice(index + 1).map(function (n) { return nav.querySelector('[data-nav-key="' + n + '"]'); }).filter(Boolean)[0];
+            nav.insertBefore(byKey[k], next && next.parentNode === nav ? next : null);
+        });
+    }
+    function save() { try { localStorage.setItem(storageKey, JSON.stringify(items().map(function (i) { return i.dataset.navKey; }))); } catch (e) { } }
+    try {
+        var saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        if (Array.isArray(saved)) arrange(saved);
+    } catch (e) { }
+
+    var hideTimer = null;
+    function announce(text, withReset) {
+        if (!toast) return;
+        toast.textContent = text;
+        if (withReset) {
+            var reset = document.createElement('button');
+            reset.type = 'button';
+            reset.className = 'app-nav-toast__reset';
+            reset.textContent = nav.dataset.textReset;
+            reset.addEventListener('click', function () {
+                try { localStorage.removeItem(storageKey); } catch (e) { }
+                arrange(defaults);
+                toast.hidden = true;
+            });
+            toast.appendChild(document.createTextNode(' '));
+            toast.appendChild(reset);
+        }
+        toast.hidden = false;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () { toast.hidden = true; }, 6000);
+    }
+
+    var holdTimer = null, start = null, dragging = null, suppressClick = false;
+    function cancelHold() { clearTimeout(holdTimer); holdTimer = null; start = null; nav.classList.remove('is-pressing'); }
+
+    nav.addEventListener('pointerdown', function (e) {
+        var item = e.target.closest('[data-nav-key]');
+        if (!item || e.button !== 0) return;
+        start = { x: e.clientX, y: e.clientY };
+        nav.classList.add('is-pressing');
+        holdTimer = setTimeout(function () {
+            holdTimer = null;
+            dragging = item;
+            suppressClick = true;
+            try { item.setPointerCapture(e.pointerId); } catch (err) { }
+            nav.classList.remove('is-pressing');
+            nav.classList.add('is-reordering');
+            item.classList.add('is-dragging');
+            if (navigator.vibrate) navigator.vibrate(15);
+            announce(nav.dataset.textHint, false);
+        }, HOLD_MS);
+    });
+
+    nav.addEventListener('pointermove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var others = items().filter(function (i) { return i !== dragging; });
+            var before = null;
+            for (var i = 0; i < others.length; i++) {
+                var r = others[i].getBoundingClientRect();
+                if (e.clientY < r.top + r.height / 2) { before = others[i]; break; }
+            }
+            if (before ? dragging.nextElementSibling !== before : nav.lastElementChild !== dragging) nav.insertBefore(dragging, before);
+            return;
+        }
+        if (start && (Math.abs(e.clientX - start.x) > SLOP_PX || Math.abs(e.clientY - start.y) > SLOP_PX)) cancelHold();
+    });
+
+    function finish() {
+        if (!dragging) { cancelHold(); return; }
+        dragging.classList.remove('is-dragging');
+        nav.classList.remove('is-reordering');
+        dragging = null;
+        start = null;
+        save();
+        announce(nav.dataset.textSaved, true);
+        // The click that ends a long press must not open the page; let it pass, then go back to normal.
+        setTimeout(function () { suppressClick = false; }, 400);
+    }
+    nav.addEventListener('pointerup', finish);
+    nav.addEventListener('pointercancel', finish);
+    nav.addEventListener('lostpointercapture', function () { if (dragging) finish(); });
+
+    nav.addEventListener('click', function (e) {
+        if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    // Phones open a link menu on long press, and browsers start dragging the link itself; neither should happen here.
+    nav.addEventListener('contextmenu', function (e) { if (holdTimer || dragging || suppressClick) e.preventDefault(); });
+    nav.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    nav.addEventListener('touchmove', function (e) { if (dragging) e.preventDefault(); }, { passive: false });
+
+    nav.addEventListener('keydown', function (e) {
+        var item = e.target.closest('[data-nav-key]');
+        if (!item || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+        e.preventDefault();
+        if (e.key === 'ArrowUp' && item.previousElementSibling) nav.insertBefore(item, item.previousElementSibling);
+        else if (e.key === 'ArrowDown' && item.nextElementSibling) nav.insertBefore(item.nextElementSibling, item);
+        item.focus();
+        save();
+        announce(nav.dataset.textMoved.replace('{0}', items().indexOf(item) + 1), true);
+    });
+})();
+
+// Settings forms that save as soon as a switch is flipped; their save button is only a no-JavaScript fallback.
+document.querySelectorAll('form[data-autosave]').forEach(function (form) {
+    var fallback = form.querySelector('[data-autosave-button]');
+    if (fallback) fallback.hidden = true;
+    form.addEventListener('change', function () { form.requestSubmit(); });
+});
+
+// Profile section menu: highlights the last section whose top has scrolled past the header (the last one at the very bottom).
+(function () {
+    var nav = document.querySelector('[data-profile-nav]');
+    if (!nav) return;
+    var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+    var sections = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+    // The app shell scrolls its main column, not the window.
+    var scroller = nav.closest('.cf-shell__main') || document.scrollingElement || document.documentElement;
+    var events = scroller === document.scrollingElement || scroller === document.documentElement ? window : scroller;
+    function update() {
+        var top = scroller.getBoundingClientRect ? Math.max(0, scroller.getBoundingClientRect().top) : 0;
+        var current = 0;
+        sections.forEach(function (s, i) { if (s && s.getBoundingClientRect().top - top <= 140) current = i; });
+        if (scroller.scrollTop > 0 && Math.ceil(scroller.scrollTop + scroller.clientHeight) >= scroller.scrollHeight) current = sections.length - 1;
+        links.forEach(function (a, i) {
+            a.classList.toggle('is-active', i === current);
+            if (i === current) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+        });
+    }
+    events.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+})();
+
 // "Affects me too" buttons on appeal cards and in the appeal dialog.
 document.querySelectorAll('[data-support]').forEach(function (button) {
     var box = button.parentElement;

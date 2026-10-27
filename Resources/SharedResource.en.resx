@@ -486,11 +486,6 @@
   <data name="Email.ButtonFallback" xml:space="preserve"><value>If the button does not work, copy this link into your browser's address bar:</value></data>
   <data name="Email.OpenAppeal" xml:space="preserve"><value>View appeal</value></data>
   <data name="Email.AutoReply" xml:space="preserve"><value>This is an automated message, please do not reply.</value></data>
-  <data name="Sms.Status" xml:space="preserve"><value>your appeal "{0}" is now "{1}".</value></data>
-  <data name="Sms.Comment" xml:space="preserve"><value>new comment on your appeal "{0}".</value></data>
-  <data name="Sms.NewAppeal" xml:space="preserve"><value>new appeal "{0}" in your association.</value></data>
-  <data name="Sms.Assigned" xml:space="preserve"><value>appeal "{0}" assigned to {1}.</value></data>
-  <data name="Sms.Details" xml:space="preserve"><value>Details: {0}</value></data>
   <data name="Email.NotificationFooter" xml:space="preserve"><value>You can change notification channels in your profile (Profile → Notifications).</value></data>
   <data name="Profile.EmailPending" xml:space="preserve"><value>We sent a letter to {0}. The address changes once you follow the link.</value></data>
   <data name="Profile.EmailPendingNote" xml:space="preserve"><value>The new address {0} is waiting for confirmation. Until then {1} is used for signing in and letters.</value></data>
@@ -499,11 +494,8 @@
   <data name="Profile.NotificationsSaved" xml:space="preserve"><value>Notification settings saved.</value></data>
   <data name="Profile.Notify.InApp" xml:space="preserve"><value>In the app (Notifications page)</value></data>
   <data name="Profile.Notify.Email" xml:space="preserve"><value>By email</value></data>
-  <data name="Profile.Notify.Sms" xml:space="preserve"><value>By SMS</value></data>
   <data name="Profile.Notify.EmailTo" xml:space="preserve"><value>Letters will go to {0}.</value></data>
   <data name="Profile.Notify.EmailUnconfirmed" xml:space="preserve"><value>Your email is not confirmed yet, so no letters are sent.</value></data>
-  <data name="Profile.Notify.SmsTo" xml:space="preserve"><value>SMS will go to {0}.</value></data>
-  <data name="Profile.Notify.SmsNoPhone" xml:space="preserve"><value>Add a phone number in your personal details to receive SMS.</value></data>
   <data name="Enum.AppealStatus.UnderReview" xml:space="preserve"><value>Under review</value></data>
   <data name="Enum.AppealStatus.NeedsInfo" xml:space="preserve"><value>Needs details</value></data>
   <data name="Enum.AppealStatus.OnHold" xml:space="preserve"><value>On hold</value></data>
@@ -629,27 +621,6 @@
   <data name="Notifications.RatedText" xml:space="preserve"><value>The author rated the result of "{0}": {1} out of 5.</value></data>
   <data name="Notifications.OverdueTitle" xml:space="preserve"><value>Deadline passed</value></data>
   <data name="Notifications.OverdueText" xml:space="preserve"><value>The deadline for "{0}" has passed.</value></data>
-  <data name="Sms.Supported" xml:space="preserve"><value>the appeal &quot;{0}&quot; you support is now &quot;{1}&quot;.</value></data>
-  <data name="Sms.Reopened" xml:space="preserve"><value>appeal "{0}" was reopened by its author.</value></data>
-  <data name="Sms.Rated" xml:space="preserve"><value>appeal "{0}" was rated {1} out of 5.</value></data>
-  <data name="Sms.Overdue" xml:space="preserve"><value>the deadline for appeal "{0}" has passed.</value></data>
-  <data name="Profile.Notify.Telegram" xml:space="preserve"><value>In Telegram</value></data>
-  <data name="Profile.Telegram.Title" xml:space="preserve"><value>Telegram</value></data>
-  <data name="Profile.Telegram.Hint" xml:space="preserve"><value>Connect the bot to get notifications in Telegram.</value></data>
-  <data name="Profile.Telegram.LinkedHint" xml:space="preserve"><value>The bot is connected. Turn Telegram notifications on or off under "Notifications".</value></data>
-  <data name="Profile.Telegram.LinkedTo" xml:space="preserve"><value>Messages come from the bot @{0}.</value></data>
-  <data name="Profile.Telegram.Connect" xml:space="preserve"><value>Connect Telegram</value></data>
-  <data name="Profile.Telegram.LinkReady" xml:space="preserve"><value>Open the bot and press "Start". The link works once, for 15 minutes.</value></data>
-  <data name="Profile.Telegram.Open" xml:space="preserve"><value>Open @{0}</value></data>
-  <data name="Profile.Telegram.Check" xml:space="preserve"><value>Check connection</value></data>
-  <data name="Profile.Telegram.Disconnect" xml:space="preserve"><value>Disconnect Telegram</value></data>
-  <data name="Profile.Telegram.Disconnected" xml:space="preserve"><value>Telegram disconnected.</value></data>
-  <data name="Telegram.Linked" xml:space="preserve"><value>Welcome, {0}! Telegram is connected to CityFix; notifications about your appeals will come here. Send /stop to disconnect.</value></data>
-  <data name="Telegram.LinkInvalid" xml:space="preserve"><value>This link is invalid or has expired. Open your profile on the CityFix site and press "Connect Telegram" again.</value></data>
-  <data name="Telegram.OpenFromProfile" xml:space="preserve"><value>To get notifications, open your profile on the CityFix site and press "Connect Telegram".</value></data>
-  <data name="Telegram.Unlinked" xml:space="preserve"><value>Telegram disconnected. Notifications will no longer come here.</value></data>
-  <data name="Telegram.NotLinked" xml:space="preserve"><value>This chat is not connected to any account.</value></data>
-  <data name="Telegram.Help" xml:space="preserve"><value>This is the CityFix notification bot. Connect it from your profile on the site; send /stop to disconnect.</value></data>
   <data name="Auth.Password.Show" xml:space="preserve"><value>Show password</value></data>
   <data name="Auth.Password.Hide" xml:space="preserve"><value>Hide password</value></data>
   <data name="Auth.CapsLock" xml:space="preserve"><value>Caps Lock is on</value></data>
@@ -659,7 +630,6 @@
   <data name="Auth.Register.FixErrors" xml:space="preserve"><value>Please check the fields marked below.</value></data>
   <data name="Auth.Register.AboutYou" xml:space="preserve"><value>About you</value></data>
   <data name="Auth.Register.SignIn" xml:space="preserve"><value>Sign-in details</value></data>
-  <data name="Auth.Register.PhoneHint" xml:space="preserve"><value>Optional. Needed only for SMS notifications.</value></data>
   <data name="Auth.Register.EmailHint" xml:space="preserve"><value>We will send a letter to confirm the address.</value></data>
   <data name="Auth.Forgot.Hint" xml:space="preserve"><value>If the letter does not arrive within a few minutes, check your spam folder.</value></data>
   <data name="Auth.BackToLogin" xml:space="preserve"><value>Back to sign in</value></data>
@@ -698,10 +668,52 @@
   <data name="Mgmt.NoRatings" xml:space="preserve"><value>Residents have not rated any results yet.</value></data>
   <data name="Mgmt.Resolution" xml:space="preserve"><value>Average resolution time by category, days</value></data>
   <data name="Mgmt.NoResolved" xml:space="preserve"><value>No finished appeals yet.</value></data>
-  <data name="Profile.Telegram.Off" xml:space="preserve"><value>not set up</value></data>
-  <data name="Profile.Telegram.SetupHint" xml:space="preserve"><value>Only administrators see this. Once it is set up, residents can connect the bot in their profiles.</value></data>
-  <data name="Profile.Telegram.Step1" xml:space="preserve"><value>In Telegram, open @BotFather and send /newbot.</value></data>
-  <data name="Profile.Telegram.Step2" xml:space="preserve"><value>Choose a name and a username for the bot (it must end with &quot;bot&quot;). BotFather sends you a token.</value></data>
-  <data name="Profile.Telegram.Step3" xml:space="preserve"><value>In the project folder, save the token and the bot&apos;s username (without @):</value></data>
-  <data name="Profile.Telegram.Step4" xml:space="preserve"><value>Restart the app. The &quot;Connect Telegram&quot; button appears in the profile.</value></data>
+  <data name="Profile.Security" xml:space="preserve"><value>Security</value></data>
+  <data name="Profile.WithUsSince" xml:space="preserve"><value>With us since {0}</value></data>
+  <data name="Profile.EmailConfirmed" xml:space="preserve"><value>Confirmed</value></data>
+  <data name="Profile.EmailNotConfirmed" xml:space="preserve"><value>Not confirmed</value></data>
+  <data name="Profile.Stats.Appeals" xml:space="preserve"><value>My appeals</value></data>
+  <data name="Profile.Stats.Open" xml:space="preserve"><value>In progress</value></data>
+  <data name="Profile.Stats.Done" xml:space="preserve"><value>Resolved</value></data>
+  <data name="Profile.Stats.Supported" xml:space="preserve"><value>I support</value></data>
+  <data name="Profile.Stats.Unread" xml:space="preserve"><value>New notifications</value></data>
+  <data name="Profile.EmailChangeHint" xml:space="preserve"><value>After a change we send a letter to confirm the new address.</value></data>
+  <data name="Profile.PhoneHint" xml:space="preserve"><value>Only the association head and administrators see it, to contact you about an appeal.</value></data>
+  <data name="Profile.Notify.InAppTitle" xml:space="preserve"><value>On the site</value></data>
+  <data name="Profile.Notify.InAppDesc" xml:space="preserve"><value>The bell and the Notifications page.</value></data>
+  <data name="Profile.Notify.EmailTitle" xml:space="preserve"><value>Email</value></data>
+  <data name="Profile.Notify.AllOff" xml:space="preserve"><value>All notifications are off: you will not hear about changes to your appeals.</value></data>
+  <data name="Profile.Data.ExportTitle" xml:space="preserve"><value>A copy of your data</value></data>
+  <data name="Profile.Data.ExportDesc" xml:space="preserve"><value>Your profile, appeals and notifications in one JSON file.</value></data>
+  <data name="Profile.Data.Download" xml:space="preserve"><value>Download</value></data>
+  <data name="Profile.Acab.Title" xml:space="preserve"><value>Association</value></data>
+  <data name="Profile.Acab.Hint" xml:space="preserve"><value>Moved or became the head? Change the association with a code from its head or an administrator.</value></data>
+  <data name="Profile.Acab.YouAreHead" xml:space="preserve"><value>You are the head of this association</value></data>
+  <data name="Profile.Acab.YouAreResident" xml:space="preserve"><value>You are a resident</value></data>
+  <data name="Profile.Acab.NoneTitle" xml:space="preserve"><value>You have not joined an association</value></data>
+  <data name="Profile.Acab.NoneDesc" xml:space="preserve"><value>Your appeals go to the city services and the administrators.</value></data>
+  <data name="Profile.Acab.JoinLabel" xml:space="preserve"><value>Association code</value></data>
+  <data name="Profile.Acab.ChangeLabel" xml:space="preserve"><value>New association code or head code</value></data>
+  <data name="Profile.Acab.Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="Profile.Acab.CodeHint" xml:space="preserve"><value>A resident code makes you a resident of the association, a head code makes you its head. Codes come from the association head or an administrator.</value></data>
+  <data name="Profile.Acab.OpenStay" xml:space="preserve"><value>Your open appeals ({0}) stay with the current association: its head keeps handling them and you keep getting notified. New appeals go to the new association.</value></data>
+  <data name="Profile.Acab.Leave" xml:space="preserve"><value>I no longer live in this association</value></data>
+  <data name="Profile.Acab.LeaveText" xml:space="preserve"><value>You will leave the association. Appeals you filed stay with it; new ones go to the city services until you join another association with a code.</value></data>
+  <data name="Profile.Acab.LeaveConfirm" xml:space="preserve"><value>Leave the association</value></data>
+  <data name="Profile.Acab.StepDown" xml:space="preserve"><value>Step down as head</value></data>
+  <data name="Profile.Acab.StepDownText" xml:space="preserve"><value>You stay a resident of this association but no longer handle appeals. A new head joins with the head code from the administrator&apos;s page.</value></data>
+  <data name="Profile.Acab.StepDownConfirm" xml:space="preserve"><value>Step down</value></data>
+  <data name="Profile.Acab.LastHead" xml:space="preserve"><value>You are the only head of this association. Until there is a new one, the administrators get its appeals and notifications.</value></data>
+  <data name="Profile.Acab.AlreadyThere" xml:space="preserve"><value>You are already in this association with this role.</value></data>
+  <data name="Profile.Acab.None" xml:space="preserve"><value>You have not joined any association.</value></data>
+  <data name="Profile.Acab.Moved" xml:space="preserve"><value>Done! Your association is now {0}.</value></data>
+  <data name="Profile.Acab.NowHead" xml:space="preserve"><value>Done! You are now the head of {0}.</value></data>
+  <data name="Profile.Acab.Left" xml:space="preserve"><value>You left the association.</value></data>
+  <data name="Profile.Acab.SteppedDown" xml:space="preserve"><value>You stepped down as head and remain a resident of the association.</value></data>
+  <data name="Acabs.NoHead" xml:space="preserve"><value>No head</value></data>
+  <data name="Acabs.NoHeadHint" xml:space="preserve"><value>The administrators get this association&apos;s appeals until someone joins with the head code.</value></data>
+  <data name="Nav.Reorder.Hint" xml:space="preserve"><value>Drag the item to a new place and let go.</value></data>
+  <data name="Nav.Reorder.Saved" xml:space="preserve"><value>Menu order saved.</value></data>
+  <data name="Nav.Reorder.Reset" xml:space="preserve"><value>Restore default</value></data>
+  <data name="Nav.Reorder.Moved" xml:space="preserve"><value>Item moved to position {0}.</value></data>
 </root>

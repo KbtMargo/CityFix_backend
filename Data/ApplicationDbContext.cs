@@ -92,7 +92,7 @@ namespace CityFix_backend.Data
                 .HasIndex(n => new { n.UserId, n.IsRead });
 
             modelBuilder.Entity<Notification>()
-                .HasIndex(n => new { n.EmailState, n.SmsState });
+                .HasIndex(n => n.EmailState);
 
             modelBuilder.Entity<AppealSupport>().HasKey(s => new { s.AppealId, s.UserId });
             modelBuilder.Entity<AppealSupport>()
@@ -101,8 +101,6 @@ namespace CityFix_backend.Data
                 .HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
 
             appeal.HasIndex(a => a.DueAt);
-            modelBuilder.Entity<User>().HasIndex(u => u.TelegramLinkCode).IsUnique();
-
             modelBuilder.Entity<AuditEntry>().ToTable("AuditLog");
             modelBuilder.Entity<AuditEntry>().HasIndex(e => e.At);
         }

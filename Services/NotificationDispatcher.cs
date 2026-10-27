@@ -65,8 +65,6 @@ namespace CityFix_backend.Services
             using var scope = _scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var email = scope.ServiceProvider.GetRequiredService<IEmailSender>();
-            var sms = scope.ServiceProvider.GetRequiredService<ISmsSender>();
-            var telegram = scope.ServiceProvider.GetService<ITelegramClient>();
 
             // Lease the batch: pushing NextAttemptAt forward under FOR UPDATE SKIP LOCKED means a second app instance
             // (or a run that crashed mid-batch) cannot pick the same rows and send duplicates until the lease runs out.
@@ -76,8 +74,7 @@ namespace CityFix_backend.Services
                 UPDATE "Notifications" SET "NextAttemptAt" = {leaseUntil}
                 WHERE "Id" IN (
                     SELECT "Id" FROM "Notifications"
-                    WHERE ("EmailState" = {(int)DeliveryState.Pending} OR "SmsState" = {(int)DeliveryState.Pending}
-                           OR "TelegramState" = {(int)DeliveryState.Pending}) AND "NextAttemptAt" <= {now}
+                    WHERE "EmailState" = {(int)DeliveryState.Pending} AND "NextAttemptAt" <= {now}
                     ORDER BY "Id"
                     LIMIT {_options.BatchSize}
                     FOR UPDATE SKIP LOCKED)
@@ -99,9 +96,7 @@ namespace CityFix_backend.Services
 
                 if (user.IsBlocked)
                 {
-                    if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.None;
-                    if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.None;
-                    if (notification.TelegramState == DeliveryState.Pending) notification.TelegramState = DeliveryState.None;
+                    notification.EmailState = DeliveryState.None;
                     await db.SaveChangesAsync(cancellationToken);
                     continue;
                 }
@@ -110,64 +105,15 @@ namespace CityFix_backend.Services
                 CultureInfo.CurrentUICulture = new CultureInfo(user.Language == "en" ? "en" : "uk");
                 try
                 {
-                    var title = NotificationText.Title(notification);
-
-                    if (notification.EmailState == DeliveryState.Pending)
+                    if (!user.NotifyEmail || !user.EmailConfirmed)
                     {
-                        if (!user.NotifyEmail || !user.EmailConfirmed)
-                        {
-                            notification.EmailState = DeliveryState.None;
-                        }
-                        else if (await TryAsync(() => email.SendAsync(user.Email, BuildEmail(notification, title), cancellationToken), notification, "email"))
-                        {
-                            notification.EmailState = DeliveryState.Sent;
-                        }
-                        else failed = true;
+                        notification.EmailState = DeliveryState.None;
                     }
-
-                    if (notification.SmsState == DeliveryState.Pending)
+                    else if (await TryAsync(() => email.SendAsync(user.Email, BuildEmail(notification, NotificationText.Title(notification)), cancellationToken), notification))
                     {
-                        var phone = PhoneNumber.ToE164(user.Phone);
-                        if (!user.NotifySms || phone == null)
-                        {
-                            notification.SmsState = DeliveryState.None;
-                        }
-                        else if (await TryAsync(() => sms.SendAsync(phone, NotificationText.Sms(notification, AppealLink(notification)), cancellationToken), notification, "SMS"))
-                        {
-                            notification.SmsState = DeliveryState.Sent;
-                        }
-                        else failed = true;
+                        notification.EmailState = DeliveryState.Sent;
                     }
-
-                    if (notification.TelegramState == DeliveryState.Pending)
-                    {
-                        if (telegram == null || !user.NotifyTelegram || user.TelegramChatId is not long chatId)
-                        {
-                            notification.TelegramState = DeliveryState.None;
-                        }
-                        else
-                        {
-                            try
-                            {
-                                await telegram.SendMessageAsync(chatId, NotificationText.Telegram(notification, AppealLink(notification)), cancellationToken);
-                                notification.TelegramState = DeliveryState.Sent;
-                            }
-                            catch (TelegramChatGoneException)
-                            {
-                                // Retrying cannot help; stop using the chat until the user connects the bot again.
-                                notification.TelegramState = DeliveryState.None;
-                                user.TelegramChatId = null;
-                                user.NotifyTelegram = false;
-                                _logger.LogInformation("User {UserId} blocked the Telegram bot; the chat was disconnected.", user.Id);
-                            }
-                            catch (Exception ex) when (ex is not OperationCanceledException)
-                            {
-                                _logger.LogWarning(ex, "Could not send the Telegram copy of notification {Id} (attempt {Attempt}).",
-                                    notification.Id, notification.Attempts + 1);
-                                failed = true;
-                            }
-                        }
-                    }
+                    else failed = true;
                 }
                 finally
                 {
@@ -176,9 +122,7 @@ namespace CityFix_backend.Services
 
                 if (failed && ++notification.Attempts >= _options.MaxAttempts)
                 {
-                    if (notification.EmailState == DeliveryState.Pending) notification.EmailState = DeliveryState.Failed;
-                    if (notification.SmsState == DeliveryState.Pending) notification.SmsState = DeliveryState.Failed;
-                    if (notification.TelegramState == DeliveryState.Pending) notification.TelegramState = DeliveryState.Failed;
+                    notification.EmailState = DeliveryState.Failed;
                 }
                 else if (failed)
                 {
@@ -214,7 +158,7 @@ namespace CityFix_backend.Services
             }.Render();
         }
 
-        private async Task<bool> TryAsync(Func<Task> send, Notification notification, string channel)
+        private async Task<bool> TryAsync(Func<Task> send, Notification notification)
         {
             try
             {
@@ -223,8 +167,8 @@ namespace CityFix_backend.Services
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogWarning(ex, "Could not send the {Channel} copy of notification {Id} (attempt {Attempt}).",
-                    channel, notification.Id, notification.Attempts + 1);
+                _logger.LogWarning(ex, "Could not send the e-mail copy of notification {Id} (attempt {Attempt}).",
+                    notification.Id, notification.Attempts + 1);
                 return false;
             }
         }

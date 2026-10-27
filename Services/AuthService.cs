@@ -101,6 +101,66 @@ namespace CityFix_backend.Services
             }
         }
 
+        public async Task<AssociationChange> JoinAssociationAsync(int userId, string code)
+        {
+            var user = await _context.Users.Include(u => u.Acab).FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException($"User {userId} does not exist.");
+            EnsureCanChangeAssociation(user);
+
+            var found = await _acabs.FindByCodeAsync(code)
+                ?? throw new ServiceValidationException("Code", "Auth.CodeNotFound");
+            var (acab, role) = found;
+            if (user.AcabId == acab.Id && user.Role == role)
+            {
+                throw new ServiceValidationException("Code", "Profile.Acab.AlreadyThere");
+            }
+
+            var previous = new AssociationChange(user.Acab?.Name, user.Role, acab.Name, role);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            // Appeals filed earlier keep their association, so its head goes on handling them; only new ones go to the new one.
+            user.AcabId = acab.Id;
+            user.Role = role;
+            user.UpdatedAt = _clock.GetUtcNow().UtcDateTime;
+            await _context.SaveChangesAsync();
+
+            // A head code admits one head only, as at sign-up.
+            if (role == UserRole.AcabAdmin && !await _acabs.ConsumeHeadCodeAsync(acab.Id, code))
+            {
+                throw new ServiceValidationException("Code", "Auth.CodeNotFound");
+            }
+            await transaction.CommitAsync();
+            return previous;
+        }
+
+        public async Task<AssociationChange> LeaveAssociationAsync(int userId)
+        {
+            var user = await _context.Users.Include(u => u.Acab).FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException($"User {userId} does not exist.");
+            EnsureCanChangeAssociation(user);
+            if (user.AcabId == null)
+            {
+                throw new ServiceValidationException("Code", "Profile.Acab.None");
+            }
+
+            // A head steps down and stays a resident of the house; a resident moves out of it.
+            var change = user.Role == UserRole.AcabAdmin
+                ? new AssociationChange(user.Acab?.Name, user.Role, user.Acab?.Name, UserRole.Resident)
+                : new AssociationChange(user.Acab?.Name, user.Role, null, UserRole.Resident);
+            if (user.Role == UserRole.Resident) user.AcabId = null;
+            user.Role = UserRole.Resident;
+            user.UpdatedAt = _clock.GetUtcNow().UtcDateTime;
+            await _context.SaveChangesAsync();
+            return change;
+        }
+
+        private static void EnsureCanChangeAssociation(User user)
+        {
+            if (user.Role is not (UserRole.Resident or UserRole.AcabAdmin))
+            {
+                throw new ForbiddenException($"User {user.Id} manages associations through the admin pages.");
+            }
+        }
+
         public async Task<LoginResult> LoginAsync(string email, string password)
         {
             var normalized = EmailAddress.Normalize(email);

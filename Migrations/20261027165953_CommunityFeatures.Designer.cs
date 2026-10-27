@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CityFix_backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261027110924_DeadlinesRatingsSupportTelegram")]
-    partial class DeadlinesRatingsSupportTelegram
+    [Migration("20261027165953_CommunityFeatures")]
+    partial class CommunityFeatures
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -421,12 +421,6 @@ namespace CityFix_backend.Migrations
                     b.Property<DateTime>("NextAttemptAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("SmsState")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TelegramState")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
@@ -437,7 +431,7 @@ namespace CityFix_backend.Migrations
 
                     b.HasIndex("AppealId");
 
-                    b.HasIndex("EmailState", "SmsState");
+                    b.HasIndex("EmailState");
 
                     b.HasIndex("UserId", "IsRead");
 
@@ -523,12 +517,6 @@ namespace CityFix_backend.Migrations
                     b.Property<bool>("NotifyInApp")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("NotifySms")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("NotifyTelegram")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -547,16 +535,6 @@ namespace CityFix_backend.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<long?>("TelegramChatId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("TelegramLinkCode")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<DateTime?>("TelegramLinkExpires")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -565,9 +543,6 @@ namespace CityFix_backend.Migrations
                     b.HasIndex("AcabId");
 
                     b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("TelegramLinkCode")
                         .IsUnique();
 
                     b.ToTable("Users");

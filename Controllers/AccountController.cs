@@ -21,17 +21,15 @@ namespace CityFix_backend.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly string? _publicUrl;
         private readonly IAuditLog _audit;
-        private readonly TelegramOptions _telegram;
 
         public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger,
-            IOptions<NotificationOptions> notifications, IAuditLog audit, IOptions<TelegramOptions> telegram)
+            IOptions<NotificationOptions> notifications, IAuditLog audit)
             : base(users, localizer)
         {
             _auth = auth;
             _logger = logger;
             _publicUrl = notifications.Value.PublicUrl;
             _audit = audit;
-            _telegram = telegram.Value;
         }
 
         public IActionResult Register()
@@ -255,7 +253,7 @@ namespace CityFix_backend.Controllers
         [Authorize]
         public async Task<IActionResult> Profile()
         {
-            return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram));
+            return View(await ProfileViewAsync());
         }
 
         [Authorize]
@@ -276,7 +274,7 @@ namespace CityFix_backend.Controllers
                     {
                         FlashSuccess(L["Profile.EmailPending", toConfirm]);
                     }
-                    return RedirectToAction(nameof(Profile));
+                    return ProfileSection("personal");
                 }
                 catch (ServiceValidationException ex)
                 {
@@ -284,7 +282,7 @@ namespace CityFix_backend.Controllers
                 }
             }
 
-            var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram);
+            var view = await ProfileViewAsync();
             view.Profile = model;
             return View(nameof(Profile), view);
         }
@@ -300,7 +298,7 @@ namespace CityFix_backend.Controllers
             {
                 FlashSuccess(L["Profile.EmailPending", user.PendingEmail]);
             }
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("personal");
         }
 
         [Authorize]
@@ -310,35 +308,8 @@ namespace CityFix_backend.Controllers
         {
             await Users.UpdateNotificationSettingsAsync(CurrentUserId, model.ToSettings());
             FlashSuccess(L["Profile.NotificationsSaved"]);
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("notifications");
         }
-
-        // Issues a one-time code; the profile then shows the bot's start link until it expires. The link is not a redirect
-        // from here, because the form-action policy would block a form post that ends on t.me.
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [EnableRateLimiting("auth")]
-        public async Task<IActionResult> ConnectTelegram()
-        {
-            if (!_telegram.Enabled)
-            {
-                return NotFound();
-            }
-            await Users.CreateTelegramLinkAsync(CurrentUserId, _telegram.LinkLifetime);
-            return Redirect(Url.Action(nameof(Profile))! + "#telegram");
-        }
-
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DisconnectTelegram()
-        {
-            await Users.UnlinkTelegramAsync(CurrentUserId);
-            FlashSuccess(L["Profile.Telegram.Disconnected"]);
-            return RedirectToAction(nameof(Profile));
-        }
-
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -353,7 +324,7 @@ namespace CityFix_backend.Controllers
 
             if (!ModelState.IsValid)
             {
-                var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId), _telegram);
+                var view = await ProfileViewAsync();
                 view.ChangePassword = model;
                 return View(nameof(Profile), view);
             }
@@ -362,7 +333,7 @@ namespace CityFix_backend.Controllers
             var current = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await SignInAsync(changed!, current.Properties?.IsPersistent == true);
             FlashSuccess(L["Profile.PasswordChanged"]);
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("security");
         }
 
         private async Task<bool> TrySendConfirmationAsync(User user, string email)
@@ -405,7 +376,7 @@ namespace CityFix_backend.Controllers
             if (string.IsNullOrEmpty(password) || !await _auth.VerifyPasswordAsync(CurrentUserId, password))
             {
                 FlashError(L["Profile.Delete.WrongPassword"]);
-                return RedirectToAction(nameof(Profile));
+                return ProfileSection("data");
             }
 
             try
@@ -438,6 +409,55 @@ namespace CityFix_backend.Controllers
                 _logger.LogError(ex, "Could not send the password letter to {Email}.", email);
             }
         }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> JoinAssociation(string? code)
+        {
+            var actor = await GetActorAsync();
+            try
+            {
+                var change = await _auth.JoinAssociationAsync(actor.Id, code ?? "");
+                await _audit.RecordAsync(actor, "user.association", $"User #{actor.Id}",
+                    $"{change.From ?? "-"} ({change.FromRole}) -> {change.To} ({change.ToRole})");
+                FlashSuccess(change.ToRole == UserRole.AcabAdmin
+                    ? L["Profile.Acab.NowHead", change.To!]
+                    : L["Profile.Acab.Moved", change.To!]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+            return ProfileSection("association");
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LeaveAssociation()
+        {
+            var actor = await GetActorAsync();
+            try
+            {
+                var change = await _auth.LeaveAssociationAsync(actor.Id);
+                await _audit.RecordAsync(actor, "user.association", $"User #{actor.Id}",
+                    $"{change.From} ({change.FromRole}) -> {change.To ?? "-"} ({change.ToRole})");
+                FlashSuccess(change.FromRole == UserRole.AcabAdmin ? L["Profile.Acab.SteppedDown"] : L["Profile.Acab.Left"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+            return ProfileSection("association");
+        }
+
+        // Back to the section that was just saved rather than the top of the page.
+        private RedirectResult ProfileSection(string section) => Redirect(Url.Action(nameof(Profile))! + "#" + section);
+
+        private async Task<ProfileViewModel> ProfileViewAsync() =>
+            ProfileViewModel.For(await Users.GetAsync(CurrentUserId), await Users.GetProfileStatsAsync(CurrentUserId));
 
         private string ResetLink(User user) =>
             PublicLink(Url.Action(nameof(ResetPassword), "Account", new { token = _auth.CreatePasswordResetToken(user) })!);

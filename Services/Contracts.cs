@@ -66,7 +66,14 @@ namespace CityFix_backend.Services
 
     public record ProfileInput(string FirstName, string? LastName, string Email, string? Phone);
 
-    public record NotificationSettings(bool InApp, bool Email, bool Sms, bool Telegram = false);
+    public record NotificationSettings(bool InApp, bool Email);
+
+    /// <summary>The numbers at the top of the profile: the user's own appeals and the neighbours' ones they back.</summary>
+    /// <param name="OpenInAssociation">The user's open appeals that stay with the current association if they move.</param>
+    /// <param name="OtherHeads">Other heads of the user's association, so a stepping-down head knows if anyone is left.</param>
+    public record ProfileStats(int Appeals, int Open, int Done, int Supported, int Unread, int OpenInAssociation = 0, int OtherHeads = 0);
+
+    public record AssociationChange(string? From, UserRole FromRole, string? To, UserRole ToRole);
 
     public record UserRow(User User, int AppealCount, string? DeleteBlockedKey)
     {
@@ -77,7 +84,7 @@ namespace CityFix_backend.Services
 
     public record AcabInput(string Name, string? Address, string? NameEn = null, string? AddressEn = null);
 
-    public record AcabRow(Acab Acab, int MemberCount, int AppealCount)
+    public record AcabRow(Acab Acab, int MemberCount, int AppealCount, int HeadCount = 0)
     {
         public bool CanDelete => MemberCount == 0 && AppealCount == 0;
     }
@@ -108,7 +115,7 @@ namespace CityFix_backend.Services
         DateTime ExportedAt)
     {
         public record ProfileData(string Email, string? PendingEmail, string FirstName, string? LastName, string? Phone, string Role,
-            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, bool NotifySms, bool NotifyTelegram, bool TelegramLinked, DateTime RegisteredAt);
+            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, DateTime RegisteredAt);
 
         public record AppealData(int Id, string Title, string? Description, string? Address, decimal? Lat, decimal? Lng, string? Category,
             string Status, string Priority, DateTime CreatedAt, IReadOnlyList<string> Photos, IReadOnlyList<UpdateData> History);

@@ -16,7 +16,7 @@ namespace CityFix_backend.ViewComponents
         public string? PhoneLink => Phone == null ? null : "tel:" + new string(Phone.Where(c => char.IsDigit(c) || c == '+').ToArray());
     }
 
-    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive, SupportContacts Support)
+    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive, SupportContacts Support, int UserId)
     {
         public string Initials => string.Concat(UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
     }
@@ -48,12 +48,8 @@ namespace CityFix_backend.ViewComponents
             bool Is(string c) => string.Equals(controller, c, StringComparison.OrdinalIgnoreCase);
             var creating = Is("Appeals") && string.Equals(action, "Create", StringComparison.OrdinalIgnoreCase);
 
-            int? unread = null;
-            if (user.Role != UserRole.Administrator)
-            {
-                var count = await _notifications.CountUnreadAsync(user.Id);
-                unread = count > 0 ? count : null;
-            }
+            var count = await _notifications.CountUnreadAsync(user.Id);
+            int? unread = count > 0 ? count : null;
 
             var items = new List<NavItem>();
             if (user.Role == UserRole.Resident)
@@ -69,10 +65,8 @@ namespace CityFix_backend.ViewComponents
                 items.Add(new("Dashboard", "Index", "home", "Nav.Home", "Nav.Home.SubAdmin", null, Is("Dashboard")));
                 items.Add(new("Analytics", "Index", "bars", "Nav.Analytics", "Nav.Analytics.Sub", null, Is("Analytics")));
                 items.Add(new("Appeals", "Index", "list", "Nav.AllAppeals", "Nav.AllAppeals.Sub", null, Is("Appeals")));
-                if (user.Role == UserRole.AcabAdmin)
-                {
-                    items.Add(new("Notifications", "Index", "bell", "Nav.Notifications", "Nav.Notifications.Sub", unread, Is("Notifications")));
-                }
+                // Administrators get notified too: about appeals outside associations and those of associations without a head.
+                items.Add(new("Notifications", "Index", "bell", "Nav.Notifications", "Nav.Notifications.Sub", unread, Is("Notifications")));
                 items.Add(new("Users", "Index", "users", "Nav.Users", "Nav.Users.Sub", null, Is("Users")));
                 if (user.Role == UserRole.Administrator)
                 {
@@ -83,7 +77,7 @@ namespace CityFix_backend.ViewComponents
                 }
             }
 
-            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account"), _support));
+            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account"), _support, user.Id));
         }
     }
 }

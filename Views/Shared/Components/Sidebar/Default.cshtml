@@ -14,10 +14,14 @@
             <div class="cf-stats-box__row" data-tip="@L["Stats.Open"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span><span class="app-sidebar__label">@L["Stats.Open"]</span></span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
             <div class="cf-stats-box__row" data-tip="@L["Stats.Closed"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span><span class="app-sidebar__label">@L["Stats.Closed"]</span></span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
         </div>
-        <nav class="cf-sidebar__nav" aria-label="@L["Nav.Label"]">
+        @* Press and hold an item (or Alt+↑/↓ on the keyboard) to move it; site.js keeps the order per user in this browser. *@
+        <nav class="cf-sidebar__nav app-nav-reorder" aria-label="@L["Nav.Label"]" data-nav-reorder="@Model.UserId"
+             data-text-saved="@L["Nav.Reorder.Saved"]" data-text-reset="@L["Nav.Reorder.Reset"]" data-text-hint="@L["Nav.Reorder.Hint"]"
+             data-text-moved="@L["Nav.Reorder.Moved"]">
             @foreach (var item in Model.Items)
             {
-                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)" data-tip="@L[item.LabelKey]">
+                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)" data-tip="@L[item.LabelKey]"
+                   data-nav-key="@($"{item.Controller}.{item.Action}.{item.LabelKey}")" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown">
                     <span class="cf-nav-item__main"><span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@item.Icon" aria-hidden="true"></span></span><span class="cf-nav-item__text app-sidebar__label"><span class="cf-nav-item__label">@L[item.LabelKey]</span><span class="cf-nav-item__sub">@L[item.SubKey]</span></span></span>
                     @if (item.Count is int count)
                     {
@@ -26,6 +30,7 @@
                 </a>
             }
         </nav>
+        <div class="app-nav-toast" data-nav-toast role="status" aria-live="polite" hidden></div>
     </div>
     <div class="cf-sidebar__foot cf-stack-4 app-sidebar__foot">
         @* Contacts open on hover or keyboard focus; on touch screens they are always shown. *@

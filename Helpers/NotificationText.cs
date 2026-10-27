@@ -50,52 +50,5 @@ namespace CityFix_backend.Helpers
 
         public static string? Comment(Notification n) =>
             n.Type == NotificationType.Assigned || IsForSupporter(n) || string.IsNullOrWhiteSpace(n.Message) ? null : n.Message;
-
-        private const int SmsTitleLength = 40;
-
-        // Three Cyrillic (UCS-2) segments of 67 characters each.
-        private const int SmsMaxLength = 201;
-
-        public static string Sms(Notification n, string? link)
-        {
-            var title = Shorten(n.Appeal?.DisplayTitle() ?? "", SmsTitleLength);
-            var lead = n.Type switch
-            {
-                _ when IsForSupporter(n) => SharedText.Format("Sms.Supported", title, n.NewStatus?.GetDisplayName() ?? ""),
-                NotificationType.Assigned => SharedText.Format("Sms.Assigned", title, Shorten(Localized.Pick(n.Message, n.MessageEn), SmsTitleLength)),
-                NotificationType.NewAppeal => SharedText.Format("Sms.NewAppeal", title),
-                NotificationType.Reopened => SharedText.Format("Sms.Reopened", title),
-                NotificationType.Rated => SharedText.Format("Sms.Rated", title, n.Appeal?.Rating ?? 0),
-                NotificationType.Overdue => SharedText.Format("Sms.Overdue", title),
-                _ when n.NewStatus is AppealStatus status => SharedText.Format("Sms.Status", title, status.GetDisplayName()),
-                _ => SharedText.Format("Sms.Comment", title)
-            };
-
-            var text = $"{SharedText.Get("App.Name")}: {lead}";
-            var tail = link == null ? "" : " " + SharedText.Format("Sms.Details", link);
-            if (Comment(n) is string comment)
-            {
-                var prefix = $" {SharedText.Get("Notifications.Comment")}: ";
-                var room = SmsMaxLength - text.Length - prefix.Length - tail.Length;
-                if (room >= 15)
-                {
-                    text += prefix + Shorten(comment, room);
-                }
-            }
-            return text + tail;
-        }
-
-        /// <summary>Telegram has room for the whole text, so it gets the title, the full lead and comment, and the link.</summary>
-        public static string Telegram(Notification n, string? link)
-        {
-            var text = $"{SharedText.Get("App.Name")}: {Title(n)}\n\n{Text(n)}";
-            return link == null ? text : $"{text}\n\n{link}";
-        }
-
-        private static string Shorten(string text, int max)
-        {
-            var flat = string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-            return flat.Length <= max ? flat : flat[..(max - 1)].TrimEnd() + "…";
-        }
     }
 }

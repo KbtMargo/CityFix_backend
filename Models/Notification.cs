@@ -24,12 +24,10 @@ namespace CityFix_backend.Models
 
         public bool InApp { get; set; } = true;
         public DeliveryState EmailState { get; set; }
-        public DeliveryState SmsState { get; set; }
-        public DeliveryState TelegramState { get; set; }
 
         public int Attempts { get; set; }
 
-        // Pending e-mail/SMS copies are picked up once this moment passes; also leases a row to one dispatcher.
+        // Pending e-mail copies are picked up once this moment passes; also leases a row to one dispatcher.
         public DateTime NextAttemptAt { get; set; }
         public DateTime CreatedAt { get; set; }
     }

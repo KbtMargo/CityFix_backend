@@ -37,19 +37,6 @@ namespace CityFix_backend.Services
         });
     }
 
-    public class TelegramOptions
-    {
-        public const string Section = "Telegram";
-
-        // From @BotFather. Without a token the Telegram channel is hidden.
-        public string? BotToken { get; set; }
-        public string? BotUsername { get; set; }
-
-        public TimeSpan LinkLifetime { get; set; } = TimeSpan.FromMinutes(15);
-
-        public bool Enabled => !string.IsNullOrWhiteSpace(BotToken) && !string.IsNullOrWhiteSpace(BotUsername);
-    }
-
     public class SupportOptions
     {
         public const string Section = "Support";
@@ -88,16 +75,6 @@ namespace CityFix_backend.Services
         public string? SmtpPassword { get; set; }
 
         public TimeSpan ConfirmationLifetime { get; set; } = TimeSpan.FromDays(2);
-    }
-
-    public class SmsOptions
-    {
-        public const string Section = "Sms";
-
-        public string Provider { get; set; } = "Log";
-        public string? TwilioAccountSid { get; set; }
-        public string? TwilioAuthToken { get; set; }
-        public string? TwilioFrom { get; set; }
     }
 
     public class NotificationOptions

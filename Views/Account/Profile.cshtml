@@ -1,206 +1,286 @@
 @model ProfileViewModel
 @{
     var user = Model.User;
+    var stats = Model.Stats;
     ViewData["Title"] = L["Profile.Title"].Value;
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
+    // Administrators manage associations from the admin pages, not by codes.
+    var canChangeAcab = user.Role is UserRole.Resident or UserRole.AcabAdmin;
+    var sections = new List<(string Id, string Icon, string Label)> { ("personal", "users", "Profile.EditTitle") };
+    if (canChangeAcab) sections.Add(("association", "apartment", "Profile.Acab.Title"));
+    sections.Add(("notifications", "bell-lucide", "Profile.NotificationsTitle"));
+    sections.Add(("security", "lock", "Profile.Security"));
+    sections.Add(("data", "file-text", "Profile.Data.Title"));
 }
-<div>
-    <h1 class="cf-page-title">@L["Profile.Title"]</h1>
-    <p class="cf-page-sub">@L["Profile.Sub"]</p>
-</div>
 
-<div class="cf-card">
-    <div class="cf-card__head">
-        <div class="cf-card__title">@user.DisplayName()</div>
-        <div class="cf-card__desc"><span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span></div>
-    </div>
-    <div class="cf-card__body">
-        <div class="cf-form-grid">
-            <div class="cf-fact"><div class="cf-fact__label">@L["Field.Acab"]</div><p class="cf-fact__value">@(user.Acab?.DisplayName() ?? L["Common.NotSpecified"].Value)</p></div>
-            <div class="cf-fact"><div class="cf-fact__label">@L["Profile.MemberSince"]</div><p class="cf-fact__value">@user.CreatedAt.ToDate()</p></div>
-        </div>
-    </div>
-</div>
-
-<div class="cf-card">
-    <div class="cf-card__head">
-        <div class="cf-card__title">@L["Profile.EditTitle"]</div>
-        <div class="cf-card__desc">@L["Profile.EditHint"]</div>
-    </div>
-    <div class="cf-card__body">
-        <form asp-action="UpdateProfile" method="post" class="cf-stack-6">
-            <div class="cf-form-grid">
-                <div>
-                    <label class="cf-label" asp-for="Profile.FirstName"></label>
-                    <label class="cf-field"><input asp-for="Profile.FirstName" class="@InputClass("Profile.FirstName")" autocomplete="given-name" /></label>
-                    <span asp-validation-for="Profile.FirstName" class="cf-field__error"></span>
-                </div>
-                <div>
-                    <label class="cf-label" asp-for="Profile.LastName"></label>
-                    <label class="cf-field"><input asp-for="Profile.LastName" class="@InputClass("Profile.LastName")" autocomplete="family-name" /></label>
-                    <span asp-validation-for="Profile.LastName" class="cf-field__error"></span>
-                </div>
-            </div>
-            <div class="cf-form-grid">
-                <div>
-                    <label class="cf-label" asp-for="Profile.Email"></label>
-                    <label class="cf-field"><input asp-for="Profile.Email" class="@InputClass("Profile.Email")" autocomplete="email" /></label>
-                    <span asp-validation-for="Profile.Email" class="cf-field__error"></span>
-                </div>
-                <div>
-                    <label class="cf-label" asp-for="Profile.Phone">@L["Field.PhoneOptional"]</label>
-                    <label class="cf-field"><input asp-for="Profile.Phone" class="@InputClass("Profile.Phone")" type="tel" autocomplete="tel" placeholder="+380..." /></label>
-                    <span asp-validation-for="Profile.Phone" class="cf-field__error"></span>
-                </div>
-            </div>
-            <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
-        </form>
-        @if (user.PendingEmail != null)
-        {
-            <form asp-action="ResendPendingEmail" method="post" class="cf-stack-4 app-profile-pending">
-                <p class="cf-field__hint">@L["Profile.EmailPendingNote", user.PendingEmail, user.Email]</p>
-                <div><button type="submit" class="cf-btn cf-btn--outline">@L["Auth.Resend.Submit"]</button></div>
-            </form>
-        }
-    </div>
-</div>
-
-<div class="cf-card">
-    <div class="cf-card__head">
-        <div class="cf-card__title">@L["Profile.NotificationsTitle"]</div>
-        <div class="cf-card__desc">@L["Profile.NotificationsHint"]</div>
-    </div>
-    <div class="cf-card__body">
-        <form asp-action="UpdateNotifications" method="post" class="cf-stack-6">
-            <div class="cf-stack-4">
-                <div>
-                    <label class="cf-check"><input asp-for="Notifications.InApp" /><span>@Html.DisplayNameFor(m => m.Notifications.InApp)</span></label>
-                </div>
-                <div>
-                    <label class="cf-check"><input asp-for="Notifications.Email" /><span>@Html.DisplayNameFor(m => m.Notifications.Email)</span></label>
-                    <p class="cf-field__hint">@(user.EmailConfirmed ? L["Profile.Notify.EmailTo", user.Email] : L["Profile.Notify.EmailUnconfirmed"])</p>
-                </div>
-                <div>
-                    <label class="cf-check"><input asp-for="Notifications.Sms" /><span>@Html.DisplayNameFor(m => m.Notifications.Sms)</span></label>
-                    <p class="cf-field__hint">@(PhoneNumber.ToE164(user.Phone) is string phone ? L["Profile.Notify.SmsTo", phone] : L["Profile.Notify.SmsNoPhone"])</p>
-                </div>
-                @if (Model.TelegramBot != null && Model.TelegramLinked)
+<header class="cf-card app-profile-hero">
+    <div class="app-profile-hero__main">
+        <span class="app-profile-hero__avatar" aria-hidden="true">@Model.Initials</span>
+        <div class="app-profile-hero__who">
+            <h1 class="app-profile-hero__name">@user.DisplayName()</h1>
+            <div class="app-profile-hero__tags">
+                <span class="cf-tag cf-tag--@user.Role.RoleTag()">@user.Role.GetDisplayName()</span>
+                @if (user.Acab != null)
                 {
-                    <div>
-                        <label class="cf-check"><input asp-for="Notifications.Telegram" /><span>@Html.DisplayNameFor(m => m.Notifications.Telegram)</span></label>
-                        <p class="cf-field__hint">@L["Profile.Telegram.LinkedTo", Model.TelegramBot]</p>
-                    </div>
+                    <span class="app-profile-hero__meta"><span class="cf-icon cf-icon--apartment cf-icon--4" aria-hidden="true"></span>@user.Acab.DisplayName()</span>
                 }
+                <span class="app-profile-hero__meta"><span class="cf-icon cf-icon--calendar cf-icon--4" aria-hidden="true"></span>@L["Profile.WithUsSince", user.CreatedAt.ToDate()]</span>
             </div>
-            <div><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
+            <p class="app-profile-hero__email">
+                <span class="cf-icon cf-icon--mail cf-icon--4" aria-hidden="true"></span>@user.Email
+                @if (user.EmailConfirmed)
+                {
+                    <span class="cf-badge cf-badge--success">@L["Profile.EmailConfirmed"]</span>
+                }
+                else
+                {
+                    <span class="cf-badge cf-badge--warning">@L["Profile.EmailNotConfirmed"]</span>
+                }
+            </p>
+        </div>
+        <form asp-action="Logout" method="post" class="app-profile-hero__logout">
+            <button type="submit" class="cf-btn cf-btn--outline cf-btn--sm cf-btn--icon-gap"><span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
         </form>
     </div>
-</div>
 
-@if (Model.TelegramBot == null && user.Role == UserRole.Administrator)
-{
-    @* Residents never see an unconfigured channel; the administrator learns how to turn it on. *@
-    <div class="cf-card" id="telegram">
-        <div class="cf-card__head">
-            <div class="cf-card__title">@L["Profile.Telegram.Title"] <span class="cf-badge cf-badge--neutral">@L["Profile.Telegram.Off"]</span></div>
-            <div class="cf-card__desc">@L["Profile.Telegram.SetupHint"]</div>
-        </div>
-        <div class="cf-card__body">
-            <ol class="app-steps">
-                <li>@L["Profile.Telegram.Step1"]</li>
-                <li>@L["Profile.Telegram.Step2"]</li>
-                <li>@L["Profile.Telegram.Step3"]<pre class="app-code">dotnet user-secrets set "Telegram:BotToken" "123456:ABC..."
-dotnet user-secrets set "Telegram:BotUsername" "CityFixBot"</pre></li>
-                <li>@L["Profile.Telegram.Step4"]</li>
-            </ol>
-        </div>
+    <div class="app-profile-stats">
+        @if (user.Role == UserRole.Resident)
+        {
+            <a class="app-profile-stat" asp-controller="Appeals" asp-action="Index">
+                <span class="app-profile-stat__value">@stats.Appeals</span><span class="app-profile-stat__label">@L["Profile.Stats.Appeals"]</span>
+            </a>
+            <a class="app-profile-stat" asp-controller="Appeals" asp-action="Index" asp-route-tab="@AppealFilter.TabInProgress">
+                <span class="app-profile-stat__value">@stats.Open</span><span class="app-profile-stat__label">@L["Profile.Stats.Open"]</span>
+            </a>
+            <a class="app-profile-stat" asp-controller="Appeals" asp-action="Index" asp-route-tab="@AppealFilter.TabClosed">
+                <span class="app-profile-stat__value">@stats.Done</span><span class="app-profile-stat__label">@L["Profile.Stats.Done"]</span>
+            </a>
+            <a class="app-profile-stat" asp-controller="Dashboard" asp-action="Index">
+                <span class="app-profile-stat__value">@stats.Supported</span><span class="app-profile-stat__label">@L["Profile.Stats.Supported"]</span>
+            </a>
+        }
+        else
+        {
+            <a class="app-profile-stat" asp-controller="Appeals" asp-action="Index">
+                <span class="app-profile-stat__icon"><span class="cf-icon cf-icon--list cf-icon--5" aria-hidden="true"></span></span><span class="app-profile-stat__label">@L["Nav.AllAppeals"]</span>
+            </a>
+            <a class="app-profile-stat" asp-controller="Analytics" asp-action="Index">
+                <span class="app-profile-stat__icon"><span class="cf-icon cf-icon--bars cf-icon--5" aria-hidden="true"></span></span><span class="app-profile-stat__label">@L["Nav.Analytics"]</span>
+            </a>
+        }
+        <a class="app-profile-stat" asp-controller="Notifications" asp-action="Index">
+            <span class="app-profile-stat__value">@stats.Unread</span><span class="app-profile-stat__label">@L["Profile.Stats.Unread"]</span>
+        </a>
     </div>
-}
+</header>
 
-@if (Model.TelegramBot != null)
-{
-    var telegramLink = Model.TelegramLink(DateTime.UtcNow);
-    <div class="cf-card" id="telegram">
-        <div class="cf-card__head">
-            <div class="cf-card__title">@L["Profile.Telegram.Title"]</div>
-            <div class="cf-card__desc">@L[Model.TelegramLinked ? "Profile.Telegram.LinkedHint" : "Profile.Telegram.Hint"]</div>
-        </div>
-        <div class="cf-card__body cf-stack-4">
-            @if (Model.TelegramLinked)
+<div class="app-profile">
+    <nav class="app-profile-nav" aria-label="@L["Profile.Title"]" data-profile-nav>
+        @foreach (var s in sections)
+        {
+            <a class="app-profile-nav__item" href="#@s.Id"><span class="cf-icon cf-icon--@s.Icon cf-icon--4" aria-hidden="true"></span>@L[s.Label]</a>
+        }
+    </nav>
+
+    <div class="app-profile__sections">
+        <section class="cf-card app-profile-section" id="personal" aria-labelledby="personal-title">
+            <div class="app-profile-section__head">
+                <h2 class="app-profile-section__title" id="personal-title">@L["Profile.EditTitle"]</h2>
+                <p class="app-profile-section__desc">@L["Profile.EditHint"]</p>
+            </div>
+            <form asp-action="UpdateProfile" method="post" class="cf-stack-4">
+                <div class="cf-form-grid">
+                    <div>
+                        <label class="cf-label" asp-for="Profile.FirstName"></label>
+                        <label class="cf-field"><input asp-for="Profile.FirstName" class="@InputClass("Profile.FirstName")" autocomplete="given-name" /></label>
+                        <span asp-validation-for="Profile.FirstName" class="cf-field__error"></span>
+                    </div>
+                    <div>
+                        <label class="cf-label" asp-for="Profile.LastName"></label>
+                        <label class="cf-field"><input asp-for="Profile.LastName" class="@InputClass("Profile.LastName")" autocomplete="family-name" /></label>
+                        <span asp-validation-for="Profile.LastName" class="cf-field__error"></span>
+                    </div>
+                </div>
+                <div class="cf-form-grid">
+                    <div>
+                        <label class="cf-label" asp-for="Profile.Email"></label>
+                        <label class="cf-field"><input asp-for="Profile.Email" class="@InputClass("Profile.Email")" autocomplete="email" inputmode="email" /></label>
+                        <span asp-validation-for="Profile.Email" class="cf-field__error"></span>
+                        <p class="cf-field__hint">@L["Profile.EmailChangeHint"]</p>
+                    </div>
+                    <div>
+                        <label class="cf-label" asp-for="Profile.Phone">@L["Field.PhoneOptional"]</label>
+                        <label class="cf-field"><input asp-for="Profile.Phone" class="@InputClass("Profile.Phone")" type="tel" autocomplete="tel" inputmode="tel" placeholder="+380 50 123 45 67" /></label>
+                        <span asp-validation-for="Profile.Phone" class="cf-field__error"></span>
+                        <p class="cf-field__hint">@L["Profile.PhoneHint"]</p>
+                    </div>
+                </div>
+                <div class="app-profile-actions"><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
+            </form>
+            @if (user.PendingEmail != null)
             {
-                <form asp-action="DisconnectTelegram" method="post">
-                    <button type="submit" class="cf-btn cf-btn--outline">@L["Profile.Telegram.Disconnect"]</button>
+                <form asp-action="ResendPendingEmail" method="post" class="app-profile-note">
+                    <span class="cf-icon cf-icon--mail cf-icon--5" aria-hidden="true"></span>
+                    <p>@L["Profile.EmailPendingNote", user.PendingEmail, user.Email]</p>
+                    <button type="submit" class="cf-btn cf-btn--outline cf-btn--sm">@L["Auth.Resend.Submit"]</button>
                 </form>
             }
-            else if (telegramLink != null)
-            {
-                <p class="cf-help">@L["Profile.Telegram.LinkReady"]</p>
-                <div class="cf-toolbar">
-                    <a class="cf-btn" href="@telegramLink" target="_blank" rel="noopener">@L["Profile.Telegram.Open", Model.TelegramBot]</a>
-                    <a class="cf-btn cf-btn--outline" asp-action="Profile">@L["Profile.Telegram.Check"]</a>
+        </section>
+
+        @if (canChangeAcab)
+        {
+            var isHead = user.Role == UserRole.AcabAdmin;
+            <section class="cf-card app-profile-section" id="association" aria-labelledby="association-title">
+                <div class="app-profile-section__head">
+                    <h2 class="app-profile-section__title" id="association-title">@L["Profile.Acab.Title"]</h2>
+                    <p class="app-profile-section__desc">@L["Profile.Acab.Hint"]</p>
                 </div>
-            }
-            else
-            {
-                <form asp-action="ConnectTelegram" method="post">
-                    <button type="submit" class="cf-btn">@L["Profile.Telegram.Connect"]</button>
+
+                <div class="app-profile-row app-acab-current">
+                    <span class="app-switch-row__icon"><span class="cf-icon cf-icon--apartment cf-icon--5" aria-hidden="true"></span></span>
+                    <div class="app-switch-row__text">
+                        @if (user.Acab != null)
+                        {
+                            <span class="app-switch-row__title">@user.Acab.DisplayName()</span>
+                            <span class="app-switch-row__desc">@L[isHead ? "Profile.Acab.YouAreHead" : "Profile.Acab.YouAreResident"]@(user.Acab.DisplayAddress() is string address ? $" · {address}" : "")</span>
+                        }
+                        else
+                        {
+                            <span class="app-switch-row__title">@L["Profile.Acab.NoneTitle"]</span>
+                            <span class="app-switch-row__desc">@L["Profile.Acab.NoneDesc"]</span>
+                        }
+                    </div>
+                </div>
+
+                <form asp-action="JoinAssociation" method="post" class="app-acab-join">
+                    <label class="cf-label" for="acab-code">@L[user.Acab == null ? "Profile.Acab.JoinLabel" : "Profile.Acab.ChangeLabel"]</label>
+                    <div class="app-acab-join__row">
+                        <label class="cf-field"><input id="acab-code" name="code" class="cf-input app-auth-code" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="@L["Auth.Register.CodePlaceholder"]" /></label>
+                        <button type="submit" class="cf-btn">@L["Profile.Acab.Apply"]</button>
+                    </div>
+                    <p class="cf-field__hint">@L["Profile.Acab.CodeHint"]</p>
+                    @if (stats.OpenInAssociation > 0)
+                    {
+                        <p class="app-profile-note app-profile-note--info"><span class="cf-icon cf-icon--alert-circle cf-icon--5" aria-hidden="true"></span><span>@L["Profile.Acab.OpenStay", stats.OpenInAssociation]</span></p>
+                    }
                 </form>
-            }
-        </div>
-    </div>
-}
 
-<div class="cf-card">
-    <div class="cf-card__head">
-        <div class="cf-card__title">@L["Profile.ChangePassword"]</div>
-        <div class="cf-card__desc">@L["Profile.ChangePasswordHint"]</div>
-    </div>
-    <div class="cf-card__body">
-        <form asp-action="ChangePassword" method="post" class="cf-stack-6">
-            <div>
-                <label class="cf-label" asp-for="ChangePassword.CurrentPassword"></label>
-                <div class="cf-field app-password"><input asp-for="ChangePassword.CurrentPassword" class="cf-input" autocomplete="current-password" /><partial name="_PasswordToggle" /></div>
-                <span asp-validation-for="ChangePassword.CurrentPassword" class="cf-field__error"></span>
+                @if (user.Acab != null)
+                {
+                    <details class="app-danger app-acab-leave">
+                        <summary class="app-danger__summary">
+                            <span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span>@L[isHead ? "Profile.Acab.StepDown" : "Profile.Acab.Leave"]
+                            <span class="cf-icon cf-icon--chevron-down cf-icon--4 app-danger__chevron" aria-hidden="true"></span>
+                        </summary>
+                        <form asp-action="LeaveAssociation" method="post" class="cf-stack-4 app-danger__body">
+                            <p class="cf-help">@L[isHead ? "Profile.Acab.StepDownText" : "Profile.Acab.LeaveText"]</p>
+                            @if (isHead && stats.OtherHeads == 0)
+                            {
+                                <p class="app-profile-warning"><span class="cf-icon cf-icon--alert cf-icon--4" aria-hidden="true"></span>@L["Profile.Acab.LastHead"]</p>
+                            }
+                            <div><button type="submit" class="cf-btn cf-btn--destructive">@L[isHead ? "Profile.Acab.StepDownConfirm" : "Profile.Acab.LeaveConfirm"]</button></div>
+                        </form>
+                    </details>
+                }
+            </section>
+        }
+
+        <section class="cf-card app-profile-section" id="notifications" aria-labelledby="notifications-title">
+            <div class="app-profile-section__head">
+                <h2 class="app-profile-section__title" id="notifications-title">@L["Profile.NotificationsTitle"]</h2>
+                <p class="app-profile-section__desc">@L["Profile.NotificationsHint"]</p>
             </div>
-            <div class="cf-form-grid">
-                <div>
-                    <label class="cf-label" asp-for="ChangePassword.NewPassword"></label>
-                    <div class="cf-field app-password"><input asp-for="ChangePassword.NewPassword" class="cf-input" autocomplete="new-password" /><partial name="_PasswordToggle" /></div>
-                    <span class="cf-field__hint">@L["Profile.PasswordHint"]</span>
-                    <span asp-validation-for="ChangePassword.NewPassword" class="cf-field__error"></span>
+            @* Each switch saves the form at once; the button is there for browsers without JavaScript. *@
+            <form asp-action="UpdateNotifications" method="post" data-autosave>
+                <div class="app-switch-list">
+                    <label class="app-switch-row">
+                        <span class="app-switch-row__icon"><span class="cf-icon cf-icon--bell-lucide cf-icon--5" aria-hidden="true"></span></span>
+                        <span class="app-switch-row__text">
+                            <span class="app-switch-row__title">@L["Profile.Notify.InAppTitle"]</span>
+                            <span class="app-switch-row__desc">@L["Profile.Notify.InAppDesc"]</span>
+                        </span>
+                        <input asp-for="Notifications.InApp" class="app-switch" role="switch" />
+                    </label>
+                    <label class="app-switch-row">
+                        <span class="app-switch-row__icon"><span class="cf-icon cf-icon--mail cf-icon--5" aria-hidden="true"></span></span>
+                        <span class="app-switch-row__text">
+                            <span class="app-switch-row__title">@L["Profile.Notify.EmailTitle"]</span>
+                            <span class="app-switch-row__desc">@(user.EmailConfirmed ? L["Profile.Notify.EmailTo", user.Email] : L["Profile.Notify.EmailUnconfirmed"])</span>
+                        </span>
+                        <input asp-for="Notifications.Email" class="app-switch" role="switch" />
+                    </label>
                 </div>
-                <div>
-                    <label class="cf-label" asp-for="ChangePassword.ConfirmPassword"></label>
-                    <div class="cf-field app-password"><input asp-for="ChangePassword.ConfirmPassword" class="cf-input" autocomplete="new-password" /><partial name="_PasswordToggle" /></div>
-                    <span asp-validation-for="ChangePassword.ConfirmPassword" class="cf-field__error"></span>
-                </div>
+                @if (!Model.Notifications.InApp && !Model.Notifications.Email)
+                {
+                    <p class="app-profile-warning"><span class="cf-icon cf-icon--alert cf-icon--4" aria-hidden="true"></span>@L["Profile.Notify.AllOff"]</p>
+                }
+                <div class="app-profile-actions" data-autosave-button><button type="submit" class="cf-btn">@L["Common.SaveChanges"]</button></div>
+            </form>
+        </section>
+
+        <section class="cf-card app-profile-section" id="security" aria-labelledby="security-title">
+            <div class="app-profile-section__head">
+                <h2 class="app-profile-section__title" id="security-title">@L["Profile.ChangePassword"]</h2>
+                <p class="app-profile-section__desc">@L["Profile.ChangePasswordHint"]</p>
             </div>
-            <div><button type="submit" class="cf-btn">@L["Profile.ChangePassword"]</button></div>
-        </form>
+            <form asp-action="ChangePassword" method="post" class="cf-stack-4">
+                <div class="app-auth-field">
+                    <label class="cf-label" asp-for="ChangePassword.CurrentPassword"></label>
+                    <div class="cf-field app-password"><input asp-for="ChangePassword.CurrentPassword" class="cf-input" autocomplete="current-password" /><partial name="_PasswordToggle" /></div>
+                    <span asp-validation-for="ChangePassword.CurrentPassword" class="cf-field__error"></span>
+                    <p class="app-capslock" data-capslock hidden><span class="cf-icon cf-icon--alert cf-icon--3" aria-hidden="true"></span>@L["Auth.CapsLock"]</p>
+                </div>
+                <div class="cf-form-grid">
+                    <div class="app-auth-field">
+                        <label class="cf-label" asp-for="ChangePassword.NewPassword"></label>
+                        <div class="cf-field app-password"><input asp-for="ChangePassword.NewPassword" class="cf-input" autocomplete="new-password" data-password-new aria-describedby="password-rule" /><partial name="_PasswordToggle" /></div>
+                        <span asp-validation-for="ChangePassword.NewPassword" class="cf-field__error"></span>
+                        <p class="app-password-rule" id="password-rule" data-password-rule data-min="8">@L["Auth.Password.Rule", 8]</p>
+                        <p class="app-capslock" data-capslock hidden><span class="cf-icon cf-icon--alert cf-icon--3" aria-hidden="true"></span>@L["Auth.CapsLock"]</p>
+                    </div>
+                    <div class="app-auth-field">
+                        <label class="cf-label" asp-for="ChangePassword.ConfirmPassword"></label>
+                        <div class="cf-field app-password"><input asp-for="ChangePassword.ConfirmPassword" class="cf-input" autocomplete="new-password" data-password-confirm /><partial name="_PasswordToggle" /></div>
+                        <span asp-validation-for="ChangePassword.ConfirmPassword" class="cf-field__error"></span>
+                        <p class="app-password-rule" data-password-match hidden aria-live="polite"
+                           data-text-ok="@L["Auth.Password.Match"]" data-text-bad="@L["Auth.Password.NoMatch"]"></p>
+                    </div>
+                </div>
+                <div class="app-profile-actions"><button type="submit" class="cf-btn">@L["Profile.ChangePassword"]</button></div>
+            </form>
+        </section>
+
+        <section class="cf-card app-profile-section" id="data" aria-labelledby="data-title">
+            <div class="app-profile-section__head">
+                <h2 class="app-profile-section__title" id="data-title">@L["Profile.Data.Title"]</h2>
+                <p class="app-profile-section__desc">@L["Profile.Data.Hint"]</p>
+            </div>
+            <div class="app-profile-row">
+                <span class="app-switch-row__icon"><span class="cf-icon cf-icon--file-text cf-icon--5" aria-hidden="true"></span></span>
+                <div class="app-switch-row__text">
+                    <span class="app-switch-row__title">@L["Profile.Data.ExportTitle"]</span>
+                    <span class="app-switch-row__desc">@L["Profile.Data.ExportDesc"]</span>
+                </div>
+                <a class="cf-btn cf-btn--outline cf-btn--sm" asp-action="ExportData">@L["Profile.Data.Download"]</a>
+            </div>
+
+            <details class="app-danger" @(ViewData.ModelState.ContainsKey("password") ? "open" : "")>
+                <summary class="app-danger__summary">
+                    <span class="cf-icon cf-icon--trash cf-icon--4" aria-hidden="true"></span>@L["Profile.Delete.Submit"]
+                    <span class="cf-icon cf-icon--chevron-down cf-icon--4 app-danger__chevron" aria-hidden="true"></span>
+                </summary>
+                <form asp-action="DeleteAccount" method="post" class="cf-stack-4 app-danger__body">
+                    <p class="cf-help">@L["Profile.Delete.Warning"]</p>
+                    <div>
+                        <label class="cf-label" for="delete-password">@L["Field.CurrentPassword"]</label>
+                        <div class="cf-field app-password"><input id="delete-password" name="password" type="password" class="cf-input" autocomplete="current-password" required /><partial name="_PasswordToggle" /></div>
+                    </div>
+                    <div><button type="submit" class="cf-btn cf-btn--destructive">@L["Profile.Delete.Submit"]</button></div>
+                </form>
+            </details>
+        </section>
     </div>
 </div>
-
-<div class="cf-card">
-    <div class="cf-card__head">
-        <div class="cf-card__title">@L["Profile.Data.Title"]</div>
-        <div class="cf-card__desc">@L["Profile.Data.Hint"]</div>
-    </div>
-    <div class="cf-card__body cf-stack-6">
-        <div><a class="cf-btn cf-btn--outline" asp-action="ExportData">@L["Profile.Data.Export"]</a></div>
-        <form asp-action="DeleteAccount" method="post" class="cf-stack-6">
-            <p class="cf-help">@L["Profile.Delete.Warning"]</p>
-            <div>
-                <label class="cf-label" for="delete-password">@L["Field.CurrentPassword"]</label>
-                <div class="cf-field app-password"><input id="delete-password" name="password" type="password" class="cf-input" autocomplete="current-password" required /><partial name="_PasswordToggle" /></div>
-            </div>
-            <div><button type="submit" class="cf-btn cf-btn--destructive">@L["Profile.Delete.Submit"]</button></div>
-        </form>
-    </div>
-</div>
-
-<form asp-action="Logout" method="post">
-    <button type="submit" class="cf-btn cf-btn--outline cf-btn--icon-gap"><span class="cf-icon cf-icon--log-out cf-icon--4" aria-hidden="true"></span>@L["Profile.Logout"]</button>
-</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

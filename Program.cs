@@ -104,10 +104,8 @@ builder.Services.Configure<AppealOptions>(builder.Configuration.GetSection(Appea
 builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.Section));
 builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOptions.Section));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.Section));
-builder.Services.Configure<SmsOptions>(builder.Configuration.GetSection(SmsOptions.Section));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.Section));
 builder.Services.Configure<SupportOptions>(builder.Configuration.GetSection(SupportOptions.Section));
-builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection(TelegramOptions.Section));
 
 builder.Services.Configure<TranslationOptions>(builder.Configuration.GetSection(TranslationOptions.Section));
 
@@ -151,21 +149,6 @@ if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{na
 else
 {
     builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
-}
-if (string.Equals(builder.Configuration[$"{SmsOptions.Section}:{nameof(SmsOptions.Provider)}"], "Twilio", StringComparison.OrdinalIgnoreCase))
-{
-    builder.Services.AddHttpClient<ISmsSender, TwilioSmsSender>(client => client.Timeout = TimeSpan.FromSeconds(10));
-}
-else
-{
-    builder.Services.AddSingleton<ISmsSender, LogSmsSender>();
-}
-if (builder.Configuration.GetSection(TelegramOptions.Section).Get<TelegramOptions>() is { Enabled: true })
-{
-    // Longer than the 30 s long poll. The bot token is part of every request URL, so these requests are not logged.
-    builder.Services.AddHttpClient<ITelegramClient, TelegramClient>(client => client.Timeout = TimeSpan.FromSeconds(60))
-        .RemoveAllLoggers();
-    builder.Services.AddHostedService<TelegramBotWorker>();
 }
 builder.Services.AddHostedService<NotificationDispatcher>();
 builder.Services.AddHostedService<DeadlineWorker>();

@@ -6,43 +6,22 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CityFix_backend.Migrations
 {
     /// <inheritdoc />
-    public partial class DeadlinesRatingsSupportTelegram : Migration
+    public partial class CommunityFeatures : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "NotifyTelegram",
-                table: "Users",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
+            migrationBuilder.DropIndex(
+                name: "IX_Notifications_EmailState_SmsState",
+                table: "Notifications");
 
-            migrationBuilder.AddColumn<long>(
-                name: "TelegramChatId",
-                table: "Users",
-                type: "bigint",
-                nullable: true);
+            migrationBuilder.DropColumn(
+                name: "NotifySms",
+                table: "Users");
 
-            migrationBuilder.AddColumn<string>(
-                name: "TelegramLinkCode",
-                table: "Users",
-                type: "character varying(32)",
-                maxLength: 32,
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateTime>(
-                name: "TelegramLinkExpires",
-                table: "Users",
-                type: "timestamp with time zone",
-                nullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "TelegramState",
-                table: "Notifications",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.DropColumn(
+                name: "SmsState",
+                table: "Notifications");
 
             migrationBuilder.AddColumn<int>(
                 name: "Rating",
@@ -133,10 +112,9 @@ namespace CityFix_backend.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_TelegramLinkCode",
-                table: "Users",
-                column: "TelegramLinkCode",
-                unique: true);
+                name: "IX_Notifications_EmailState",
+                table: "Notifications",
+                column: "EmailState");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Appeals_DueAt",
@@ -173,32 +151,12 @@ namespace CityFix_backend.Migrations
                 name: "AppealSupports");
 
             migrationBuilder.DropIndex(
-                name: "IX_Users_TelegramLinkCode",
-                table: "Users");
+                name: "IX_Notifications_EmailState",
+                table: "Notifications");
 
             migrationBuilder.DropIndex(
                 name: "IX_Appeals_DueAt",
                 table: "Appeals");
-
-            migrationBuilder.DropColumn(
-                name: "NotifyTelegram",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "TelegramChatId",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "TelegramLinkCode",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "TelegramLinkExpires",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "TelegramState",
-                table: "Notifications");
 
             migrationBuilder.DropColumn(
                 name: "Rating",
@@ -239,6 +197,25 @@ namespace CityFix_backend.Migrations
             migrationBuilder.DropColumn(
                 name: "ThumbnailPath",
                 table: "AppealFiles");
+
+            migrationBuilder.AddColumn<bool>(
+                name: "NotifySms",
+                table: "Users",
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<int>(
+                name: "SmsState",
+                table: "Notifications",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_EmailState_SmsState",
+                table: "Notifications",
+                columns: new[] { "EmailState", "SmsState" });
         }
     }
 }

@@ -43,6 +43,11 @@
                             {
                                 <div class="cf-table__sub">@a.DisplayAddress()</div>
                             }
+                            @if (row.HeadCount == 0)
+                            {
+                                @* Its appeals go to the administrators until someone joins with the head code. *@
+                                <span class="cf-badge cf-badge--warning" title="@L["Acabs.NoHeadHint"]">@L["Acabs.NoHead"]</span>
+                            }
                         </td>
                         <td><code>@a.ResidentCode</code></td>
                         <td><code>@a.HeadCode</code></td>
