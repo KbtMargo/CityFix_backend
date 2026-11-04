@@ -99,7 +99,6 @@ public class ThumbnailTests
     [Fact]
     public void Exif_orientation_is_applied()
     {
-        // APP1 with a little-endian TIFF block holding only Orientation = 6 (rotate 90° clockwise).
         byte[] tiff = [(byte)'I', (byte)'I', 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00,
             0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
         byte[] payload = [.. "Exif\0\0"u8.ToArray(), .. tiff];

@@ -288,8 +288,6 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu.open = false; }); });
 });
 
-// Sidebar order: press and hold an item to drag it elsewhere (Alt+↑/↓ from the keyboard). The order is kept per user in
-// this browser; items that appear later (a new role, a new page) keep their default place.
 (function () {
     var nav = document.querySelector('[data-nav-reorder]');
     if (!nav) return;
@@ -304,7 +302,6 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
         var byKey = {};
         items().forEach(function (i) { byKey[i.dataset.navKey] = i; });
         keys.forEach(function (k) { if (byKey[k]) { nav.appendChild(byKey[k]); delete byKey[k]; } });
-        // Whatever the saved order does not know goes in its default position relative to the rest.
         defaults.forEach(function (k, index) {
             if (!byKey[k]) return;
             var next = defaults.slice(index + 1).map(function (n) { return nav.querySelector('[data-nav-key="' + n + '"]'); }).filter(Boolean)[0];
@@ -383,7 +380,6 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
         start = null;
         save();
         announce(nav.dataset.textSaved, true);
-        // The click that ends a long press must not open the page; let it pass, then go back to normal.
         setTimeout(function () { suppressClick = false; }, 400);
     }
     nav.addEventListener('pointerup', finish);
@@ -393,7 +389,6 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     nav.addEventListener('click', function (e) {
         if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
     }, true);
-    // Phones open a link menu on long press, and browsers start dragging the link itself; neither should happen here.
     nav.addEventListener('contextmenu', function (e) { if (holdTimer || dragging || suppressClick) e.preventDefault(); });
     nav.addEventListener('dragstart', function (e) { e.preventDefault(); });
     nav.addEventListener('touchmove', function (e) { if (dragging) e.preventDefault(); }, { passive: false });
@@ -410,20 +405,17 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     });
 })();
 
-// Settings forms that save as soon as a switch is flipped; their save button is only a no-JavaScript fallback.
 document.querySelectorAll('form[data-autosave]').forEach(function (form) {
     var fallback = form.querySelector('[data-autosave-button]');
     if (fallback) fallback.hidden = true;
     form.addEventListener('change', function () { form.requestSubmit(); });
 });
 
-// Profile section menu: highlights the last section whose top has scrolled past the header (the last one at the very bottom).
 (function () {
     var nav = document.querySelector('[data-profile-nav]');
     if (!nav) return;
     var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
     var sections = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
-    // The app shell scrolls its main column, not the window.
     var scroller = nav.closest('.cf-shell__main') || document.scrollingElement || document.documentElement;
     var events = scroller === document.scrollingElement || scroller === document.documentElement ? window : scroller;
     function update() {
@@ -441,7 +433,6 @@ document.querySelectorAll('form[data-autosave]').forEach(function (form) {
     update();
 })();
 
-// "Affects me too" buttons on appeal cards and in the appeal dialog.
 document.querySelectorAll('[data-support]').forEach(function (button) {
     var box = button.parentElement;
     var label = button.querySelector('[data-support-label]');
@@ -468,7 +459,6 @@ document.querySelectorAll('[data-support]').forEach(function (button) {
     });
 });
 
-// Password fields: a show/hide button, a Caps Lock warning, and on new-password forms a live length and match check.
 (function () {
     document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
         var input = button.parentElement.querySelector('input');
@@ -484,12 +474,10 @@ document.querySelectorAll('[data-support]').forEach(function (button) {
             button.title = label;
             icon.classList.toggle('cf-icon--eye', !show);
             icon.classList.toggle('cf-icon--eye-off', show);
-            // Keep the caret where it was, so the user can carry on typing.
             var at = input.selectionStart;
             input.focus();
             if (at != null) input.setSelectionRange(at, at);
         });
-        // A visible password must not end up in the browser's form history or be submitted as text in a back-forward page.
         input.form && input.form.addEventListener('submit', function () { input.type = 'password'; });
     });
 

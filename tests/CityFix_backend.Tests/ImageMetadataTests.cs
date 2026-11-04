@@ -13,7 +13,6 @@ public class ImageMetadataTests
         return [0xFF, marker, .. length, .. payload];
     }
 
-    // Minimal little-endian TIFF block: IFD0 with Orientation and a Make tag that points at "SECRETCAM".
     private static byte[] Exif(ushort orientation)
     {
         var tiff = new List<byte> { (byte)'I', (byte)'I', 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x02, 0x00 };
@@ -48,7 +47,6 @@ public class ImageMetadataTests
         Assert.True(Contains(output, "JFIF"));
         Assert.Equal([0xFF, 0xD9], output[^2..]);
 
-        // Orientation segment follows APP0 and holds value 6 (big-endian SHORT).
         var exifAt = Encoding.ASCII.GetString(output).IndexOf("Exif", StringComparison.Ordinal);
         Assert.True(exifAt > 0);
         Assert.Equal(6, output[exifAt + 6 + 8 + 2 + 8 + 1]);

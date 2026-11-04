@@ -41,7 +41,6 @@
         options: base
     });
 
-    // Staff section: inflow vs outflow, residents' ratings, resolution time by category.
     var flow = document.getElementById('chart-flow');
     if (flow && data.flow) {
         new Chart(flow, {
@@ -67,7 +66,6 @@
 
     var resolution = document.getElementById('chart-resolution');
     if (resolution && data.resolution) {
-        // One row per category; the height follows the number of rows so long lists stay readable.
         var box = resolution.parentElement;
         box.style.height = Math.max(160, Number(box.dataset.rows || 1) * 36 + 40) + 'px';
         new Chart(resolution, {
