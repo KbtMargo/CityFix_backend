@@ -1,8 +1,3 @@
-// Small progressive enhancements. Every page works without them.
-
-// Sidebar: on desktop its own button (or Ctrl+B) collapses it to an icon rail, remembered in the
-// cf_sidebar cookie so _Layout renders the right width on the next page. On phones the topbar menu
-// button opens it as a drawer, and the sidebar's button, the scrim or Escape close it.
 (function () {
     var shell = document.querySelector('[data-app-shell]');
     var toggle = document.querySelector('[data-sidebar-toggle]');
@@ -72,7 +67,6 @@
 
     mobile.addEventListener('change', function () { shell.classList.remove('is-open'); hideTip(); sync(); });
 
-    // Rail tooltips: the label of the hovered or focused item, next to it.
     var tip = document.createElement('div');
     tip.className = 'app-tip';
     tip.setAttribute('aria-hidden', 'true');
@@ -101,7 +95,6 @@
     sync();
 })();
 
-// Theme toggle: light / dark, remembered in localStorage (read by _ThemeScript before first paint).
 document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     function sync() {
         var dark = document.documentElement.dataset.theme === 'dark';
@@ -120,8 +113,6 @@ document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     button.addEventListener('cf:theme', sync);
 });
 
-// Overlays (detail modal, delete dialog): focus moves into the dialog; clicking the backdrop or pressing
-// Escape closes it, by going to the same URL the close button links to.
 (function () {
     var overlay = document.querySelector('[data-close-href]');
     if (!overlay) return;
@@ -135,7 +126,6 @@ document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') location.href = href; });
 })();
 
-// Flash messages can be dismissed.
 document.querySelectorAll('[data-flash]').forEach(function (flash) {
     var close = flash.querySelector('[data-flash-close]');
     if (!close) return;
@@ -143,15 +133,12 @@ document.querySelectorAll('[data-flash]').forEach(function (flash) {
     close.addEventListener('click', function () { flash.remove(); });
 });
 
-// POST forms: one submission only, with a spinner in the button, so a slow save is not sent twice.
-// Runs after jQuery validation, which cancels the event when the form is invalid.
 document.addEventListener('submit', function (e) {
     var form = e.target;
     if (e.defaultPrevented || (form.method || '').toLowerCase() !== 'post') return;
     if (form.dataset.submitting) { e.preventDefault(); return; }
     form.dataset.submitting = 'true';
     var button = e.submitter;
-    // Named buttons (the UA/EN switch) carry their value; leave them alone.
     if (button && !button.name && (button.classList.contains('cf-btn') || button.classList.contains('cf-auth__submit'))) {
         button.setAttribute('aria-disabled', 'true');
         button.setAttribute('aria-busy', 'true');
@@ -162,7 +149,6 @@ document.addEventListener('submit', function (e) {
     }
 });
 
-// Coming back with the browser's Back button restores the page from cache: re-enable its forms.
 window.addEventListener('pageshow', function (e) {
     if (!e.persisted) return;
     document.querySelectorAll('form[data-submitting]').forEach(function (form) { delete form.dataset.submitting; });
@@ -174,7 +160,6 @@ window.addEventListener('pageshow', function (e) {
     });
 });
 
-// Edit and create forms warn before leaving with unsaved changes.
 document.querySelectorAll('form.cf-form-card').forEach(function (form) {
     var dirty = false;
     form.addEventListener('input', function () { dirty = true; });
@@ -184,12 +169,10 @@ document.querySelectorAll('form.cf-form-card').forEach(function (form) {
     });
 });
 
-// The close (×) button inside the filters popover closes its <details>.
 document.querySelectorAll('[data-close-details]').forEach(function (button) {
     button.addEventListener('click', function () { button.closest('details').open = false; });
 });
 
-// Photo carousel in the detail modal: thumbnails and arrows switch the main image.
 document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     var main = gallery.querySelector('[data-gallery-main]');
     var thumbs = Array.from(gallery.querySelectorAll('[data-gallery-src]'));
@@ -208,9 +191,6 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     });
 });
 
-// Tables: drag the right edge of a column header to change the column's width, or focus that edge and use
-// the arrow keys (Shift for bigger steps); a double-click (or Escape) restores the default widths.
-// Widths are remembered per page and table in localStorage. Without script the tables keep their auto layout.
 (function () {
     var label = document.body.getAttribute('data-col-resize-label') || '';
     var MIN = 60;
@@ -231,14 +211,14 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
         }
 
         function save() {
-            try { localStorage.setItem(key, JSON.stringify(current())); } catch (e) { /* private mode: not remembered */ }
+            try { localStorage.setItem(key, JSON.stringify(current())); } catch (e) { }
         }
 
         function reset() {
             headers.forEach(function (th) { th.style.width = ''; });
             table.style.width = '';
             table.classList.remove('is-resized');
-            try { localStorage.removeItem(key); } catch (e) { /* nothing stored */ }
+            try { localStorage.removeItem(key); } catch (e) { }
         }
 
         function resize(i, delta) {
@@ -250,9 +230,8 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
         try {
             var saved = JSON.parse(localStorage.getItem(key) || 'null');
             if (Array.isArray(saved) && saved.length === headers.length) apply(saved);
-        } catch (e) { /* a broken value: keep the default layout */ }
+        } catch (e) { }
 
-        // Every column but the last gets a handle on its right edge.
         headers.slice(0, -1).forEach(function (th, i) {
             var handle = document.createElement('span');
             handle.className = 'app-col-resize';
@@ -301,7 +280,6 @@ document.querySelectorAll('[data-cf-gallery]').forEach(function (gallery) {
     });
 })();
 
-// Menus in <details data-menu>: an outside click or Escape closes them, picking an item closes them too.
 document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     document.addEventListener('click', function (e) { if (menu.open && !menu.contains(e.target)) menu.open = false; });
     menu.addEventListener('keydown', function (e) {
@@ -309,3 +287,229 @@ document.querySelectorAll('details[data-menu]').forEach(function (menu) {
     });
     menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { menu.open = false; }); });
 });
+
+(function () {
+    var nav = document.querySelector('[data-nav-reorder]');
+    if (!nav) return;
+    var storageKey = 'cf_nav_order_' + nav.dataset.navReorder;
+    var toast = document.querySelector('[data-nav-toast]');
+    var HOLD_MS = 450, SLOP_PX = 8;
+
+    function items() { return Array.prototype.slice.call(nav.querySelectorAll('[data-nav-key]')); }
+    var defaults = items().map(function (i) { return i.dataset.navKey; });
+
+    function arrange(keys) {
+        var byKey = {};
+        items().forEach(function (i) { byKey[i.dataset.navKey] = i; });
+        keys.forEach(function (k) { if (byKey[k]) { nav.appendChild(byKey[k]); delete byKey[k]; } });
+        defaults.forEach(function (k, index) {
+            if (!byKey[k]) return;
+            var next = defaults.slice(index + 1).map(function (n) { return nav.querySelector('[data-nav-key="' + n + '"]'); }).filter(Boolean)[0];
+            nav.insertBefore(byKey[k], next && next.parentNode === nav ? next : null);
+        });
+    }
+    function save() { try { localStorage.setItem(storageKey, JSON.stringify(items().map(function (i) { return i.dataset.navKey; }))); } catch (e) { } }
+    try {
+        var saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        if (Array.isArray(saved)) arrange(saved);
+    } catch (e) { }
+
+    var hideTimer = null;
+    function announce(text, withReset) {
+        if (!toast) return;
+        toast.textContent = text;
+        if (withReset) {
+            var reset = document.createElement('button');
+            reset.type = 'button';
+            reset.className = 'app-nav-toast__reset';
+            reset.textContent = nav.dataset.textReset;
+            reset.addEventListener('click', function () {
+                try { localStorage.removeItem(storageKey); } catch (e) { }
+                arrange(defaults);
+                toast.hidden = true;
+            });
+            toast.appendChild(document.createTextNode(' '));
+            toast.appendChild(reset);
+        }
+        toast.hidden = false;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () { toast.hidden = true; }, 6000);
+    }
+
+    var holdTimer = null, start = null, dragging = null, suppressClick = false;
+    function cancelHold() { clearTimeout(holdTimer); holdTimer = null; start = null; nav.classList.remove('is-pressing'); }
+
+    nav.addEventListener('pointerdown', function (e) {
+        var item = e.target.closest('[data-nav-key]');
+        if (!item || e.button !== 0) return;
+        start = { x: e.clientX, y: e.clientY };
+        nav.classList.add('is-pressing');
+        holdTimer = setTimeout(function () {
+            holdTimer = null;
+            dragging = item;
+            suppressClick = true;
+            try { item.setPointerCapture(e.pointerId); } catch (err) { }
+            nav.classList.remove('is-pressing');
+            nav.classList.add('is-reordering');
+            item.classList.add('is-dragging');
+            if (navigator.vibrate) navigator.vibrate(15);
+            announce(nav.dataset.textHint, false);
+        }, HOLD_MS);
+    });
+
+    nav.addEventListener('pointermove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var others = items().filter(function (i) { return i !== dragging; });
+            var before = null;
+            for (var i = 0; i < others.length; i++) {
+                var r = others[i].getBoundingClientRect();
+                if (e.clientY < r.top + r.height / 2) { before = others[i]; break; }
+            }
+            if (before ? dragging.nextElementSibling !== before : nav.lastElementChild !== dragging) nav.insertBefore(dragging, before);
+            return;
+        }
+        if (start && (Math.abs(e.clientX - start.x) > SLOP_PX || Math.abs(e.clientY - start.y) > SLOP_PX)) cancelHold();
+    });
+
+    function finish() {
+        if (!dragging) { cancelHold(); return; }
+        dragging.classList.remove('is-dragging');
+        nav.classList.remove('is-reordering');
+        dragging = null;
+        start = null;
+        save();
+        announce(nav.dataset.textSaved, true);
+        setTimeout(function () { suppressClick = false; }, 400);
+    }
+    nav.addEventListener('pointerup', finish);
+    nav.addEventListener('pointercancel', finish);
+    nav.addEventListener('lostpointercapture', function () { if (dragging) finish(); });
+
+    nav.addEventListener('click', function (e) {
+        if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    nav.addEventListener('contextmenu', function (e) { if (holdTimer || dragging || suppressClick) e.preventDefault(); });
+    nav.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    nav.addEventListener('touchmove', function (e) { if (dragging) e.preventDefault(); }, { passive: false });
+
+    nav.addEventListener('keydown', function (e) {
+        var item = e.target.closest('[data-nav-key]');
+        if (!item || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+        e.preventDefault();
+        if (e.key === 'ArrowUp' && item.previousElementSibling) nav.insertBefore(item, item.previousElementSibling);
+        else if (e.key === 'ArrowDown' && item.nextElementSibling) nav.insertBefore(item.nextElementSibling, item);
+        item.focus();
+        save();
+        announce(nav.dataset.textMoved.replace('{0}', items().indexOf(item) + 1), true);
+    });
+})();
+
+document.querySelectorAll('form[data-autosave]').forEach(function (form) {
+    var fallback = form.querySelector('[data-autosave-button]');
+    if (fallback) fallback.hidden = true;
+    form.addEventListener('change', function () { form.requestSubmit(); });
+});
+
+(function () {
+    var nav = document.querySelector('[data-profile-nav]');
+    if (!nav) return;
+    var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+    var sections = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+    var scroller = nav.closest('.cf-shell__main') || document.scrollingElement || document.documentElement;
+    var events = scroller === document.scrollingElement || scroller === document.documentElement ? window : scroller;
+    function update() {
+        var top = scroller.getBoundingClientRect ? Math.max(0, scroller.getBoundingClientRect().top) : 0;
+        var current = 0;
+        sections.forEach(function (s, i) { if (s && s.getBoundingClientRect().top - top <= 140) current = i; });
+        if (scroller.scrollTop > 0 && Math.ceil(scroller.scrollTop + scroller.clientHeight) >= scroller.scrollHeight) current = sections.length - 1;
+        links.forEach(function (a, i) {
+            a.classList.toggle('is-active', i === current);
+            if (i === current) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+        });
+    }
+    events.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+})();
+
+document.querySelectorAll('[data-support]').forEach(function (button) {
+    var box = button.parentElement;
+    var label = button.querySelector('[data-support-label]');
+    var count = box.querySelector('[data-support-count]');
+    var template = count ? count.textContent.replace(/\d+/, '{0}') : '';
+    button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
+        button.disabled = true;
+        fetch(button.dataset.url, { method: 'POST', headers: { Accept: 'application/json', RequestVerificationToken: token ? token.value : '' } })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (result) {
+                button.setAttribute('aria-pressed', result.supported ? 'true' : 'false');
+                button.classList.toggle('cf-btn--outline', !result.supported);
+                button.title = result.supported ? button.dataset.titleOn : '';
+                label.textContent = result.supported ? button.dataset.labelOn : button.dataset.labelOff;
+                if (count) {
+                    count.textContent = template.replace('{0}', result.count);
+                    count.hidden = result.count === 0;
+                }
+            })
+            .catch(function () { })
+            .finally(function () { button.disabled = false; });
+    });
+});
+
+(function () {
+    document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+        var input = button.parentElement.querySelector('input');
+        if (!input) return;
+        var icon = button.querySelector('.cf-icon');
+        button.hidden = false;
+        button.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            var label = show ? button.dataset.labelHide : button.dataset.labelShow;
+            button.setAttribute('aria-pressed', show ? 'true' : 'false');
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            icon.classList.toggle('cf-icon--eye', !show);
+            icon.classList.toggle('cf-icon--eye-off', show);
+            var at = input.selectionStart;
+            input.focus();
+            if (at != null) input.setSelectionRange(at, at);
+        });
+        input.form && input.form.addEventListener('submit', function () { input.type = 'password'; });
+    });
+
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        var field = input.closest('.app-auth-field');
+        var hint = field && field.querySelector('[data-capslock]');
+        if (!hint) return;
+        function check(e) { if (e.getModifierState) hint.hidden = !e.getModifierState('CapsLock'); }
+        input.addEventListener('keydown', check);
+        input.addEventListener('keyup', check);
+        input.addEventListener('blur', function () { hint.hidden = true; });
+    });
+
+    var password = document.querySelector('[data-password-new]');
+    if (!password) return;
+    var rule = document.querySelector('[data-password-rule]');
+    var confirm = document.querySelector('[data-password-confirm]');
+    var match = document.querySelector('[data-password-match]');
+    function update() {
+        if (rule) {
+            var ok = password.value.length >= Number(rule.dataset.min || 8);
+            rule.classList.toggle('is-ok', ok);
+        }
+        if (confirm && match) {
+            match.hidden = confirm.value.length === 0;
+            var same = confirm.value === password.value;
+            match.textContent = same ? match.dataset.textOk : match.dataset.textBad;
+            match.classList.toggle('is-ok', same);
+            match.classList.toggle('is-bad', !same);
+        }
+    }
+    password.addEventListener('input', update);
+    if (confirm) confirm.addEventListener('input', update);
+    update();
+})();

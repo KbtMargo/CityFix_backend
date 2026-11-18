@@ -181,6 +181,8 @@
   <data name="Auth.Login.NoAccount" xml:space="preserve"><value>Ще не маєте акаунту?</value></data>
   <data name="Auth.Login.ToRegister" xml:space="preserve"><value>Зареєструватися</value></data>
   <data name="Auth.LoginFailed" xml:space="preserve"><value>Невірний email або пароль</value></data>
+  <data name="Auth.LockedOut" xml:space="preserve"><value>Забагато невдалих спроб входу. Акаунт тимчасово заблоковано — спробуйте через {0} хв.</value></data>
+  <data name="Auth.MustChangePassword" xml:space="preserve"><value>Ви увійшли з тимчасовим паролем. Задайте власний пароль, щоб продовжити.</value></data>
   <data name="Auth.Register.Title" xml:space="preserve"><value>Створення акаунту</value></data>
   <data name="Auth.Register.Sub" xml:space="preserve"><value>Заповніть форму для реєстрації в {0}</value></data>
   <data name="Auth.Register.FirstNamePlaceholder" xml:space="preserve"><value>Тарас</value></data>
@@ -390,7 +392,7 @@
   <data name="Acabs.CodesGenerated" xml:space="preserve"><value>Код для мешканців і код голови буде згенеровано автоматично.</value></data>
   <data name="Acabs.Created" xml:space="preserve"><value>ОСББ створено. Передайте коди мешканцям і голові.</value></data>
   <data name="Acabs.ResidentCodeHint" xml:space="preserve"><value>Мешканці вводять його під час реєстрації й приєднуються до ОСББ.</value></data>
-  <data name="Acabs.HeadCodeHint" xml:space="preserve"><value>Дає роль голови ОСББ. Передавайте лише голові.</value></data>
+  <data name="Acabs.HeadCodeHint" xml:space="preserve"><value>Дає роль голови ОСББ. Код одноразовий: після реєстрації голови він автоматично замінюється новим.</value></data>
   <data name="Acabs.Regenerate" xml:space="preserve"><value>Згенерувати новий</value></data>
   <data name="Acabs.ResidentCodeRegenerated" xml:space="preserve"><value>Код для мешканців оновлено. Старий більше не діє.</value></data>
   <data name="Acabs.HeadCodeRegenerated" xml:space="preserve"><value>Код голови оновлено. Старий більше не діє.</value></data>
@@ -422,6 +424,7 @@
   <data name="Responsible.AnyAcab" xml:space="preserve"><value>ОСББ звернення</value></data>
   <data name="Responsible.Services" xml:space="preserve"><value>Служби</value></data>
   <data name="Similar.Title" xml:space="preserve"><value>Схожі звернення поруч</value></data>
+  <data name="Similar.Hidden" xml:space="preserve"><value>Звернення іншого мешканця</value></data>
   <data name="Similar.Warning" xml:space="preserve"><value>Поруч уже є схожі звернення</value></data>
   <data name="Similar.WarningText" xml:space="preserve"><value>Можливо, про цю проблему вже повідомили. Перевірте список — ви все одно можете надіслати своє звернення.</value></data>
   <data name="Similar.Duplicate" xml:space="preserve"><value>Можливий дублікат</value></data>
@@ -470,10 +473,19 @@
   <data name="Auth.Resend.Sub" xml:space="preserve"><value>Вкажіть email, з яким ви реєструвалися, і ми надішлемо посилання ще раз.</value></data>
   <data name="Auth.Resend.Submit" xml:space="preserve"><value>Надіслати лист ще раз</value></data>
   <data name="Email.Confirm.Subject" xml:space="preserve"><value>Підтвердіть email для {0}</value></data>
-  <data name="Email.Confirm.Greeting" xml:space="preserve"><value>Вітаємо, {0}!</value></data>
-  <data name="Email.Confirm.Text" xml:space="preserve"><value>Щоб підтвердити цю адресу для {0}, перейдіть за посиланням:</value></data>
+  <data name="Email.Greeting" xml:space="preserve"><value>Вітаємо, {0}!</value></data>
+  <data name="Email.GreetingNoName" xml:space="preserve"><value>Вітаємо!</value></data>
+  <data name="Email.Confirm.Preheader" xml:space="preserve"><value>Залишився один крок — підтвердіть email, щоб почати користуватися {0}.</value></data>
+  <data name="Email.Confirm.Text" xml:space="preserve"><value>Дякуємо за реєстрацію в {0}! Щоб активувати акаунт і почати подавати звернення, підтвердіть адресу {1}.</value></data>
+  <data name="Email.Confirm.ChangePreheader" xml:space="preserve"><value>Підтвердіть нову адресу електронної пошти для {0}.</value></data>
+  <data name="Email.Confirm.ChangeText" xml:space="preserve"><value>Ви вказали {1} як нову адресу електронної пошти в профілі {0}. Підтвердіть її, щоб зміни набули чинності.</value></data>
+  <data name="Email.Confirm.Button" xml:space="preserve"><value>Підтвердити email</value></data>
   <data name="Email.Confirm.Expires" xml:space="preserve"><value>Посилання дійсне {0} год.</value></data>
   <data name="Email.Confirm.Ignore" xml:space="preserve"><value>Якщо ви не реєструвалися, просто проігноруйте цей лист.</value></data>
+  <data name="Email.Confirm.ChangeIgnore" xml:space="preserve"><value>Якщо ви не змінювали адресу, проігноруйте цей лист — поточна адреса залишиться без змін.</value></data>
+  <data name="Email.ButtonFallback" xml:space="preserve"><value>Якщо кнопка не працює, скопіюйте це посилання в адресний рядок браузера:</value></data>
+  <data name="Email.OpenAppeal" xml:space="preserve"><value>Переглянути звернення</value></data>
+  <data name="Email.AutoReply" xml:space="preserve"><value>Цей лист надіслано автоматично, відповідати на нього не потрібно.</value></data>
   <data name="Email.NotificationFooter" xml:space="preserve"><value>Канали сповіщень можна змінити в профілі (Профіль → Сповіщення).</value></data>
   <data name="Profile.EmailPending" xml:space="preserve"><value>Ми надіслали лист на {0}. Адреса зміниться після переходу за посиланням.</value></data>
   <data name="Profile.EmailPendingNote" xml:space="preserve"><value>Нова адреса {0} очікує підтвердження. До того для входу і листів використовується {1}.</value></data>
@@ -482,11 +494,8 @@
   <data name="Profile.NotificationsSaved" xml:space="preserve"><value>Налаштування сповіщень збережено.</value></data>
   <data name="Profile.Notify.InApp" xml:space="preserve"><value>У системі (сторінка «Сповіщення»)</value></data>
   <data name="Profile.Notify.Email" xml:space="preserve"><value>На email</value></data>
-  <data name="Profile.Notify.Sms" xml:space="preserve"><value>SMS на телефон</value></data>
   <data name="Profile.Notify.EmailTo" xml:space="preserve"><value>Листи надходитимуть на {0}.</value></data>
   <data name="Profile.Notify.EmailUnconfirmed" xml:space="preserve"><value>Email ще не підтверджено — листи не надсилаються.</value></data>
-  <data name="Profile.Notify.SmsTo" xml:space="preserve"><value>SMS надходитимуть на {0}.</value></data>
-  <data name="Profile.Notify.SmsNoPhone" xml:space="preserve"><value>Вкажіть номер телефону в особистих даних, щоб отримувати SMS.</value></data>
   <data name="Enum.AppealStatus.UnderReview" xml:space="preserve"><value>На розгляді</value></data>
   <data name="Enum.AppealStatus.NeedsInfo" xml:space="preserve"><value>Потребує уточнення</value></data>
   <data name="Enum.AppealStatus.OnHold" xml:space="preserve"><value>Призупинено</value></data>
@@ -531,4 +540,180 @@
   <data name="Report.Share" xml:space="preserve"><value>Частка</value></data>
   <data name="Report.Date" xml:space="preserve"><value>Дата</value></data>
   <data name="Report.NewAppeals" xml:space="preserve"><value>Нові звернення</value></data>
+  <data name="Auth.Forgot.Link" xml:space="preserve"><value>Забули пароль?</value></data>
+  <data name="Auth.Forgot.Title" xml:space="preserve"><value>Відновлення пароля</value></data>
+  <data name="Auth.Forgot.Sub" xml:space="preserve"><value>Вкажіть email акаунта, і ми надішлемо посилання для встановлення нового пароля.</value></data>
+  <data name="Auth.Forgot.Submit" xml:space="preserve"><value>Надіслати посилання</value></data>
+  <data name="Auth.Forgot.Sent" xml:space="preserve"><value>Якщо для {0} є акаунт, ми надіслали на цю адресу посилання для зміни пароля.</value></data>
+  <data name="Auth.Reset.Title" xml:space="preserve"><value>Новий пароль</value></data>
+  <data name="Auth.Reset.Sub" xml:space="preserve"><value>Придумайте новий пароль для свого акаунта.</value></data>
+  <data name="Auth.Reset.Submit" xml:space="preserve"><value>Зберегти пароль</value></data>
+  <data name="Auth.Reset.Invalid" xml:space="preserve"><value>Посилання недійсне або вже використане. Запросіть нове.</value></data>
+  <data name="Auth.Reset.Done" xml:space="preserve"><value>Пароль змінено. Увійдіть з новим паролем.</value></data>
+  <data name="Email.Reset.Subject" xml:space="preserve"><value>Зміна пароля в {0}</value></data>
+  <data name="Email.Reset.Preheader" xml:space="preserve"><value>Посилання для встановлення нового пароля в {0}.</value></data>
+  <data name="Email.Reset.Text" xml:space="preserve"><value>Ми отримали запит на зміну пароля до вашого акаунта в {0}. Натисніть кнопку нижче, щоб задати новий пароль.</value></data>
+  <data name="Email.Exists.Text" xml:space="preserve"><value>Хтось (можливо, ви) намагався зареєструватися в {0} з цією адресою, але акаунт із нею вже існує. Якщо ви забули пароль, задайте новий за кнопкою нижче.</value></data>
+  <data name="Email.Reset.Button" xml:space="preserve"><value>Задати новий пароль</value></data>
+  <data name="Email.Reset.Expires" xml:space="preserve"><value>Посилання дійсне {0} хв і спрацює лише один раз.</value></data>
+  <data name="Email.Reset.Ignore" xml:space="preserve"><value>Якщо це були не ви, просто проігноруйте цей лист — пароль залишиться без змін.</value></data>
+  <data name="Profile.Data.Title" xml:space="preserve"><value>Ваші дані</value></data>
+  <data name="Profile.Data.Hint" xml:space="preserve"><value>Завантажте копію своїх даних або видаліть акаунт.</value></data>
+  <data name="Profile.Data.Export" xml:space="preserve"><value>Завантажити мої дані (JSON)</value></data>
+  <data name="Profile.Delete.Warning" xml:space="preserve"><value>Видалення акаунта незворотне: ваші ім'я, email і телефон буде стерто, увійти більше не вийде. Подані звернення залишаться в системі без зазначення автора.</value></data>
+  <data name="Profile.Delete.Submit" xml:space="preserve"><value>Видалити акаунт</value></data>
+  <data name="Profile.Delete.WrongPassword" xml:space="preserve"><value>Невірний пароль. Акаунт не видалено.</value></data>
+  <data name="Profile.Delete.Done" xml:space="preserve"><value>Акаунт видалено.</value></data>
+  <data name="Appeal.DeletePhoto" xml:space="preserve"><value>Видалити фото {0}</value></data>
+  <data name="Appeal.PhotoDeleted" xml:space="preserve"><value>Фото видалено.</value></data>
+  <data name="Audit.Title" xml:space="preserve"><value>Журнал дій</value></data>
+  <data name="Audit.Total" xml:space="preserve"><value>Записів</value></data>
+  <data name="Audit.Col.When" xml:space="preserve"><value>Коли</value></data>
+  <data name="Audit.Col.Who" xml:space="preserve"><value>Хто</value></data>
+  <data name="Audit.Col.Action" xml:space="preserve"><value>Дія</value></data>
+  <data name="Audit.Col.Target" xml:space="preserve"><value>Об'єкт</value></data>
+  <data name="Audit.Col.Details" xml:space="preserve"><value>Деталі</value></data>
+  <data name="Audit.Empty" xml:space="preserve"><value>Записів ще немає.</value></data>
+  <data name="Nav.Audit" xml:space="preserve"><value>Журнал дій</value></data>
+  <data name="Nav.Audit.Sub" xml:space="preserve"><value>Хто що змінював</value></data>
+  <data name="Users.AcabMembers" xml:space="preserve"><value>Мешканці: {0}</value></data>
+  <data name="Users.AcabMembersHint" xml:space="preserve"><value>Показано лише користувачів цього ОСББ.</value></data>
+  <data name="Users.ShowAll" xml:space="preserve"><value>Показати всіх користувачів</value></data>
+  <data name="Users.BackToAcabs" xml:space="preserve"><value>До списку ОСББ</value></data>
+  <data name="Users.BackToList" xml:space="preserve"><value>До списку користувачів</value></data>
+  <data name="Users.EditUser" xml:space="preserve"><value>Редагувати</value></data>
+  <data name="Users.Details.Profile" xml:space="preserve"><value>Дані користувача</value></data>
+  <data name="Users.Details.Appeals" xml:space="preserve"><value>Звернення</value></data>
+  <data name="Users.Details.AppealsHeadHint" xml:space="preserve"><value>Показано звернення, що стосуються вашого ОСББ.</value></data>
+  <data name="Users.Details.NoAppeals" xml:space="preserve"><value>Звернень немає.</value></data>
+  <data name="Deadline.Label" xml:space="preserve"><value>Термін виконання</value></data>
+  <data name="Deadline.Overdue" xml:space="preserve"><value>Прострочено</value></data>
+  <data name="Deadline.OverdueSince" xml:space="preserve"><value>Термін минув {0}</value></data>
+  <data name="Deadline.Closed" xml:space="preserve"><value>Закрито</value></data>
+  <data name="Rating.Label" xml:space="preserve"><value>Оцінка автора</value></data>
+  <data name="Rating.OutOf" xml:space="preserve"><value>{0} з 5</value></data>
+  <data name="Rating.Title" xml:space="preserve"><value>Оцініть виконання</value></data>
+  <data name="Rating.Hint" xml:space="preserve"><value>Проблему усунено? Поставте оцінку — це допоможе ОСББ і службам працювати краще.</value></data>
+  <data name="Rating.Comment" xml:space="preserve"><value>Коментар (необов'язково)</value></data>
+  <data name="Rating.Submit" xml:space="preserve"><value>Надіслати оцінку</value></data>
+  <data name="Reopen.Title" xml:space="preserve"><value>Проблему не усунено?</value></data>
+  <data name="Reopen.Comment" xml:space="preserve"><value>Що саме не так</value></data>
+  <data name="Reopen.Placeholder" xml:space="preserve"><value>Наприклад: яму засипали піском, після дощу вона знову з'явилася.</value></data>
+  <data name="Reopen.Hint" xml:space="preserve"><value>Звернення повернеться в роботу з новим терміном виконання.</value></data>
+  <data name="Reopen.Submit" xml:space="preserve"><value>Повернути в роботу</value></data>
+  <data name="Appeal.Rated" xml:space="preserve"><value>Дякуємо за оцінку!</value></data>
+  <data name="Appeal.Reopened" xml:space="preserve"><value>Звернення повернуто в роботу.</value></data>
+  <data name="Timeline.Rated" xml:space="preserve"><value>Автор оцінив виконання: {0} з 5</value></data>
+  <data name="Validation.RatingClosed" xml:space="preserve"><value>Оцінити можна лише власне виконане звернення, один раз і протягом обмеженого часу після виконання.</value></data>
+  <data name="Validation.ReopenClosed" xml:space="preserve"><value>Це звернення вже не можна повернути в роботу. Створіть нове звернення.</value></data>
+  <data name="Validation.ReopenNeedsComment" xml:space="preserve"><value>Опишіть, що саме не усунено.</value></data>
+  <data name="Validation.SupportNotAllowed" xml:space="preserve"><value>Підтримати можна лише відкрите звернення іншого мешканця.</value></data>
+  <data name="Support.Button" xml:space="preserve"><value>Мене це теж стосується</value></data>
+  <data name="Support.Done" xml:space="preserve"><value>Ви підтримали</value></data>
+  <data name="Support.Count" xml:space="preserve"><value>Підтримали: {0}</value></data>
+  <data name="Support.Label" xml:space="preserve"><value>Підтримка мешканців</value></data>
+  <data name="Support.Hint" xml:space="preserve"><value>Скільки мешканців повідомили, що проблема стосується і їх</value></data>
+  <data name="Notifications.SupportedTitle" xml:space="preserve"><value>Оновлення звернення, яке ви підтримали</value></data>
+  <data name="Notifications.SupportedText" xml:space="preserve"><value>Звернення «{0}», яке ви підтримали, тепер має статус «{1}».</value></data>
+  <data name="Notifications.ReopenedTitle" xml:space="preserve"><value>Звернення повернуто в роботу</value></data>
+  <data name="Notifications.ReopenedText" xml:space="preserve"><value>Автор повернув звернення «{0}» у роботу: проблему не усунено.</value></data>
+  <data name="Notifications.RatedTitle" xml:space="preserve"><value>Нова оцінка виконання</value></data>
+  <data name="Notifications.RatedText" xml:space="preserve"><value>Автор оцінив виконання звернення «{0}»: {1} з 5.</value></data>
+  <data name="Notifications.OverdueTitle" xml:space="preserve"><value>Термін виконання минув</value></data>
+  <data name="Notifications.OverdueText" xml:space="preserve"><value>Минув термін виконання звернення «{0}».</value></data>
+  <data name="Auth.Password.Show" xml:space="preserve"><value>Показати пароль</value></data>
+  <data name="Auth.Password.Hide" xml:space="preserve"><value>Сховати пароль</value></data>
+  <data name="Auth.CapsLock" xml:space="preserve"><value>Увімкнено Caps Lock</value></data>
+  <data name="Auth.Password.Rule" xml:space="preserve"><value>Щонайменше {0} символів</value></data>
+  <data name="Auth.Password.Match" xml:space="preserve"><value>Паролі збігаються</value></data>
+  <data name="Auth.Password.NoMatch" xml:space="preserve"><value>Паролі не збігаються</value></data>
+  <data name="Auth.Register.FixErrors" xml:space="preserve"><value>Перевірте поля, позначені нижче.</value></data>
+  <data name="Auth.Register.AboutYou" xml:space="preserve"><value>Про вас</value></data>
+  <data name="Auth.Register.SignIn" xml:space="preserve"><value>Дані для входу</value></data>
+  <data name="Auth.Register.EmailHint" xml:space="preserve"><value>Надішлемо лист для підтвердження адреси.</value></data>
+  <data name="Auth.Forgot.Hint" xml:space="preserve"><value>Якщо лист не прийшов за кілька хвилин, перевірте папку «Спам».</value></data>
+  <data name="Auth.BackToLogin" xml:space="preserve"><value>Повернутися до входу</value></data>
+  <data name="Support.Undo" xml:space="preserve"><value>Натисніть ще раз, щоб скасувати</value></data>
+  <data name="Dashboard.CommunitySub" xml:space="preserve"><value>Усі проблеми громади. Якщо проблема стосується і вас, натисніть «Мене це теж стосується» замість нового звернення.</value></data>
+  <data name="Mgmt.Title" xml:space="preserve"><value>Керування зверненнями</value></data>
+  <data name="Mgmt.Sub" xml:space="preserve"><value>Терміни, якість роботи і навантаження: що потребує уваги просто зараз.</value></data>
+  <data name="Mgmt.Overview" xml:space="preserve"><value>Загальна статистика</value></data>
+  <data name="Mgmt.OnTime" xml:space="preserve"><value>Виконано вчасно</value></data>
+  <data name="Mgmt.OnTimeNote" xml:space="preserve"><value>з {0} виконаних звернень із терміном</value></data>
+  <data name="Mgmt.OverdueNow" xml:space="preserve"><value>Прострочено зараз</value></data>
+  <data name="Mgmt.AvgResolution" xml:space="preserve"><value>У середньому вирішуємо за {0} дн.</value></data>
+  <data name="Mgmt.Rating" xml:space="preserve"><value>Оцінка мешканців</value></data>
+  <data name="Mgmt.RatingNote" xml:space="preserve"><value>оцінок: {0}</value></data>
+  <data name="Mgmt.Reopened" xml:space="preserve"><value>Повернуто в роботу</value></data>
+  <data name="Mgmt.SupportNote" xml:space="preserve"><value>Підтримок мешканців у відкритих: {0}</value></data>
+  <data name="Mgmt.Flow" xml:space="preserve"><value>Надходження і закриття по тижнях</value></data>
+  <data name="Mgmt.FlowHint" xml:space="preserve"><value>Якщо сині стовпці стабільно вищі за зелені, черга звернень росте.</value></data>
+  <data name="Mgmt.Flow.Created" xml:space="preserve"><value>Надійшло</value></data>
+  <data name="Mgmt.Flow.Closed" xml:space="preserve"><value>Закрито</value></data>
+  <data name="Mgmt.OverdueList" xml:space="preserve"><value>Найдовше прострочені</value></data>
+  <data name="Mgmt.NoOverdue" xml:space="preserve"><value>Прострочених звернень немає.</value></data>
+  <data name="Mgmt.DaysLate" xml:space="preserve"><value>+{0} дн.</value></data>
+  <data name="Mgmt.MostSupported" xml:space="preserve"><value>Найбільше підтримки мешканців</value></data>
+  <data name="Mgmt.NoSupported" xml:space="preserve"><value>Відкритих звернень з підтримкою поки немає.</value></data>
+  <data name="Mgmt.Load" xml:space="preserve"><value>Навантаження відповідальних</value></data>
+  <data name="Mgmt.NoOpen" xml:space="preserve"><value>Відкритих звернень немає.</value></data>
+  <data name="Mgmt.Load.Open" xml:space="preserve"><value>Відкрито</value></data>
+  <data name="Mgmt.Load.Overdue" xml:space="preserve"><value>Прострочено</value></data>
+  <data name="Mgmt.Load.Age" xml:space="preserve"><value>Сер. вік, дн.</value></data>
+  <data name="Mgmt.HotSpots" xml:space="preserve"><value>Проблемні адреси</value></data>
+  <data name="Mgmt.HotSpotsHint" xml:space="preserve"><value>Адреси з повторними зверненнями: варто шукати причину, а не латати наслідки.</value></data>
+  <data name="Mgmt.HotSpotOpen" xml:space="preserve"><value>відкритих: {0}</value></data>
+  <data name="Mgmt.NoHotSpots" xml:space="preserve"><value>Повторних звернень за однією адресою немає.</value></data>
+  <data name="Mgmt.Ratings" xml:space="preserve"><value>Розподіл оцінок</value></data>
+  <data name="Mgmt.NoRatings" xml:space="preserve"><value>Мешканці ще не оцінювали виконання.</value></data>
+  <data name="Mgmt.Resolution" xml:space="preserve"><value>Середній час вирішення за категоріями, дні</value></data>
+  <data name="Mgmt.NoResolved" xml:space="preserve"><value>Поки немає виконаних звернень.</value></data>
+  <data name="Profile.Security" xml:space="preserve"><value>Безпека</value></data>
+  <data name="Profile.WithUsSince" xml:space="preserve"><value>З нами з {0}</value></data>
+  <data name="Profile.EmailConfirmed" xml:space="preserve"><value>Підтверджено</value></data>
+  <data name="Profile.EmailNotConfirmed" xml:space="preserve"><value>Не підтверджено</value></data>
+  <data name="Profile.Stats.Appeals" xml:space="preserve"><value>Мої звернення</value></data>
+  <data name="Profile.Stats.Open" xml:space="preserve"><value>У роботі</value></data>
+  <data name="Profile.Stats.Done" xml:space="preserve"><value>Вирішено</value></data>
+  <data name="Profile.Stats.Supported" xml:space="preserve"><value>Підтримую</value></data>
+  <data name="Profile.Stats.Unread" xml:space="preserve"><value>Нові сповіщення</value></data>
+  <data name="Profile.EmailChangeHint" xml:space="preserve"><value>Після зміни надішлемо лист для підтвердження нової адреси.</value></data>
+  <data name="Profile.PhoneHint" xml:space="preserve"><value>Бачать лише голова ОСББ та адміністратор, щоб зв&apos;язатися щодо звернення.</value></data>
+  <data name="Profile.Notify.InAppTitle" xml:space="preserve"><value>На сайті</value></data>
+  <data name="Profile.Notify.InAppDesc" xml:space="preserve"><value>Дзвіночок і сторінка «Сповіщення».</value></data>
+  <data name="Profile.Notify.EmailTitle" xml:space="preserve"><value>Електронна пошта</value></data>
+  <data name="Profile.Notify.AllOff" xml:space="preserve"><value>Усі сповіщення вимкнено: ви не дізнаєтеся про зміни у своїх зверненнях.</value></data>
+  <data name="Profile.Data.ExportTitle" xml:space="preserve"><value>Копія ваших даних</value></data>
+  <data name="Profile.Data.ExportDesc" xml:space="preserve"><value>Профіль, звернення та сповіщення одним файлом JSON.</value></data>
+  <data name="Profile.Data.Download" xml:space="preserve"><value>Завантажити</value></data>
+  <data name="Profile.Acab.Title" xml:space="preserve"><value>ОСББ</value></data>
+  <data name="Profile.Acab.Hint" xml:space="preserve"><value>Переїхали або стали головою? Змініть ОСББ за кодом від голови чи адміністратора.</value></data>
+  <data name="Profile.Acab.YouAreHead" xml:space="preserve"><value>Ви голова цього ОСББ</value></data>
+  <data name="Profile.Acab.YouAreResident" xml:space="preserve"><value>Ви мешканець</value></data>
+  <data name="Profile.Acab.NoneTitle" xml:space="preserve"><value>Ви не приєднані до ОСББ</value></data>
+  <data name="Profile.Acab.NoneDesc" xml:space="preserve"><value>Ваші звернення надходять до міських служб та адміністраторів.</value></data>
+  <data name="Profile.Acab.JoinLabel" xml:space="preserve"><value>Код ОСББ</value></data>
+  <data name="Profile.Acab.ChangeLabel" xml:space="preserve"><value>Код нового ОСББ або код голови</value></data>
+  <data name="Profile.Acab.Apply" xml:space="preserve"><value>Застосувати</value></data>
+  <data name="Profile.Acab.CodeHint" xml:space="preserve"><value>Код мешканця приєднує вас до ОСББ як мешканця, код голови робить вас головою. Коди видає голова ОСББ або адміністратор.</value></data>
+  <data name="Profile.Acab.OpenStay" xml:space="preserve"><value>Ваші відкриті звернення ({0}) залишаться в поточному ОСББ: їх і далі опрацьовуватиме його голова, а сповіщення надходитимуть вам. Нові звернення підуть до нового ОСББ.</value></data>
+  <data name="Profile.Acab.Leave" xml:space="preserve"><value>Я більше не живу в цьому ОСББ</value></data>
+  <data name="Profile.Acab.LeaveText" xml:space="preserve"><value>Ви вийдете з ОСББ. Подані звернення залишаться в ньому, нові надходитимуть до міських служб, доки ви не приєднаєтеся до іншого ОСББ за кодом.</value></data>
+  <data name="Profile.Acab.LeaveConfirm" xml:space="preserve"><value>Вийти з ОСББ</value></data>
+  <data name="Profile.Acab.StepDown" xml:space="preserve"><value>Скласти повноваження голови</value></data>
+  <data name="Profile.Acab.StepDownText" xml:space="preserve"><value>Ви залишитеся мешканцем цього ОСББ, але більше не опрацьовуватимете звернення. Новий голова приєднається за кодом голови зі сторінки адміністратора.</value></data>
+  <data name="Profile.Acab.StepDownConfirm" xml:space="preserve"><value>Скласти повноваження</value></data>
+  <data name="Profile.Acab.LastHead" xml:space="preserve"><value>Ви єдиний голова цього ОСББ. Доки не з&apos;явиться новий, звернення й сповіщення отримуватимуть адміністратори.</value></data>
+  <data name="Profile.Acab.AlreadyThere" xml:space="preserve"><value>Ви вже в цьому ОСББ з такою роллю.</value></data>
+  <data name="Profile.Acab.None" xml:space="preserve"><value>Ви не приєднані до жодного ОСББ.</value></data>
+  <data name="Profile.Acab.Moved" xml:space="preserve"><value>Готово! Тепер ваше ОСББ: {0}.</value></data>
+  <data name="Profile.Acab.NowHead" xml:space="preserve"><value>Готово! Тепер ви голова: {0}.</value></data>
+  <data name="Profile.Acab.Left" xml:space="preserve"><value>Ви вийшли з ОСББ.</value></data>
+  <data name="Profile.Acab.SteppedDown" xml:space="preserve"><value>Повноваження голови складено. Ви залишаєтеся мешканцем ОСББ.</value></data>
+  <data name="Acabs.NoHead" xml:space="preserve"><value>Без голови</value></data>
+  <data name="Acabs.NoHeadHint" xml:space="preserve"><value>Звернення цього ОСББ отримують адміністратори, доки хтось не приєднається з кодом голови.</value></data>
+  <data name="Nav.Reorder.Hint" xml:space="preserve"><value>Перетягніть пункт на нове місце й відпустіть.</value></data>
+  <data name="Nav.Reorder.Saved" xml:space="preserve"><value>Порядок меню збережено.</value></data>
+  <data name="Nav.Reorder.Reset" xml:space="preserve"><value>Повернути як було</value></data>
+  <data name="Nav.Reorder.Moved" xml:space="preserve"><value>Пункт переміщено на позицію {0}.</value></data>
 </root>

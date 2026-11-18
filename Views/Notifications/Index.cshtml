@@ -1,5 +1,3 @@
-@* Notifications page: underline tabs (Unread / All), .cf-note rows, "Mark all as read", empty state.
-   Rows are submit buttons: clicking one marks it read (POST) and opens its appeal. *@
 @model NotificationsViewModel
 @{
     ViewData["Title"] = L["Notifications.Title"].Value;
@@ -52,5 +50,10 @@
                 </form>
             }
         </div>
+        @if (Model.Page.TotalPages > 1)
+        {
+            var pageRoute = new Dictionary<string, string> { ["tab"] = Model.UnreadTab ? "unread" : "all" };
+            <partial name="_Pagination" model="PaginationModel.For(Model.Page, pageRoute)" />
+        }
     }
 </div>

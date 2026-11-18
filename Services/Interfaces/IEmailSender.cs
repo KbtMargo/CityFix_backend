@@ -1,8 +1,9 @@
 namespace CityFix_backend.Services.Interfaces
 {
+    public record EmailMessage(string Subject, string Text, string Html);
+
     public interface IEmailSender
     {
-        // Throws when the letter could not be handed to the mail server.
-        Task SendAsync(string to, string subject, string textBody, CancellationToken cancellationToken = default);
+        Task SendAsync(string to, EmailMessage message, CancellationToken cancellationToken = default);
     }
 }

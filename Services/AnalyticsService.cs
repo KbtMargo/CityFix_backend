@@ -22,12 +22,11 @@ namespace CityFix_backend.Services
 
         private record Change(int AppealId, AppealStatus OldStatus, AppealStatus NewStatus, DateTime ChangedAt);
 
-        public async Task<DashboardKpis> GetDashboardKpisAsync(User actor)
+        public async Task<DashboardKpis> GetDashboardKpisAsync(User actor, bool community = false)
         {
-            var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
+            var visible = community ? _context.Appeals.AsNoTracking() : _context.Appeals.AsNoTracking().VisibleTo(actor);
             var rows = await visible.Select(a => new Row(a.Id, a.CreatedAt, a.Status)).ToListAsync();
 
-            // Only real status changes count: a comment or a priority change is not a response.
             var changes = await _context.AppealUpdates.AsNoTracking()
                 .Where(u => u.OldStatus != u.NewStatus && visible.Any(a => a.Id == u.AppealId))
                 .Select(u => new Change(u.AppealId, u.OldStatus, u.NewStatus, u.ChangedAt))
@@ -42,7 +41,6 @@ namespace CityFix_backend.Services
                 AvgResponseKpi(rows, changes, now));
         }
 
-        // The charts are grouped by the database; only the last 30 days of creation dates are loaded.
         public async Task<AnalyticsData> GetAnalyticsAsync(User actor)
         {
             var visible = _context.Appeals.AsNoTracking().VisibleTo(actor);
@@ -74,7 +72,100 @@ namespace CityFix_backend.Services
                 statuses.Select(s => s.PillModifier()).ToList());
         }
 
-        // Active appeals now vs a week ago; fewer is good. Sparkline: open count at the end of each of the last 7 days.
+        private const int FlowWeeks = 12;
+        private const int ListSize = 6;
+
+        public async Task<ManagementData> GetManagementAsync(User actor)
+        {
+            var rows = await _context.Appeals.AsNoTracking().VisibleTo(actor)
+                .Select(a => new
+                {
+                    a.Id, a.Title, a.Language, a.TitleTranslated, a.Address, a.AddressTranslated, a.Status, a.Priority,
+                    a.CreatedAt, a.ClosedAt, a.DueAt, a.Rating, a.ReopenCount, a.SupportCount, a.ResponsibleKind,
+                    Category = a.Category!.Name, CategoryEn = a.Category.NameEn,
+                    Recipient = a.Recipient != null ? a.Recipient.Name : null, RecipientEn = a.Recipient != null ? a.Recipient.NameEn : null,
+                    Acab = a.Acab != null ? a.Acab.Name : null, AcabEn = a.Acab != null ? a.Acab.NameEn : null
+                })
+                .ToListAsync();
+
+            var now = _clock.GetUtcNow().UtcDateTime;
+            var items = rows.Select(r => new
+            {
+                Row = r,
+                Title = new Appeal { Title = r.Title, Language = r.Language, TitleTranslated = r.TitleTranslated }.DisplayTitle(),
+                Address = new Appeal { Address = r.Address, AddressTranslated = r.AddressTranslated }.DisplayAddress(),
+                Open = AppealWorkflow.Open.Contains(r.Status),
+                Responsible = r.ResponsibleKind == ResponsibleKind.Association
+                    ? (r.Acab == null ? null : Localized.Pick(r.Acab, r.AcabEn))
+                    : (r.Recipient == null ? null : Localized.Pick(r.Recipient, r.RecipientEn))
+            }).ToList();
+            var noResponsible = SharedText.Get("Appeal.NoResponsible");
+
+            var doneWithDeadline = items.Where(i => i.Row.Status == AppealStatus.Done && i.Row.DueAt != null && i.Row.ClosedAt != null).ToList();
+            int? onTime = doneWithDeadline.Count == 0 ? null
+                : (int)Math.Round(doneWithDeadline.Count(i => i.Row.ClosedAt <= i.Row.DueAt) * 100.0 / doneWithDeadline.Count);
+            var overdue = items.Where(i => i.Open && i.Row.DueAt < now).ToList();
+            var resolved = items.Where(i => i.Row.Status == AppealStatus.Done && i.Row.ClosedAt != null).ToList();
+            double? avgResolution = resolved.Count == 0 ? null : Math.Round(resolved.Average(i => (i.Row.ClosedAt!.Value - i.Row.CreatedAt).TotalDays), 1);
+
+            var rated = items.Where(i => i.Row.Rating != null).ToList();
+            double? avgRating = rated.Count == 0 ? null : Math.Round(rated.Average(i => i.Row.Rating!.Value), 1);
+            var ratings = new ChartData(
+                Enumerable.Range(1, 5).Select(n => $"{n} ★").ToList(),
+                Enumerable.Range(1, 5).Select(n => rated.Count(i => i.Row.Rating == n)).ToList());
+
+            var thisWeek = StartOfWeek(now.ToKyiv().Date);
+            var weeks = Enumerable.Range(0, FlowWeeks).Select(i => thisWeek.AddDays(7 * (i - FlowWeeks + 1))).ToList();
+            int InWeek(IEnumerable<DateTime> dates, DateTime week) => dates.Count(d => StartOfWeek(d.ToKyiv().Date) == week);
+            var createdDates = items.Select(i => i.Row.CreatedAt).ToList();
+            var closedDates = items.Where(i => i.Row.ClosedAt != null && AppealWorkflow.Closed.Contains(i.Row.Status)).Select(i => i.Row.ClosedAt!.Value).ToList();
+            var flow = new WeeklyFlow(
+                weeks.Select(w => w.ToString("dd.MM", CultureInfo.InvariantCulture)).ToList(),
+                weeks.Select(w => InWeek(createdDates, w)).ToList(),
+                weeks.Select(w => InWeek(closedDates, w)).ToList());
+
+            var byCategory = resolved
+                .GroupBy(i => Localized.Pick(i.Row.Category, i.Row.CategoryEn))
+                .Select(g => (Name: g.Key, Days: Math.Round(g.Average(i => (i.Row.ClosedAt!.Value - i.Row.CreatedAt).TotalDays), 1)))
+                .OrderByDescending(x => x.Days)
+                .ToList();
+
+            var overdueList = overdue
+                .OrderByDescending(i => now - i.Row.DueAt!.Value)
+                .Take(ListSize)
+                .Select(i => new OverdueItem(i.Row.Id, i.Title, Math.Max(1, (int)Math.Ceiling((now - i.Row.DueAt!.Value).TotalDays)), i.Responsible ?? noResponsible, i.Row.Priority))
+                .ToList();
+
+            var supported = items.Where(i => i.Open && i.Row.SupportCount > 0)
+                .OrderByDescending(i => i.Row.SupportCount).ThenBy(i => i.Row.CreatedAt)
+                .Take(ListSize)
+                .Select(i => new SupportedItem(i.Row.Id, i.Title, i.Row.SupportCount, i.Row.Status))
+                .ToList();
+
+            var load = items.Where(i => i.Open)
+                .GroupBy(i => i.Responsible ?? noResponsible)
+                .Select(g => new ResponsibleLoad(g.Key, g.Count(), g.Count(i => i.Row.DueAt < now), Math.Round(g.Average(i => (now - i.Row.CreatedAt).TotalDays), 1)))
+                .OrderByDescending(l => l.Overdue).ThenByDescending(l => l.Open)
+                .Take(ListSize)
+                .ToList();
+
+            var hotSpots = items.Where(i => i.Address != null)
+                .GroupBy(i => i.Address!.Trim(), StringComparer.CurrentCultureIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .Select(g => new HotSpot(g.Key, g.Count(), g.Count(i => i.Open)))
+                .OrderByDescending(h => h.Total).ThenByDescending(h => h.Open)
+                .Take(ListSize)
+                .ToList();
+
+            return new ManagementData(
+                onTime, doneWithDeadline.Count, overdue.Count, avgResolution,
+                avgRating, rated.Count, items.Count(i => i.Row.ReopenCount > 0), items.Where(i => i.Open).Sum(i => i.Row.SupportCount),
+                flow, ratings, new ChartSeries(byCategory.Select(c => c.Name).ToList(), byCategory.Select(c => c.Days).ToList()),
+                overdueList, supported, load, hotSpots);
+        }
+
+        private static DateTime StartOfWeek(DateTime day) => day.AddDays(-(((int)day.DayOfWeek + 6) % 7));
+
         private static Kpi ActiveKpi(List<Row> rows, List<Change> changes, DateTime now, DateTime todayKyiv)
         {
             var byAppeal = changes.GroupBy(c => c.AppealId).ToDictionary(g => g.Key, g => g.OrderBy(c => c.ChangedAt).ToList());
@@ -101,7 +192,6 @@ namespace CityFix_backend.Services
                 SharedText.Get("Kpi.ThisWeek"), series);
         }
 
-        // Appeals closed (Done or Rejected) this calendar month vs last month; more is good.
         private static Kpi ClosedThisMonthKpi(List<Change> changes, DateTime todayKyiv)
         {
             var monthStart = new DateTime(todayKyiv.Year, todayKyiv.Month, 1);
@@ -126,7 +216,6 @@ namespace CityFix_backend.Services
                 SharedText.Format("Kpi.VsMonth", previousMonth), series);
         }
 
-        // All appeals; the change is how many were created this month (neither good nor bad).
         private static Kpi TotalKpi(List<Row> rows, DateTime todayKyiv)
         {
             var monthStart = new DateTime(todayKyiv.Year, todayKyiv.Month, 1);
@@ -143,8 +232,6 @@ namespace CityFix_backend.Services
                 SharedText.Get("Kpi.ThisMonth"), series);
         }
 
-        // Days from submission to the first status change, for first responses in the last 30 days
-        // vs the 30 days before; faster is good. Sparkline: weekly averages for the last 7 weeks.
         private static Kpi AvgResponseKpi(List<Row> rows, List<Change> changes, DateTime now)
         {
             var created = rows.ToDictionary(r => r.Id, r => r.CreatedAt);

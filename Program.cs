@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using CityFix_backend;
 using CityFix_backend.Controllers;
@@ -6,6 +8,9 @@ using CityFix_backend.Data;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -13,21 +18,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-// The server locale (uk-UA) expects a decimal comma, but Lat/Lng are entered and posted with a dot.
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Resources/SharedResource.resx is Ukrainian (the default), SharedResource.en.resx is English.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-builder.Services.AddControllersWithViews(options => options.Filters.Add<ServiceExceptionFilter>())
+builder.Services.AddControllersWithViews(options =>
+    {
+        options.Filters.Add<ServiceExceptionFilter>();
+        options.Filters.Add<PasswordChangeRequiredFilter>();
+    })
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)));
 
-// Model-binding errors (e.g. nothing chosen in a required dropdown) in the user's language.
 builder.Services.AddOptions<MvcOptions>().Configure<IStringLocalizerFactory>((options, factory) =>
 {
     var localizer = factory.Create(typeof(SharedResource));
@@ -38,6 +44,34 @@ builder.Services.AddOptions<MvcOptions>().Configure<IStringLocalizerFactory>((op
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
 
+var keysPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["DataProtection:KeysPath"] ?? "App_Data/keys"));
+var dataProtection = builder.Services.AddDataProtection()
+    .SetApplicationName("CityFix")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+if (OperatingSystem.IsWindows())
+{
+    dataProtection.ProtectKeysWithDpapi();
+}
+
+var publicUrl = builder.Configuration[$"{NotificationOptions.Section}:{nameof(NotificationOptions.PublicUrl)}"];
+if (!builder.Environment.IsDevelopment() && !Uri.TryCreate(publicUrl, UriKind.Absolute, out _))
+{
+    throw new InvalidOperationException("Set Notifications:PublicUrl to the site's public address (e.g. https://cityfix.example.org).");
+}
+
+var cookieSecurity = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+builder.Services.AddAntiforgery(options => options.Cookie.SecurePolicy = cookieSecurity);
+builder.Services.Configure<CookieTempDataProviderOptions>(options => options.Cookie.SecurePolicy = cookieSecurity);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    foreach (var proxy in builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [])
+    {
+        options.KnownProxies.Add(IPAddress.Parse(proxy));
+    }
+});
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -45,17 +79,19 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        // Blocked or deleted accounts are signed out, and role changes apply, at the next request.
+        options.Cookie.SecurePolicy = cookieSecurity;
         options.Events.OnValidatePrincipal = CookieValidator.ValidateAsync;
     });
 
-// Sign-in and registration (and with it invitation-code guessing): 10 attempts per minute per address.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    options.AddPolicy("lookup", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
 });
 
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.Section));
@@ -63,14 +99,12 @@ builder.Services.Configure<AppealOptions>(builder.Configuration.GetSection(Appea
 builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.Section));
 builder.Services.Configure<SeedOptions>(builder.Configuration.GetSection(SeedOptions.Section));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.Section));
-builder.Services.Configure<SmsOptions>(builder.Configuration.GetSection(SmsOptions.Section));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.Section));
+builder.Services.Configure<SupportOptions>(builder.Configuration.GetSection(SupportOptions.Section));
 
 builder.Services.Configure<TranslationOptions>(builder.Configuration.GetSection(TranslationOptions.Section));
 
-// PDF reports (QuestPDF): the free Community licence covers this project.
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-// Cyrillic needs real fonts: use the system ones (Segoe UI / Arial on Windows, DejaVu Sans on Linux).
 QuestPDF.Settings.UseSystemFonts = true;
 
 builder.Services.AddSingleton(TimeProvider.System);
@@ -85,6 +119,9 @@ builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditLog, AuditLog>();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((services, client) =>
 {
     var options = services.GetRequiredService<IOptions<GeocodingOptions>>().Value;
@@ -93,27 +130,23 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((se
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
 });
 
-// Email: SMTP when Email:SmtpHost is set, otherwise letters are written to the log (development).
-// SMS: Twilio when Sms:Provider is "Twilio", otherwise the log. Copies of notifications are sent in the background.
+builder.Services.AddSingleton<GeocodingCache>();
+
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{nameof(EmailOptions.SmtpHost)}"]))
 {
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("Set Email:SmtpHost (and credentials) outside the Development environment.");
+    }
     builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
 }
 else
 {
     builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 }
-if (string.Equals(builder.Configuration[$"{SmsOptions.Section}:{nameof(SmsOptions.Provider)}"], "Twilio", StringComparison.OrdinalIgnoreCase))
-{
-    builder.Services.AddHttpClient<ISmsSender, TwilioSmsSender>(client => client.Timeout = TimeSpan.FromSeconds(10));
-}
-else
-{
-    builder.Services.AddSingleton<ISmsSender, LogSmsSender>();
-}
 builder.Services.AddHostedService<NotificationDispatcher>();
+builder.Services.AddHostedService<DeadlineWorker>();
 
-// Machine translation: DeepL with Translation:DeepLApiKey, otherwise the free MyMemory API. Runs in the background.
 if (string.IsNullOrWhiteSpace(builder.Configuration[$"{TranslationOptions.Section}:{nameof(TranslationOptions.DeepLApiKey)}"]))
 {
     builder.Services.AddHttpClient<ITranslator, MyMemoryTranslator>(client => client.Timeout = TimeSpan.FromSeconds(15));
@@ -126,23 +159,43 @@ builder.Services.AddHostedService<TranslationWorker>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
+var devTools = app.Environment.IsDevelopment() ? " http://localhost:* https://localhost:* ws://localhost:* wss://localhost:*" : "";
+var contentSecurityPolicy = string.Join("; ",
+    "default-src 'self'",
+    "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com" + devTools,
+    "style-src 'self' https://cdnjs.cloudflare.com",
+    "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com",
+    "connect-src 'self'" + devTools,
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'");
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.ContentSecurityPolicy = contentSecurityPolicy;
+    headers.XContentTypeOptions = "nosniff";
+    headers.XFrameOptions = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)";
+    await next();
+});
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// 404 and friends render the design's ErrorPage instead of an empty response.
 app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 
 app.UseHttpsRedirection();
 
-// MapStaticAssets only knows files that existed at build time; uploaded photos are added at runtime.
 app.UseStaticFiles();
 
-// Only the UI language is switchable (uk / en), and only through the culture cookie that
-// CultureController writes. The formatting culture always stays invariant, so a request in
-// Ukrainian never turns Lat/Lng parsing into uk-UA (decimal comma).
 var uiCultures = new[] { new CultureInfo("uk"), new CultureInfo("en") };
 var localization = new RequestLocalizationOptions
 {
@@ -154,23 +207,35 @@ localization.RequestCultureProviders = new List<IRequestCultureProvider> { new C
 app.UseRequestLocalization(localization);
 
 app.UseRouting();
-app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapStaticAssets();
+
+app.MapHealthChecks("/health").DisableRateLimiting();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+FileService.MoveLegacyUploads(app.Environment, app.Services.GetRequiredService<IOptions<UploadOptions>>().Value, app.Logger);
 await DbSeeder.SeedAdminAsync(app.Services, app.Logger);
 
-// dotnet run -- --seed-demo : fills the database with demo data (Data/DemoSeeder.cs) and exits.
+using (var scope = app.Services.CreateScope())
+{
+    var thumbnails = await scope.ServiceProvider.GetRequiredService<IFileService>().CreateMissingThumbnailsAsync();
+    if (thumbnails > 0) app.Logger.LogInformation("Created {Count} missing photo thumbnails.", thumbnails);
+}
+
 if (args.Contains("--seed-demo"))
 {
+    if (!app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("--seed-demo is allowed only in the Development environment.");
+    }
     await DemoSeeder.SeedAsync(app.Services, app.Logger);
     return;
 }

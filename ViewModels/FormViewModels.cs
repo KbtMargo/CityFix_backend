@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace CityFix_backend.ViewModels
 {
-    // The appeal create / edit form. Only the fields below are bound; the [BindNever] part is filled
-    // by the controller for display. Status, priority, author and dates never come from this form.
     public class AppealFormViewModel
     {
         public int Id { get; set; }
@@ -29,7 +27,6 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.Longitude")]
         public decimal? Lng { get; set; }
 
-        // Empty English fields are filled by machine translation (TranslationWorker).
         [StringLength(200, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.NameEn")]
         public string? NameEn { get; set; }
@@ -46,7 +43,6 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.Category")]
         public int? CategoryId { get; set; }
 
-        // "acab" (the user's association) or a recipient id.
         [Required(ErrorMessage = "Validation.Choose")]
         [Display(Name = "Field.Responsible")]
         public string? Responsible { get; set; }
@@ -82,7 +78,6 @@ namespace CityFix_backend.ViewModels
             appeal.ResponsibleKind == ResponsibleKind.Association ? AppealFilter.ResponsibleAcab : appeal.RecipientId?.ToString();
     }
 
-    // Admin "Add user" / "Edit user". Passwords are never typed here.
     public class UserFormViewModel
     {
         public int Id { get; set; }
@@ -129,7 +124,6 @@ namespace CityFix_backend.ViewModels
         };
     }
 
-    // Association name and address; the codes are generated and shown read-only on the edit page.
     public class AcabFormViewModel
     {
         public int Id { get; set; }
@@ -143,7 +137,6 @@ namespace CityFix_backend.ViewModels
         [Display(Name = "Field.Address")]
         public string? Address { get; set; }
 
-        // Empty English fields are filled by machine translation (TranslationWorker).
         [StringLength(200, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.NameEn")]
         public string? NameEn { get; set; }
@@ -169,7 +162,6 @@ namespace CityFix_backend.ViewModels
         };
     }
 
-    // The user's own name, email and phone on the profile page.
     public class ProfileFormViewModel
     {
         [Required(ErrorMessage = "Validation.Required")]

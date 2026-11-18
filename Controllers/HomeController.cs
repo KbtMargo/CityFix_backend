@@ -6,7 +6,6 @@ namespace CityFix_backend.Controllers
 {
     public class HomeController : Controller
     {
-        // Signed-in users go straight to the dashboard; signed-out visitors see the landing page.
         public IActionResult Index()
         {
             return User.Identity?.IsAuthenticated == true
@@ -14,7 +13,6 @@ namespace CityFix_backend.Controllers
                 : View();
         }
 
-        // Re-executed for 404 and other status codes (UseStatusCodePagesWithReExecute).
         [Route("Home/Status/{code:int}")]
         public IActionResult Status(int code)
         {

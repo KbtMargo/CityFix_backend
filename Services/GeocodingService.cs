@@ -6,22 +6,26 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Nominatim (OpenStreetMap) geocoding, following its usage policy: an identifying User-Agent
-    // (set on the HttpClient in Program.cs), at most one request per second across the whole app,
-    // and cached results. Any failure returns null, so the user can type the address by hand.
+    public sealed class GeocodingCache : MemoryCache
+    {
+        public GeocodingCache() : base(new MemoryCacheOptions { SizeLimit = 10_000 })
+        {
+        }
+    }
+
     public class NominatimGeocodingService : IGeocodingService
     {
-        // One gate for every instance: the limit is per application, not per request.
         private static readonly SemaphoreSlim Gate = new(1, 1);
+        private static readonly TimeSpan MaxQueueWait = TimeSpan.FromSeconds(5);
         private static DateTimeOffset _lastRequest = DateTimeOffset.MinValue;
 
         private readonly HttpClient _http;
-        private readonly IMemoryCache _cache;
+        private readonly GeocodingCache _cache;
         private readonly GeocodingOptions _options;
         private readonly TimeProvider _clock;
         private readonly ILogger<NominatimGeocodingService> _logger;
 
-        public NominatimGeocodingService(HttpClient http, IMemoryCache cache, IOptions<GeocodingOptions> options,
+        public NominatimGeocodingService(HttpClient http, GeocodingCache cache, IOptions<GeocodingOptions> options,
             TimeProvider clock, ILogger<NominatimGeocodingService> logger)
         {
             _http = http;
@@ -33,7 +37,6 @@ namespace CityFix_backend.Services
 
         public async Task<string?> ReverseAsync(double lat, double lng, CancellationToken cancellationToken = default)
         {
-            // ~1 m precision is enough for an address and lets nearby clicks share a cache entry.
             var la = Math.Round(lat, 5).ToString(CultureInfo.InvariantCulture);
             var ln = Math.Round(lng, 5).ToString(CultureInfo.InvariantCulture);
             var language = Language();
@@ -77,14 +80,26 @@ namespace CityFix_backend.Services
             var value = await load();
             if (value != null)
             {
-                _cache.Set(key, value, _options.CacheDuration);
+                _cache.Set(key, value, new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = _options.CacheDuration });
             }
             return value;
         }
 
         private async Task<JsonDocument?> GetAsync(string relativeUrl, CancellationToken cancellationToken)
         {
-            await Gate.WaitAsync(cancellationToken);
+            try
+            {
+                if (!await Gate.WaitAsync(MaxQueueWait, cancellationToken))
+                {
+                    _logger.LogWarning("Geocoding queue is full; skipped {Url}", relativeUrl);
+                    return null;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+
             try
             {
                 var wait = _lastRequest + _options.MinInterval - _clock.GetUtcNow();
@@ -103,7 +118,7 @@ namespace CityFix_backend.Services
                 await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                 return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
             {
                 _logger.LogWarning(ex, "Nominatim is unavailable");
                 return null;
@@ -114,7 +129,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // "street house, city" when Nominatim knows them, otherwise its display name.
         private static string? FormatAddress(JsonElement place)
         {
             if (place.TryGetProperty("address", out var a))

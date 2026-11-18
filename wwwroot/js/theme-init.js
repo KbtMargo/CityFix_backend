@@ -1,0 +1,1 @@
+(function () { var t = null; try { t = localStorage.getItem('cf-theme'); } catch (e) { } document.documentElement.dataset.theme = t === 'dark' || t === 'light' ? t : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); })();

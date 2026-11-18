@@ -2,11 +2,10 @@ using CityFix_backend.Models;
 
 namespace CityFix_backend.Services.Interfaces
 {
-    // All figures are computed over the appeals the user may see.
     public interface IAnalyticsService
     {
-        Task<DashboardKpis> GetDashboardKpisAsync(User actor);
-
+        Task<DashboardKpis> GetDashboardKpisAsync(User actor, bool community = false);
         Task<AnalyticsData> GetAnalyticsAsync(User actor);
+        Task<ManagementData> GetManagementAsync(User actor);
     }
 }

@@ -1,5 +1,3 @@
-// Analytics charts (components/Analytics/README.md): Recharts look reproduced with Chart.js.
-// Series colours come from the series-* tokens; grid and tick colours are the README's values.
 (function () {
     var source = document.getElementById('analytics-data');
     if (!source || !window.Chart) return;
@@ -12,7 +10,6 @@
         red: token('--series-red'), violet: token('--series-violet'), cyan: token('--series-cyan'), gray: token('--series-gray')
     };
     var categoryColors = [series.blue, series.emerald, series.amber, series.red, series.violet, series.cyan];
-    // One colour per status, matching the pills (the server sends each bar's status key).
     var statusColor = {
         new: series.blue, underreview: series.cyan, needsinfo: series.violet, inprogress: series.amber,
         onhold: series.gray, done: series.emerald, rejected: series.red, duplicate: series.gray
@@ -20,7 +17,6 @@
     var statusColors = (data.statusKeys || []).map(function (k) { return statusColor[k] || series.gray; });
     var priorityColors = [series.gray, series.blue, series.red];
 
-    // Horizontal dashed (3 3) #ccc grid, #666 12px ticks, no axis or tick lines.
     var scales = {
         x: { grid: { display: false }, border: { display: false }, ticks: { color: '#666', font: { size: 12 } } },
         y: { beginAtZero: true, grid: { color: '#ccc', drawTicks: false }, border: { display: false, dash: [3, 3] }, ticks: { color: '#666', font: { size: 12 }, precision: 0 } }
@@ -44,4 +40,45 @@
         data: { labels: data.perDay.labels, datasets: [{ data: data.perDay.values, borderColor: series.blue, backgroundColor: series.blue, borderWidth: 2, tension: 0.4, pointRadius: 3 }] },
         options: base
     });
+
+    var flow = document.getElementById('chart-flow');
+    if (flow && data.flow) {
+        new Chart(flow, {
+            type: 'bar',
+            data: {
+                labels: data.flow.labels,
+                datasets: [
+                    { label: data.labels.created, data: data.flow.created, backgroundColor: series.blue, borderRadius: 4, borderSkipped: false },
+                    { label: data.labels.closed, data: data.flow.closed, backgroundColor: series.emerald, borderRadius: 4, borderSkipped: false }
+                ]
+            },
+            options: Object.assign({}, base, {
+                plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2 } } },
+                interaction: { mode: 'index', intersect: false }
+            })
+        });
+    }
+
+    var ratings = document.getElementById('chart-ratings');
+    if (ratings && data.ratings) {
+        bars('chart-ratings', data.ratings, [series.red, series.amber, series.gray, series.cyan, series.emerald]);
+    }
+
+    var resolution = document.getElementById('chart-resolution');
+    if (resolution && data.resolution) {
+        var box = resolution.parentElement;
+        box.style.height = Math.max(160, Number(box.dataset.rows || 1) * 36 + 40) + 'px';
+        new Chart(resolution, {
+            type: 'bar',
+            data: { labels: data.resolution.labels, datasets: [{ data: data.resolution.values, backgroundColor: series.violet, borderRadius: 4, borderSkipped: false, barThickness: 18 }] },
+            options: Object.assign({}, base, {
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#ccc', drawTicks: false }, border: { display: false }, ticks: { color: '#666', font: { size: 12 } } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { color: '#666', font: { size: 12 } } }
+                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.x + ' ' + data.labels.days; } } } }
+            })
+        });
+    }
 })();

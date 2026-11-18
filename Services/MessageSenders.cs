@@ -1,6 +1,5 @@
-using System.Net.Http.Headers;
-using System.Text;
 using CityFix_backend.Services.Interfaces;
+using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
@@ -8,38 +7,91 @@ using MimeKit;
 
 namespace CityFix_backend.Services
 {
-    // Email:SmtpHost is set: letters go to that SMTP server.
-    public class SmtpEmailSender : IEmailSender
+    public sealed class SmtpEmailSender : IEmailSender, IDisposable
     {
         private readonly EmailOptions _options;
+        private readonly SemaphoreSlim _gate = new(1, 1);
+        private SmtpClient? _client;
 
         public SmtpEmailSender(IOptions<EmailOptions> options)
         {
             _options = options.Value;
         }
 
-        public async Task SendAsync(string to, string subject, string textBody, CancellationToken cancellationToken = default)
+        public async Task SendAsync(string to, EmailMessage email, CancellationToken cancellationToken = default)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
             message.To.Add(MailboxAddress.Parse(to));
-            message.Subject = subject;
-            message.Body = new TextPart("plain") { Text = textBody };
+            message.Subject = email.Subject;
+            message.Body = new BodyBuilder { TextBody = email.Text, HtmlBody = email.Html }.ToMessageBody();
 
-            using var client = new SmtpClient();
-            // Port 465 is implicit TLS; otherwise STARTTLS when the server offers it.
-            var security = _options.SmtpUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTlsWhenAvailable;
-            await client.ConnectAsync(_options.SmtpHost!, _options.SmtpPort, security, cancellationToken);
-            if (!string.IsNullOrEmpty(_options.SmtpUserName))
+            await _gate.WaitAsync(cancellationToken);
+            try
             {
-                await client.AuthenticateAsync(_options.SmtpUserName, _options.SmtpPassword ?? "", cancellationToken);
+                try
+                {
+                    await (await ConnectedAsync(cancellationToken)).SendAsync(message, cancellationToken);
+                }
+                catch (Exception ex) when (ex is ServiceNotConnectedException or IOException or SmtpProtocolException)
+                {
+                    Reset();
+                    await (await ConnectedAsync(cancellationToken)).SendAsync(message, cancellationToken);
+                }
             }
-            await client.SendAsync(message, cancellationToken);
-            await client.DisconnectAsync(true, cancellationToken);
+            catch
+            {
+                Reset();
+                throw;
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        private async Task<SmtpClient> ConnectedAsync(CancellationToken cancellationToken)
+        {
+            if (_client is { IsConnected: true }) return _client;
+
+            Reset();
+            var client = new SmtpClient();
+            try
+            {
+                var security = _options.SmtpUseSsl ? SecureSocketOptions.SslOnConnect
+                    : _options.SmtpAllowPlaintext ? SecureSocketOptions.StartTlsWhenAvailable
+                    : SecureSocketOptions.StartTls;
+                await client.ConnectAsync(_options.SmtpHost!, _options.SmtpPort, security, cancellationToken);
+                if (!string.IsNullOrEmpty(_options.SmtpUserName))
+                {
+                    await client.AuthenticateAsync(_options.SmtpUserName, _options.SmtpPassword ?? "", cancellationToken);
+                }
+            }
+            catch
+            {
+                client.Dispose();
+                throw;
+            }
+            return _client = client;
+        }
+
+        private void Reset()
+        {
+            _client?.Dispose();
+            _client = null;
+        }
+
+        public void Dispose()
+        {
+            if (_client is { IsConnected: true })
+            {
+                try { _client.Disconnect(true); } catch (Exception) { }
+            }
+            Reset();
+            _gate.Dispose();
         }
     }
 
-    // No SMTP server configured (development): the letter, with its links, is written to the log.
     public class LogEmailSender : IEmailSender
     {
         private readonly ILogger<LogEmailSender> _logger;
@@ -49,60 +101,9 @@ namespace CityFix_backend.Services
             _logger = logger;
         }
 
-        public Task SendAsync(string to, string subject, string textBody, CancellationToken cancellationToken = default)
+        public Task SendAsync(string to, EmailMessage message, CancellationToken cancellationToken = default)
         {
-            _logger.LogWarning("Email (not sent, Email:SmtpHost is empty) to {To}: {Subject}\n{Body}", to, subject, textBody);
-            return Task.CompletedTask;
-        }
-    }
-
-    // Sms:Provider = "Twilio": POST /2010-04-01/Accounts/{sid}/Messages.json with basic auth.
-    public class TwilioSmsSender : ISmsSender
-    {
-        private readonly HttpClient _http;
-        private readonly SmsOptions _options;
-
-        public TwilioSmsSender(HttpClient http, IOptions<SmsOptions> options)
-        {
-            _http = http;
-            _options = options.Value;
-        }
-
-        public async Task SendAsync(string phone, string text, CancellationToken cancellationToken = default)
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Post,
-                $"https://api.twilio.com/2010-04-01/Accounts/{Uri.EscapeDataString(_options.TwilioAccountSid ?? "")}/Messages.json");
-            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_options.TwilioAccountSid}:{_options.TwilioAuthToken}"));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["To"] = phone,
-                ["From"] = _options.TwilioFrom ?? "",
-                ["Body"] = text
-            });
-
-            using var response = await _http.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                throw new HttpRequestException($"Twilio refused the SMS ({(int)response.StatusCode}): {error}");
-            }
-        }
-    }
-
-    // Sms:Provider = "Log" (the default): the message is written to the log.
-    public class LogSmsSender : ISmsSender
-    {
-        private readonly ILogger<LogSmsSender> _logger;
-
-        public LogSmsSender(ILogger<LogSmsSender> logger)
-        {
-            _logger = logger;
-        }
-
-        public Task SendAsync(string phone, string text, CancellationToken cancellationToken = default)
-        {
-            _logger.LogWarning("SMS (not sent, Sms:Provider is Log) to {Phone}: {Text}", phone, text);
+            _logger.LogWarning("Email (not sent, Email:SmtpHost is empty) to {To}: {Subject}\n{Body}", to, message.Subject, message.Text);
             return Task.CompletedTask;
         }
     }

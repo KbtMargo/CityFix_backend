@@ -5,8 +5,6 @@ using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // Builds the appeal list + detail modal model shared by Dashboard/Index and Appeals/Index.
-    // An appealId the user may not open ends in 404 / 403 through ServiceExceptionFilter.
     internal static class AppealListFactory
     {
         public static async Task<AppealListViewModel> BuildAsync(
@@ -19,6 +17,7 @@ namespace CityFix_backend.Controllers
             {
                 Page = page.Page,
                 PossibleDuplicates = page.PossibleDuplicates,
+                Supported = page.Supported,
                 Filter = filter,
                 Lookups = await lookups.GetAsync(),
                 Controller = controller,

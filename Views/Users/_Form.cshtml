@@ -1,4 +1,3 @@
-@* Profile fields only. Passwords are never typed here. *@
 @model UserFormViewModel
 @{
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";

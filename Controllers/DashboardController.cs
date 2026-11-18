@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // "Home" for every role: KPI cards, search + filters, tabs and the appeals the user may see.
     [Authorize]
     public class DashboardController : AppController
     {
@@ -23,13 +23,14 @@ namespace CityFix_backend.Controllers
             _analytics = analytics;
         }
 
-        // GET: Dashboard  (?appealId= opens the detail modal)
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
             var actor = await GetActorAsync();
+            filter.Community = actor.Role == UserRole.Resident;
             return View(new DashboardViewModel
             {
-                Kpis = await _analytics.GetDashboardKpisAsync(actor),
+                Kpis = await _analytics.GetDashboardKpisAsync(actor, filter.Community),
+                Community = filter.Community,
                 List = await AppealListFactory.BuildAsync(_appeals, _lookups, filter, appealId, actor, "Dashboard")
             });
         }

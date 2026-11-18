@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 using CityFix_backend.Helpers;
 using CityFix_backend.Models;
@@ -21,16 +22,17 @@ namespace CityFix_backend.Controllers
         private readonly IAppealService _appeals;
         private readonly ILookupService _lookups;
         private readonly IFileService _files;
+        private readonly IAuditLog _audit;
 
         public AppealsController(IAppealService appeals, ILookupService lookups, IFileService files,
-            IUserService users, IStringLocalizer<SharedResource> localizer) : base(users, localizer)
+            IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit) : base(users, localizer)
         {
             _appeals = appeals;
             _lookups = lookups;
             _files = files;
+            _audit = audit;
         }
 
-        // GET: Appeals  ("My appeals" for residents, "All appeals" for staff; ?appealId= opens the detail modal)
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
             var actor = await GetActorAsync();
@@ -38,10 +40,8 @@ namespace CityFix_backend.Controllers
             return View(await AppealListFactory.BuildAsync(_appeals, _lookups, filter, appealId, actor, "Appeals"));
         }
 
-        // GET: Appeals/Details/5 → the list with the modal open
         public IActionResult Details(int id) => RedirectToAction(nameof(Index), new { appealId = id });
 
-        // GET: Appeals/Create
         public async Task<IActionResult> Create()
         {
             var actor = await GetActorAsync();
@@ -50,7 +50,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // POST: Appeals/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(60 * 1024 * 1024)]
@@ -75,7 +74,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // GET: Appeals/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var appeal = await _appeals.GetForEditAsync(id, await GetActorAsync());
@@ -84,7 +82,6 @@ namespace CityFix_backend.Controllers
             return View(form);
         }
 
-        // POST: Appeals/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(60 * 1024 * 1024)]
@@ -110,14 +107,12 @@ namespace CityFix_backend.Controllers
                 }
             }
 
-            // Same access check as the GET: a user who may not edit gets 403, not the form.
             var stored = await _appeals.GetForEditAsync(id, actor);
             form.Files = stored.Files;
             await PopulateAsync(form, stored.AcabId);
             return View(form);
         }
 
-        // POST: Appeals/Process  (the "Update appeal" panel: status, priority, comment)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Process(int appealId, AppealStatus expectedStatus, AppealStatus status,
@@ -130,7 +125,6 @@ namespace CityFix_backend.Controllers
             }
             catch (ServiceValidationException ex)
             {
-                // Shown inside the modal as a cf-alert; the typed values are kept so they aren't lost.
                 FlashError(Message(ex));
                 TempData["Comment"] = comment;
                 TempData["Status"] = status.ToString();
@@ -140,7 +134,6 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
         }
 
-        // POST: Appeals/Assign  (the responsible party: the association or a recipient)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Assign(int appealId, string? responsible, string? returnUrl)
@@ -160,7 +153,57 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
         }
 
-        // GET: Appeals/Delete/5  (confirmation dialog)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Rate(int appealId, int rating, string? comment, string? returnUrl)
+        {
+            try
+            {
+                await _appeals.RateAsync(appealId, new AppealRatingInput(rating, comment), await GetActorAsync());
+                FlashSuccess(L["Appeal.Rated"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+
+            return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reopen(int appealId, string? comment, string? returnUrl)
+        {
+            try
+            {
+                await _appeals.ReopenAsync(appealId, comment, await GetActorAsync());
+                FlashSuccess(L["Appeal.Reopened"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+                TempData["ReopenComment"] = comment;
+            }
+
+            return RedirectToLocal(returnUrl, () => RedirectToAction(nameof(Index), new { appealId }));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("lookup")]
+        public async Task<IActionResult> Support(int id)
+        {
+            try
+            {
+                var result = await _appeals.ToggleSupportAsync(id, await GetActorAsync());
+                return Json(new { result.Supported, result.Count, Label = L["Support.Count", result.Count].Value });
+            }
+            catch (ServiceValidationException ex)
+            {
+                return BadRequest(new { Error = Message(ex) });
+            }
+        }
+
         public async Task<IActionResult> Delete(int id)
         {
             var details = await _appeals.GetDetailsAsync(id, await GetActorAsync());
@@ -169,18 +212,53 @@ namespace CityFix_backend.Controllers
                 : Forbid();
         }
 
-        // POST: Appeals/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _appeals.DeleteAsync(id, await GetActorAsync());
+            var actor = await GetActorAsync();
+            var appeal = await _appeals.GetForEditAsync(id, actor);
+            await _appeals.DeleteAsync(id, actor);
+            if (appeal.AuthorId != actor.Id)
+            {
+                await _audit.RecordAsync(actor, "appeal.delete", $"Appeal #{id} {appeal.Title}", $"author={appeal.AuthorId}");
+            }
             FlashSuccess(L["Appeal.Deleted"]);
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Appeals/Similar?lat=&lng=&categoryId=  (the create form's duplicate warning, JSON)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePhoto(int id)
+        {
+            var appealId = await _appeals.DeleteFileAsync(id, await GetActorAsync());
+            FlashSuccess(L["Appeal.PhotoDeleted"]);
+            return RedirectToAction(nameof(Edit), new { id = appealId });
+        }
+
         [HttpGet]
+        public async Task<IActionResult> Photo(int id, bool thumb = false)
+        {
+            var file = await _appeals.GetFileAsync(id, await GetActorAsync());
+            var path = _files.PhysicalPathOf(file);
+            var contentType = file.ContentType;
+            if (thumb && _files.ThumbnailPathOf(file) is string thumbnail && System.IO.File.Exists(thumbnail))
+            {
+                path = thumbnail;
+                contentType = "image/jpeg";
+            }
+            if (!System.IO.File.Exists(path))
+            {
+                return NotFound();
+            }
+
+            Response.Headers.CacheControl = "private, max-age=86400";
+            Response.Headers.XContentTypeOptions = "nosniff";
+            return PhysicalFile(path, contentType);
+        }
+
+        [HttpGet]
+        [EnableRateLimiting("lookup")]
         public async Task<IActionResult> Similar(double lat, double lng, int categoryId, int? excludeId)
         {
             if (lat is < -90 or > 90 || lng is < -180 or > 180)
@@ -196,11 +274,13 @@ namespace CityFix_backend.Controllers
                 Status = s.Status.GetDisplayName(),
                 Date = s.CreatedAt.ToDate(),
                 Distance = L["Appeal.Distance", s.DistanceMeters].Value,
-                Url = s.Visible ? Url.Action(nameof(Index), new { appealId = s.Id }) : null
+                Url = s.Visible ? Url.Action(nameof(Index), new { appealId = s.Id }) : null,
+                s.Supported,
+                s.CanSupport,
+                Supporters = s.SupportCount > 0 ? L["Support.Count", s.SupportCount].Value : null
             }));
         }
 
-        // GET: Appeals/Export?format=xlsx|pdf|csv|json&...filters  (staff: the appeals of the current filter)
         [HttpGet]
         public async Task<IActionResult> Export([FromQuery] AppealFilter filter, string format = "xlsx")
         {
@@ -234,7 +314,6 @@ namespace CityFix_backend.Controllers
                     ReportHeader.FileName("appeals", now, "xlsx"));
         }
 
-        // "Tab: New · Category: Elevators · …" for the report header; null when nothing narrows the list.
         private async Task<string?> FilterSummaryAsync(AppealFilter filter)
         {
             var lookups = await _lookups.GetAsync();
@@ -277,14 +356,9 @@ namespace CityFix_backend.Controllers
             return parts.Count == 0 ? null : $"{L["Report.Filters"]}: {string.Join(" · ", parts)}";
         }
 
-        // RFC 4180 CSV with a UTF-8 BOM, so Excel opens the Cyrillic text correctly.
         private byte[] Csv(IReadOnlyList<AppealExportRow> rows)
         {
-            static string Cell(object? value)
-            {
-                var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
-                return text.IndexOfAny(new[] { ',', '"', '\n', '\r' }) >= 0 ? "\"" + text.Replace("\"", "\"\"") + "\"" : text;
-            }
+            static string Cell(object? value) => CsvCell.Format(value);
 
             var csv = new StringBuilder();
             csv.AppendLine(string.Join(",", new[]
@@ -302,7 +376,6 @@ namespace CityFix_backend.Controllers
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
         }
 
-        // The select lists and limits the form shows. acabId is the association the appeal belongs to.
         private async Task PopulateAsync(AppealFormViewModel form, int? acabId)
         {
             form.Lookups = await _lookups.GetAsync();

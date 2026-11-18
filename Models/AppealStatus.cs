@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CityFix_backend.Models
 {
-    // Stored as numbers: new statuses are appended so existing rows keep their meaning.
-    // The order people see (lists, charts) is AppealWorkflow.Ordered.
     public enum AppealStatus
     {
         [Display(Name = "Enum.AppealStatus.New")] New = 0,

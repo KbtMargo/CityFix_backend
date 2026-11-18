@@ -18,25 +18,23 @@ namespace CityFix_backend.Data
         public DbSet<AppealUpdate> AppealUpdates { get; set; } = null!;
         public DbSet<AppealFile> AppealFiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<AuditEntry> AuditLog { get; set; } = null!;
+        public DbSet<AppealSupport> AppealSupports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Spatial types and ST_* functions for the similar-appeals search.
             modelBuilder.HasPostgresExtension("postgis");
 
-            // Email is the login name, stored lower-cased.
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
-            // A user's association cannot be deleted while it has members.
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Acab)
                 .WithMany()
                 .HasForeignKey(u => u.AcabId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Both invitation codes are looked up at registration, so each must point to one association.
             modelBuilder.Entity<Acab>().HasIndex(a => a.ResidentCode).IsUnique();
             modelBuilder.Entity<Acab>().HasIndex(a => a.HeadCode).IsUnique();
             modelBuilder.Entity<Acab>().Property(a => a.ResidentCode).HasMaxLength(32);
@@ -44,7 +42,6 @@ namespace CityFix_backend.Data
 
             var appeal = modelBuilder.Entity<Appeal>();
 
-            // Computed by the database from Lat/Lng; a GiST index makes "within 500 m" an index scan.
             appeal.Property(a => a.Location)
                 .HasColumnType("geography (point, 4326)")
                 .HasComputedColumnSql("ST_SetSRID(ST_MakePoint(\"Lng\"::double precision, \"Lat\"::double precision), 4326)::geography", stored: true);
@@ -53,24 +50,20 @@ namespace CityFix_backend.Data
             appeal.Property(a => a.Lat).HasPrecision(8, 5);
             appeal.Property(a => a.Lng).HasPrecision(8, 5);
 
-            // Lists sort and filter by these.
             appeal.HasIndex(a => a.CreatedAt);
             appeal.HasIndex(a => new { a.AcabId, a.Status });
 
-            // Records referenced by appeals cannot be deleted (the controllers explain why first).
             appeal.HasOne(a => a.Author).WithMany().HasForeignKey(a => a.AuthorId).OnDelete(DeleteBehavior.Restrict);
             appeal.HasOne(a => a.Acab).WithMany().HasForeignKey(a => a.AcabId).OnDelete(DeleteBehavior.Restrict);
             appeal.HasOne(a => a.Category).WithMany().HasForeignKey(a => a.CategoryId).OnDelete(DeleteBehavior.Restrict);
             appeal.HasOne(a => a.Recipient).WithMany().HasForeignKey(a => a.RecipientId).OnDelete(DeleteBehavior.Restrict);
 
-            // History, photos and notifications belong to their appeal and go with it.
             modelBuilder.Entity<AppealUpdate>()
                 .HasOne(u => u.Appeal)
                 .WithMany(a => a.Updates)
                 .HasForeignKey(u => u.AppealId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // A user who changed a status cannot be deleted silently: that would rewrite the history.
             modelBuilder.Entity<AppealUpdate>()
                 .HasOne(u => u.ChangedBy)
                 .WithMany()
@@ -98,9 +91,18 @@ namespace CityFix_backend.Data
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.UserId, n.IsRead });
 
-            // NotificationDispatcher looks for copies still to be sent.
             modelBuilder.Entity<Notification>()
-                .HasIndex(n => new { n.EmailState, n.SmsState });
+                .HasIndex(n => n.EmailState);
+
+            modelBuilder.Entity<AppealSupport>().HasKey(s => new { s.AppealId, s.UserId });
+            modelBuilder.Entity<AppealSupport>()
+                .HasOne(s => s.Appeal).WithMany(a => a.Supports).HasForeignKey(s => s.AppealId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AppealSupport>()
+                .HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
+
+            appeal.HasIndex(a => a.DueAt);
+            modelBuilder.Entity<AuditEntry>().ToTable("AuditLog");
+            modelBuilder.Entity<AuditEntry>().HasIndex(e => e.At);
         }
     }
 }

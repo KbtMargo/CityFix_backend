@@ -16,13 +16,12 @@ namespace CityFix_backend.Services
             _clock = clock;
         }
 
-        // The text is rendered from Type + NewStatus in the reader's language; only free text is stored.
         public Task AddStatusChangedAsync(Appeal appeal, AppealStatus? newStatus, string? comment) =>
             AddAsync(new[] { appeal.AuthorId }, appeal, NotificationType.StatusChanged, newStatus, comment);
 
         public async Task AddNewAppealAsync(Appeal appeal)
         {
-            var heads = await HeadsOfAsync(appeal.AcabId);
+            var heads = await HeadsOrAdministratorsAsync(appeal.AcabId);
             heads.Remove(appeal.AuthorId);
             await AddAsync(heads, appeal, NotificationType.NewAppeal, null, null);
         }
@@ -32,14 +31,32 @@ namespace CityFix_backend.Services
             var recipients = new HashSet<int> { appeal.AuthorId };
             if (appeal.ResponsibleKind == ResponsibleKind.Association)
             {
-                recipients.UnionWith(await HeadsOfAsync(appeal.AcabId));
+                recipients.UnionWith(await HeadsOrAdministratorsAsync(appeal.AcabId));
             }
             recipients.Remove(actorId);
 
             await AddAsync(recipients, appeal, NotificationType.Assigned, null, responsibleName, responsibleNameEn);
         }
 
-        public Task<List<Notification>> GetForUserAsync(int userId, bool unreadOnly)
+        public async Task AddSupportersStatusChangedAsync(Appeal appeal, AppealStatus newStatus, int actorId)
+        {
+            var supporters = await _context.AppealSupports
+                .Where(s => s.AppealId == appeal.Id && s.UserId != actorId && s.UserId != appeal.AuthorId)
+                .Select(s => s.UserId)
+                .ToListAsync();
+            await AddAsync(supporters, appeal, NotificationType.StatusChanged, newStatus, null);
+        }
+
+        public async Task AddForHeadsAsync(Appeal appeal, NotificationType type, string? message, int? actorId)
+        {
+            var heads = appeal.AcabId != null ? await HeadsOrAdministratorsAsync(appeal.AcabId) : await AdministratorsAsync();
+            if (actorId != null) heads.Remove(actorId.Value);
+            await AddAsync(heads, appeal, type, null, message);
+        }
+
+        public const int PageSize = 20;
+
+        public Task<PagedResult<Notification>> GetForUserAsync(int userId, bool unreadOnly, int page)
         {
             var query = _context.Notifications.AsNoTracking()
                 .Include(n => n.Appeal)
@@ -48,7 +65,18 @@ namespace CityFix_backend.Services
             {
                 query = query.Where(n => !n.IsRead);
             }
-            return query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id).ToListAsync();
+            return query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id).ToPagedResultAsync(page, PageSize);
+        }
+
+        public Task<int> DeleteOldAsync(TimeSpan readAge, TimeSpan anyAge)
+        {
+            var now = _clock.GetUtcNow().UtcDateTime;
+            var readBefore = now - readAge;
+            var anyBefore = now - anyAge;
+            return _context.Notifications
+                .Where(n => n.EmailState != DeliveryState.Pending)
+                .Where(n => (n.IsRead && n.CreatedAt < readBefore) || n.CreatedAt < anyBefore)
+                .ExecuteDeleteAsync();
         }
 
         public Task<int> CountUnreadAsync(int userId) =>
@@ -56,7 +84,8 @@ namespace CityFix_backend.Services
 
         public async Task<Notification?> MarkReadAsync(int id, int userId)
         {
-            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId && n.InApp);
+            var notification = await _context.Notifications.Include(n => n.Appeal)
+                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId && n.InApp);
             if (notification != null && !notification.IsRead)
             {
                 notification.IsRead = true;
@@ -70,8 +99,6 @@ namespace CityFix_backend.Services
                 .Where(n => n.UserId == userId && n.InApp && !n.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
 
-        // One row per recipient with the channels they chose; nothing for someone who turned every channel off.
-        // Email and SMS are marked Pending and sent by NotificationDispatcher once this unit of work is saved.
         private async Task AddAsync(IEnumerable<int> userIds, Appeal appeal, NotificationType type, AppealStatus? newStatus, string? message, string? messageEn = null)
         {
             var ids = userIds.ToList();
@@ -79,10 +106,10 @@ namespace CityFix_backend.Services
 
             var recipients = await _context.Users.AsNoTracking()
                 .Where(u => ids.Contains(u.Id))
-                .Select(u => new { u.Id, u.NotifyInApp, Email = u.NotifyEmail && u.EmailConfirmed, Sms = u.NotifySms && u.Phone != null })
+                .Select(u => new { u.Id, u.NotifyInApp, Email = u.NotifyEmail && u.EmailConfirmed })
                 .ToListAsync();
 
-            foreach (var user in recipients.Where(u => u.NotifyInApp || u.Email || u.Sms))
+            foreach (var user in recipients.Where(u => u.NotifyInApp || u.Email))
             {
                 _context.Notifications.Add(new Notification
                 {
@@ -93,14 +120,21 @@ namespace CityFix_backend.Services
                     Message = message?.Trim() ?? "",
                     MessageEn = messageEn,
                     InApp = user.NotifyInApp,
-                    // Read already, so it never counts as unread if in-app notifications are turned on later.
                     IsRead = !user.NotifyInApp,
                     EmailState = user.Email ? DeliveryState.Pending : DeliveryState.None,
-                    SmsState = user.Sms ? DeliveryState.Pending : DeliveryState.None,
-                    CreatedAt = _clock.GetUtcNow().UtcDateTime
+                    CreatedAt = _clock.GetUtcNow().UtcDateTime,
+                    NextAttemptAt = _clock.GetUtcNow().UtcDateTime
                 });
             }
         }
+        private async Task<List<int>> HeadsOrAdministratorsAsync(int? acabId)
+        {
+            var heads = await HeadsOfAsync(acabId);
+            return heads.Count > 0 || acabId == null ? heads : await AdministratorsAsync();
+        }
+
+        private Task<List<int>> AdministratorsAsync() =>
+            _context.Users.Where(u => u.Role == UserRole.Administrator && !u.IsBlocked).Select(u => u.Id).ToListAsync();
 
         private async Task<List<int>> HeadsOfAsync(int? acabId) => acabId == null
             ? new List<int>()

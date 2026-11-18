@@ -2,10 +2,6 @@ using System.Text;
 
 namespace CityFix_backend.Helpers
 {
-    // Ukrainian → Latin by the official system (Cabinet of Ministers resolution No. 55, 2010), used for
-    // people's names: Оксана Мельник → Oksana Melnyk, Юлія → Yuliia, Згурський → Zghurskyi.
-    // Є, Ї, Й, Ю, Я are written Ye, Yi, Y, Yu, Ya at the start of a word and ie, i, i, iu, ia elsewhere;
-    // the soft sign and the apostrophe are dropped.
     public static class Transliteration
     {
         private static readonly Dictionary<char, string> Letters = new()
@@ -38,7 +34,6 @@ namespace CityFix_backend.Helpers
 
                 if (latin.Length > 0 && char.IsUpper(c))
                 {
-                    // Capital first letter only (Shch, not SHCH), unless the whole word is in capitals.
                     var nextUpper = i + 1 < text.Length && char.IsUpper(text[i + 1]);
                     latin = nextUpper ? latin.ToUpperInvariant() : char.ToUpperInvariant(latin[0]) + latin[1..];
                 }

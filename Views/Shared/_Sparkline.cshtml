@@ -1,4 +1,3 @@
-@* KpiCard sparkline: 88×32, 7 points, line + 12% area + end dot in the card's tone. *@
 @model IReadOnlyList<double>
 @{
     var max = Model.Count > 0 ? Model.Max() : 0;
@@ -7,7 +6,6 @@
     string F(double v) => v.ToString("0.0", CultureInfo.InvariantCulture);
     var points = Model.Select((v, i) =>
     {
-        // Flat series sit on the baseline when they are all zero, otherwise in the middle.
         var y = max > min ? 29 - (v - min) / (max - min) * 26 : (max == 0 ? 29 : 16);
         return (X: 3 + i * step, Y: y);
     }).ToList();

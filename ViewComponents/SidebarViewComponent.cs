@@ -4,30 +4,37 @@ using CityFix_backend.Models;
 using CityFix_backend.Services;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.ViewComponents
 {
     public record NavItem(string Controller, string Action, string Icon, string LabelKey, string SubKey, int? Count, bool Active);
 
-    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive)
+    public record SupportContacts(string? Email, string? Phone, string? Hours)
     {
-        // Up to two initials for the avatar in the user block.
+        public string? PhoneLink => Phone == null ? null : "tel:" + new string(Phone.Where(c => char.IsDigit(c) || c == '+').ToArray());
+    }
+
+    public record SidebarModel(AppealStats Stats, IReadOnlyList<NavItem> Items, string UserName, UserRole Role, bool ProfileActive, SupportContacts Support, int UserId)
+    {
         public string Initials => string.Concat(UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
     }
 
-    // The left navigation: collapse button, logo, Open/Closed stats, the role's menu, help box and the
-    // signed-in user. The language and theme switches live in the topbar (_Layout).
     public class SidebarViewComponent : ViewComponent
     {
         private readonly IUserService _users;
         private readonly IAppealService _appeals;
         private readonly INotificationService _notifications;
+        private readonly SupportContacts _support;
 
-        public SidebarViewComponent(IUserService users, IAppealService appeals, INotificationService notifications)
+        public SidebarViewComponent(IUserService users, IAppealService appeals, INotificationService notifications,
+            IOptions<SupportOptions> support, IOptions<EmailOptions> email)
         {
             _users = users;
             _appeals = appeals;
             _notifications = notifications;
+            static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            _support = new SupportContacts(Clean(support.Value.Email) ?? Clean(email.Value.FromAddress), Clean(support.Value.Phone), Clean(support.Value.Hours));
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -40,13 +47,8 @@ namespace CityFix_backend.ViewComponents
             bool Is(string c) => string.Equals(controller, c, StringComparison.OrdinalIgnoreCase);
             var creating = Is("Appeals") && string.Equals(action, "Create", StringComparison.OrdinalIgnoreCase);
 
-            // Residents and heads receive notifications; administrators don't.
-            int? unread = null;
-            if (user.Role != UserRole.Administrator)
-            {
-                var count = await _notifications.CountUnreadAsync(user.Id);
-                unread = count > 0 ? count : null;
-            }
+            var count = await _notifications.CountUnreadAsync(user.Id);
+            int? unread = count > 0 ? count : null;
 
             var items = new List<NavItem>();
             if (user.Role == UserRole.Resident)
@@ -62,21 +64,19 @@ namespace CityFix_backend.ViewComponents
                 items.Add(new("Dashboard", "Index", "home", "Nav.Home", "Nav.Home.SubAdmin", null, Is("Dashboard")));
                 items.Add(new("Analytics", "Index", "bars", "Nav.Analytics", "Nav.Analytics.Sub", null, Is("Analytics")));
                 items.Add(new("Appeals", "Index", "list", "Nav.AllAppeals", "Nav.AllAppeals.Sub", null, Is("Appeals")));
-                if (user.Role == UserRole.AcabAdmin)
-                {
-                    items.Add(new("Notifications", "Index", "bell", "Nav.Notifications", "Nav.Notifications.Sub", unread, Is("Notifications")));
-                }
+
+                items.Add(new("Notifications", "Index", "bell", "Nav.Notifications", "Nav.Notifications.Sub", unread, Is("Notifications")));
                 items.Add(new("Users", "Index", "users", "Nav.Users", "Nav.Users.Sub", null, Is("Users")));
                 if (user.Role == UserRole.Administrator)
                 {
                     items.Add(new("Acabs", "Index", "apartment", "Nav.Acabs", "Nav.Acabs.Sub", null, Is("Acabs")));
                     items.Add(new("Categories", "Index", "tag", "Nav.Categories", "Nav.Categories.Sub", null, Is("Categories")));
                     items.Add(new("Recipients", "Index", "wrench", "Nav.Recipients", "Nav.Recipients.Sub", null, Is("Recipients")));
+                    items.Add(new("Audit", "Index", "shield", "Nav.Audit", "Nav.Audit.Sub", null, Is("Audit")));
                 }
             }
 
-            // The profile is reached through the user block at the bottom of the sidebar.
-            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account")));
+            return View(new SidebarModel(stats, items, user.FullName.Length > 0 ? user.DisplayName() : user.Email, user.Role, Is("Account"), _support, user.Id));
         }
     }
 }

@@ -1,9 +1,5 @@
 namespace CityFix_backend.Services
 {
-    // The three ways a service call can fail. Services throw them; ServiceExceptionFilter turns
-    // NotFound into 404 and Forbidden into 403 everywhere, and controllers turn validation failures
-    // into a ModelState error on Field (MessageKey is a localization key from SharedResource*.resx).
-
     public class NotFoundException : Exception
     {
         public NotFoundException(string message) : base(message) { }

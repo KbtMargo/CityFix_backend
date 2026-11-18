@@ -19,12 +19,28 @@ namespace CityFix_backend.ViewModels
 
         public string? ReturnUrl { get; set; }
 
-        // Set by the controller: the password was right but the email is not confirmed yet (offer a new letter).
         [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
         public bool NeedsConfirmation { get; set; }
     }
 
-    // "Send the confirmation letter again" (and the CheckEmail page, which shows the address).
+    public class ResetPasswordViewModel
+    {
+        [Required]
+        public string Token { get; set; } = "";
+
+        [Required(ErrorMessage = "Validation.Required")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Validation.PasswordLength")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Field.NewPassword")]
+        public string NewPassword { get; set; } = "";
+
+        [Required(ErrorMessage = "Validation.Required")]
+        [Compare(nameof(NewPassword), ErrorMessage = "Validation.PasswordMatch")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Field.ConfirmNewPassword")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+
     public class ResendConfirmationViewModel
     {
         [Required(ErrorMessage = "Validation.Required")]

@@ -5,19 +5,15 @@ using QuestPDF.Infrastructure;
 
 namespace CityFix_backend.Services.Reports
 {
-    // What every exported report starts with: its title, whose data it covers (Scope), the filters that were
-    // applied, and who made it and when. All texts are already in the current UI language.
     public record ReportHeader(string Title, string Scope, string? Filters, string GeneratedBy, DateTime GeneratedAtUtc)
     {
         public string GeneratedLine =>
             SharedText.Format("Report.Generated", GeneratedAtUtc.ToDateTime(), GeneratedBy);
 
-        // File names: cityfix-appeals-20261020-1630.xlsx
         public static string FileName(string kind, DateTime utc, string extension) =>
             $"cityfix-{kind}-{utc.ToKyiv():yyyyMMdd-HHmm}.{extension}";
     }
 
-    // The look shared by the PDF reports: a calm business layout, one accent colour, thin rules.
     internal static class PdfStyle
     {
         public static readonly string Ink = "#0F172A";
@@ -27,8 +23,6 @@ namespace CityFix_backend.Services.Reports
         public static readonly string Stripe = "#F8FAFC";
         public static readonly string Accent = "#2563EB";
 
-        // A system font with Cyrillic. QuestPDF refuses families that are not installed, so only one that
-        // exists is passed: Segoe UI or Arial on Windows, DejaVu Sans or Liberation Sans on Linux.
         public static readonly string[] Fonts = { PickFont() };
 
         private static string PickFont()

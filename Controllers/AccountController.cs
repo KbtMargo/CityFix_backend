@@ -9,25 +9,29 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Controllers
 {
     public class AccountController : AppController
     {
-        // TempData: the address the confirmation letter went to (CheckEmail page).
         private const string SentToKey = "ConfirmationSentTo";
 
         private readonly IAuthService _auth;
         private readonly ILogger<AccountController> _logger;
+        private readonly string? _publicUrl;
+        private readonly IAuditLog _audit;
 
-        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger)
+        public AccountController(IAuthService auth, IUserService users, IStringLocalizer<SharedResource> localizer, ILogger<AccountController> logger,
+            IOptions<NotificationOptions> notifications, IAuditLog audit)
             : base(users, localizer)
         {
             _auth = auth;
             _logger = logger;
+            _publicUrl = notifications.Value.PublicUrl;
+            _audit = audit;
         }
 
-        // GET: Account/Register
         public IActionResult Register()
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -37,14 +41,11 @@ namespace CityFix_backend.Controllers
             return View(new RegisterViewModel());
         }
 
-        // POST: Account/Register  (rate-limited: invitation codes cannot be guessed by brute force)
-        // The account can sign in only after the link from the confirmation letter is followed.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            // Someone in a private house has no association; a member must give its code.
             if (model.HasAssociation && string.IsNullOrWhiteSpace(model.InvitationCode))
             {
                 ModelState.AddModelError(nameof(model.InvitationCode), L["Auth.CodeRequired"]);
@@ -56,6 +57,13 @@ namespace CityFix_backend.Controllers
 
             var result = await _auth.RegisterAsync(new RegisterRequest(
                 model.Email, model.Password, model.FirstName, model.LastName, model.Phone, model.HasAssociation ? model.InvitationCode : null));
+
+            if (result.ExistingAccount is { } existing)
+            {
+                await TrySendAsync(existing.Email, () => _auth.SendAccountExistsAsync(existing, ResetLink(existing)));
+                TempData[SentToKey] = existing.Email;
+                return RedirectToAction(nameof(CheckEmail));
+            }
 
             if (!result.Succeeded)
             {
@@ -72,7 +80,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(CheckEmail));
         }
 
-        // GET: Account/CheckEmail  ("we have sent you a letter")
         public IActionResult CheckEmail()
         {
             if (TempData[SentToKey] is not string email)
@@ -82,7 +89,6 @@ namespace CityFix_backend.Controllers
             return View(new ResendConfirmationViewModel { Email = email });
         }
 
-        // GET: Account/ConfirmEmail?token=...  (the link from the letter)
         public async Task<IActionResult> ConfirmEmail(string? token)
         {
             var result = string.IsNullOrEmpty(token)
@@ -102,17 +108,14 @@ namespace CityFix_backend.Controllers
                     break;
             }
 
-            // The link only confirms the address; it never signs anyone in.
             return User.Identity?.IsAuthenticated == true
                 ? RedirectToAction(nameof(Profile))
                 : RedirectToAction(nameof(Login));
         }
 
-        // GET: Account/ResendConfirmation
         public IActionResult ResendConfirmation(string? email) =>
             View(new ResendConfirmationViewModel { Email = email ?? "" });
 
-        // POST: Account/ResendConfirmation  (the same answer whether or not such an account exists)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
@@ -132,7 +135,62 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(CheckEmail));
         }
 
-        // GET: Account/Login
+        public IActionResult ForgotPassword(string? email) =>
+            View(new ResendConfirmationViewModel { Email = email ?? "" });
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ForgotPassword(ResendConfirmationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _auth.FindForPasswordResetAsync(model.Email);
+            if (user != null)
+            {
+                await TrySendAsync(user.Email, () => _auth.SendPasswordResetAsync(user, ResetLink(user)));
+            }
+            else
+            {
+                _logger.LogInformation("Password reset requested for {Email}, which has no active account.", EmailAddress.Normalize(model.Email));
+            }
+            FlashSuccess(L["Auth.Forgot.Sent", EmailAddress.Normalize(model.Email)]);
+            return RedirectToAction(nameof(Login));
+        }
+
+        public async Task<IActionResult> ResetPassword(string? token)
+        {
+            if (string.IsNullOrEmpty(token) || await _auth.FindByResetTokenAsync(token) == null)
+            {
+                FlashError(L["Auth.Reset.Invalid"]);
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            if (!await _auth.ResetPasswordAsync(model.Token, model.NewPassword))
+            {
+                FlashError(L["Auth.Reset.Invalid"]);
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            FlashSuccess(L["Auth.Reset.Done"]);
+            return RedirectToAction(nameof(Login));
+        }
+
         public IActionResult Login(string? returnUrl)
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -142,7 +200,6 @@ namespace CityFix_backend.Controllers
             return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
-        // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth")]
@@ -153,15 +210,16 @@ namespace CityFix_backend.Controllers
                 return View(model);
             }
 
-            var user = await _auth.LoginAsync(model.Email, model.Password);
+            var login = await _auth.LoginAsync(model.Email, model.Password);
+            var user = login.User;
             if (user == null)
             {
-                // One message for a wrong password, an unknown email and a blocked account.
-                ModelState.AddModelError(string.Empty, L["Auth.LoginFailed"]);
+                ModelState.AddModelError(string.Empty, login.LockedOut
+                    ? L["Auth.LockedOut", (int)AuthService.LockoutDuration.TotalMinutes]
+                    : L["Auth.LoginFailed"]);
                 return View(model);
             }
 
-            // Said only after the right password, so it does not reveal which addresses are registered.
             if (!user.EmailConfirmed)
             {
                 ModelState.AddModelError(string.Empty, L["Auth.EmailNotConfirmed"]);
@@ -174,7 +232,6 @@ namespace CityFix_backend.Controllers
             return RedirectToLocal(model.ReturnUrl, () => RedirectToAction("Index", "Dashboard"));
         }
 
-        // POST: Account/Logout
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -184,21 +241,18 @@ namespace CityFix_backend.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: Account/AccessDenied
         public IActionResult AccessDenied()
         {
             Response.StatusCode = StatusCodes.Status403Forbidden;
             return View();
         }
 
-        // GET: Account/Profile
         [Authorize]
         public async Task<IActionResult> Profile()
         {
-            return View(ProfileViewModel.For(await Users.GetAsync(CurrentUserId)));
+            return View(await ProfileViewAsync());
         }
 
-        // POST: Account/Profile  (name, email, phone). A new email waits for its confirmation link.
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -217,7 +271,7 @@ namespace CityFix_backend.Controllers
                     {
                         FlashSuccess(L["Profile.EmailPending", toConfirm]);
                     }
-                    return RedirectToAction(nameof(Profile));
+                    return ProfileSection("personal");
                 }
                 catch (ServiceValidationException ex)
                 {
@@ -225,12 +279,11 @@ namespace CityFix_backend.Controllers
                 }
             }
 
-            var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+            var view = await ProfileViewAsync();
             view.Profile = model;
             return View(nameof(Profile), view);
         }
 
-        // POST: Account/ResendPendingEmail  (the letter for the new address typed in the profile)
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -242,10 +295,9 @@ namespace CityFix_backend.Controllers
             {
                 FlashSuccess(L["Profile.EmailPending", user.PendingEmail]);
             }
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("personal");
         }
 
-        // POST: Account/UpdateNotifications  (the channels notifications arrive on)
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -253,36 +305,36 @@ namespace CityFix_backend.Controllers
         {
             await Users.UpdateNotificationSettingsAsync(CurrentUserId, model.ToSettings());
             FlashSuccess(L["Profile.NotificationsSaved"]);
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("notifications");
         }
-
-        // POST: Account/ChangePassword
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ChangePassword([Bind(Prefix = "ChangePassword")] ChangePasswordViewModel model)
         {
-            if (ModelState.IsValid && !await _auth.ChangePasswordAsync(CurrentUserId, model.CurrentPassword, model.NewPassword))
+            User? changed = null;
+            if (ModelState.IsValid && (changed = await _auth.ChangePasswordAsync(CurrentUserId, model.CurrentPassword, model.NewPassword)) == null)
             {
                 ModelState.AddModelError("ChangePassword.CurrentPassword", L["Profile.WrongPassword"]);
             }
 
             if (!ModelState.IsValid)
             {
-                var view = ProfileViewModel.For(await Users.GetAsync(CurrentUserId));
+                var view = await ProfileViewAsync();
                 view.ChangePassword = model;
                 return View(nameof(Profile), view);
             }
 
+            var current = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await SignInAsync(changed!, current.Properties?.IsPersistent == true);
             FlashSuccess(L["Profile.PasswordChanged"]);
-            return RedirectToAction(nameof(Profile));
+            return ProfileSection("security");
         }
 
-        // A mail server failure is logged and shown, not thrown: the account or the profile change is
-        // already saved, and the letter can be requested again.
         private async Task<bool> TrySendConfirmationAsync(User user, string email)
         {
-            var link = Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) }, Request.Scheme)!;
+            var link = PublicLink(Url.Action(nameof(ConfirmEmail), "Account", new { token = _auth.CreateEmailToken(user.Id, email) })!);
             try
             {
                 await _auth.SendConfirmationAsync(user, email, link);
@@ -294,6 +346,125 @@ namespace CityFix_backend.Controllers
                 FlashError(L["Auth.ConfirmSendFailed"]);
                 return false;
             }
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ExportData()
+        {
+            var data = await Users.ExportPersonalDataAsync(CurrentUserId);
+            var json = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(data, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+            return File(json, "application/json", $"cityfix-my-data-{DateTime.UtcNow:yyyyMMdd}.json");
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> DeleteAccount(string? password)
+        {
+            if (string.IsNullOrEmpty(password) || !await _auth.VerifyPasswordAsync(CurrentUserId, password))
+            {
+                FlashError(L["Profile.Delete.WrongPassword"]);
+                return ProfileSection("data");
+            }
+
+            try
+            {
+                await Users.AnonymizeAsync(CurrentUserId);
+                await _audit.RecordAsync(new User { Id = CurrentUserId, FirstName = "—", Email = "deleted" },
+                    "account.self-delete", $"User #{CurrentUserId}");
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+                return RedirectToAction(nameof(Profile));
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            FlashSuccess(L["Profile.Delete.Done"]);
+            return RedirectToAction(nameof(Login));
+        }
+
+        private async Task TrySendAsync(string email, Func<Task> send)
+        {
+            try
+            {
+                await send();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not send the password letter to {Email}.", email);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> JoinAssociation(string? code)
+        {
+            var actor = await GetActorAsync();
+            try
+            {
+                var change = await _auth.JoinAssociationAsync(actor.Id, code ?? "");
+                await _audit.RecordAsync(actor, "user.association", $"User #{actor.Id}",
+                    $"{change.From ?? "-"} ({change.FromRole}) -> {change.To} ({change.ToRole})");
+                FlashSuccess(change.ToRole == UserRole.AcabAdmin
+                    ? L["Profile.Acab.NowHead", change.To!]
+                    : L["Profile.Acab.Moved", change.To!]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+            return ProfileSection("association");
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LeaveAssociation()
+        {
+            var actor = await GetActorAsync();
+            try
+            {
+                var change = await _auth.LeaveAssociationAsync(actor.Id);
+                await _audit.RecordAsync(actor, "user.association", $"User #{actor.Id}",
+                    $"{change.From} ({change.FromRole}) -> {change.To ?? "-"} ({change.ToRole})");
+                FlashSuccess(change.FromRole == UserRole.AcabAdmin ? L["Profile.Acab.SteppedDown"] : L["Profile.Acab.Left"]);
+            }
+            catch (ServiceValidationException ex)
+            {
+                FlashError(Message(ex));
+            }
+            return ProfileSection("association");
+        }
+
+        private RedirectResult ProfileSection(string section) => Redirect(Url.Action(nameof(Profile))! + "#" + section);
+
+        private async Task<ProfileViewModel> ProfileViewAsync() =>
+            ProfileViewModel.For(await Users.GetAsync(CurrentUserId), await Users.GetProfileStatsAsync(CurrentUserId));
+
+        private string ResetLink(User user) =>
+            PublicLink(Url.Action(nameof(ResetPassword), "Account", new { token = _auth.CreatePasswordResetToken(user) })!);
+
+        private string PublicLink(string path)
+        {
+            if (string.IsNullOrWhiteSpace(_publicUrl))
+            {
+                return $"{Request.Scheme}://{Request.Host}{path}";
+            }
+            if (Request.PathBase.HasValue && path.StartsWith(Request.PathBase.Value!, StringComparison.Ordinal))
+            {
+                path = path[Request.PathBase.Value!.Length..];
+            }
+            return _publicUrl.TrimEnd('/') + path;
         }
 
         private Task SignInAsync(User user, bool persistent)

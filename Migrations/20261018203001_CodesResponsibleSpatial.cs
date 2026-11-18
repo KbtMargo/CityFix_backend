@@ -147,10 +147,6 @@ namespace CityFix_backend.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            // ───── Data: what the old schema meant, in the new one ─────
-
-            // The old single invitation code made its holder the association head: it becomes the head code.
-            // Every association gets a fresh residents' code (10 characters, same alphabet as RandomCodes).
             migrationBuilder.Sql("""
                 UPDATE "Acabs" SET "HeadCode" = upper(replace("InvitationCode", ' ', ''));
                 UPDATE "Acabs" SET "ResidentCode" = (
@@ -162,7 +158,6 @@ namespace CityFix_backend.Migrations
                 name: "InvitationCode",
                 table: "Acabs");
 
-            // Existing appeals were addressed to a recipient; they belong to their author's association.
             migrationBuilder.Sql("""
                 UPDATE "Appeals" SET "ResponsibleKind" = 1;
                 UPDATE "Appeals" a SET "AcabId" = u."AcabId" FROM "Users" u WHERE u."Id" = a."AuthorId";

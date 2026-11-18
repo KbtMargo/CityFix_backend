@@ -1,10 +1,7 @@
-@* The sidebar. Collapsed (desktop) it becomes an icon rail: the .app-sidebar__label parts are only
-   visually hidden, so every link keeps its accessible name, and data-tip feeds the hover tooltip. *@
 @model CityFix_backend.ViewComponents.SidebarModel
 <div class="cf-sidebar app-sidebar">
     <div class="cf-sidebar__head app-sidebar__head">
         <partial name="_Logo" />
-        @* Desktop: collapse to the icon rail and back (also Ctrl+B). Mobile drawer: close it. *@
         <button type="button" class="cf-btn cf-btn--ghost cf-btn--icon app-sidebar__toggle" data-sidebar-toggle aria-controls="app-sidebar"
                 aria-expanded="@(Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "false" : "true")"
                 aria-label="@L[Context.Request.Cookies["cf_sidebar"] == "collapsed" ? "Shell.Expand" : "Shell.Collapse"]"
@@ -17,10 +14,13 @@
             <div class="cf-stats-box__row" data-tip="@L["Stats.Open"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span><span class="app-sidebar__label">@L["Stats.Open"]</span></span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
             <div class="cf-stats-box__row" data-tip="@L["Stats.Closed"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span><span class="app-sidebar__label">@L["Stats.Closed"]</span></span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
         </div>
-        <nav class="cf-sidebar__nav" aria-label="@L["Nav.Label"]">
+        <nav class="cf-sidebar__nav app-nav-reorder" aria-label="@L["Nav.Label"]" data-nav-reorder="@Model.UserId"
+             data-text-saved="@L["Nav.Reorder.Saved"]" data-text-reset="@L["Nav.Reorder.Reset"]" data-text-hint="@L["Nav.Reorder.Hint"]"
+             data-text-moved="@L["Nav.Reorder.Moved"]">
             @foreach (var item in Model.Items)
             {
-                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)" data-tip="@L[item.LabelKey]">
+                <a class="cf-nav-item" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(item.Active ? "page" : null)" data-tip="@L[item.LabelKey]"
+                   data-nav-key="@($"{item.Controller}.{item.Action}.{item.LabelKey}")" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown">
                     <span class="cf-nav-item__main"><span class="cf-nav-item__icon"><span class="cf-icon cf-icon--@item.Icon" aria-hidden="true"></span></span><span class="cf-nav-item__text app-sidebar__label"><span class="cf-nav-item__label">@L[item.LabelKey]</span><span class="cf-nav-item__sub">@L[item.SubKey]</span></span></span>
                     @if (item.Count is int count)
                     {
@@ -29,9 +29,27 @@
                 </a>
             }
         </nav>
+        <div class="app-nav-toast" data-nav-toast role="status" aria-live="polite" hidden></div>
     </div>
     <div class="cf-sidebar__foot cf-stack-4 app-sidebar__foot">
-        <div class="cf-box cf-help-box app-sidebar__help"><div class="cf-help-box__title">@L["Help.Title"]</div><div class="cf-help-box__text">@L["Help.Text"]</div></div>
+        <div class="cf-box cf-help-box app-sidebar__help app-help" tabindex="0" aria-describedby="help-contacts">
+            <div class="cf-help-box__title app-help__title"><span class="cf-icon cf-icon--help-circle cf-icon--4" aria-hidden="true"></span>@L["Help.Title"]</div>
+            <div class="cf-help-box__text">@L["Help.Text"]</div>
+            <div class="app-help__contacts" id="help-contacts">
+                @if (Model.Support.Email != null)
+                {
+                    <a class="app-help__contact" href="mailto:@Model.Support.Email"><span class="cf-icon cf-icon--mail cf-icon--4" aria-hidden="true"></span><span>@Model.Support.Email</span></a>
+                }
+                @if (Model.Support.Phone != null)
+                {
+                    <a class="app-help__contact" href="@Model.Support.PhoneLink"><span class="cf-icon cf-icon--phone cf-icon--4" aria-hidden="true"></span><span>@Model.Support.Phone</span></a>
+                }
+                @if (Model.Support.Hours != null)
+                {
+                    <p class="app-help__hours">@Model.Support.Hours</p>
+                }
+            </div>
+        </div>
         <div class="app-user">
             <a class="app-user__main" asp-controller="Account" asp-action="Profile" aria-current="@(Model.ProfileActive ? "page" : null)" data-tip="@L["Nav.Profile"]">
                 <span class="app-user__avatar" aria-hidden="true">@Model.Initials</span>

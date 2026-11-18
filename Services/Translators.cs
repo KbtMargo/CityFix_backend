@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Which of the two UI languages a text is written in: Cyrillic letters mean Ukrainian, Latin ones English.
     public static class TextLanguage
     {
         public static string Detect(string? text)
@@ -23,7 +22,6 @@ namespace CityFix_backend.Services
         public static string Other(string language) => language == "en" ? "uk" : "en";
     }
 
-    // Translation:DeepLApiKey is set: DeepL (a free key ends with ":fx" and uses the api-free host).
     public class DeepLTranslator : ITranslator
     {
         private readonly HttpClient _http;
@@ -60,8 +58,6 @@ namespace CityFix_backend.Services
         }
     }
 
-    // No DeepL key: the free MyMemory API (about 5,000 characters a day without an email, 50,000 with
-    // Translation:MyMemoryEmail). It takes at most 500 bytes per request, so longer texts go in pieces.
     public class MyMemoryTranslator : ITranslator
     {
         private const int MaxBytes = 450;
@@ -104,7 +100,6 @@ namespace CityFix_backend.Services
             var ok = status.ValueKind == JsonValueKind.Number ? status.GetInt32() == 200 : status.GetString() == "200";
             var translated = root.GetProperty("responseData").GetProperty("translatedText").GetString() ?? "";
 
-            // When the daily quota is used up the answer is still 200, with a warning instead of the translation.
             if (!ok || translated.Contains("MYMEMORY WARNING", StringComparison.OrdinalIgnoreCase))
             {
                 throw new HttpRequestException($"MyMemory did not translate: {translated}");
@@ -112,7 +107,6 @@ namespace CityFix_backend.Services
             return translated;
         }
 
-        // Pieces of at most MaxBytes (UTF-8), cut after a sentence end or a space where possible.
         private static IEnumerable<string> Chunks(string text)
         {
             var rest = text.Trim();

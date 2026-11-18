@@ -2,20 +2,13 @@ using CityFix_backend.Models;
 
 namespace CityFix_backend.Services
 {
-    // Data passed to and returned by the services (the interfaces are in Services/Interfaces).
-
-    // ───── Appeals ─────
-
-    // Reference data for the appeal form and the filters popover.
     public record AppealLookups(
         IReadOnlyList<Category> Categories,
         IReadOnlyList<Recipient> Recipients,
         IReadOnlyList<Acab> Acabs);
 
-    // Sidebar stats box: open = New + InProgress, closed = Done + Rejected.
     public record AppealStats(int Open, int Closed);
 
-    // What the appeal form submits. RecipientId is used when Responsible is Recipient.
     public record AppealInput(
         string Title,
         string? Description,
@@ -26,21 +19,17 @@ namespace CityFix_backend.Services
         ResponsibleKind Responsible,
         int? RecipientId);
 
-    // The "Update appeal" panel. ExpectedStatus is the status the staff member saw: if someone changed it
-    // in the meantime the update is refused instead of silently overwriting their work.
     public record AppealProcessInput(
         AppealStatus ExpectedStatus,
         AppealStatus NewStatus,
         AppealPriority NewPriority,
         string? Comment);
 
-    // An appeal of the same category within the search radius. Visible: the user may open it.
-    public record SimilarAppeal(int Id, string Title, AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible);
+    public record SimilarAppeal(int Id, string? Title, AppealStatus Status, DateTime CreatedAt, int DistanceMeters, bool Visible,
+        int SupportCount = 0, bool Supported = false, bool CanSupport = false);
 
-    // One page of a list, plus the ids that have an open appeal of the same category nearby.
-    public record AppealPage(PagedResult<Appeal> Page, IReadOnlySet<int> PossibleDuplicates);
+    public record AppealPage(PagedResult<Appeal> Page, IReadOnlySet<int> PossibleDuplicates, IReadOnlySet<int> Supported);
 
-    // The appeal card: the appeal, what this user may do with it, and the appeals around it.
     public record AppealDetails(
         Appeal Appeal,
         IReadOnlyList<SimilarAppeal> Similar,
@@ -48,9 +37,17 @@ namespace CityFix_backend.Services
         bool CanDelete,
         bool CanProcess,
         bool CanAssign,
-        IReadOnlyList<AppealStatus> NextStatuses);
+        IReadOnlyList<AppealStatus> NextStatuses,
+        bool CanRate = false,
+        bool CanReopen = false,
+        bool Overdue = false,
+        bool CanSupport = false,
+        bool Supported = false);
 
-    // A row of the CSV / JSON export.
+    public record AppealRatingInput(int Rating, string? Comment);
+
+    public record SupportResult(bool Supported, int Count);
+
     public record AppealExportRow(
         int Id,
         string Title,
@@ -65,45 +62,38 @@ namespace CityFix_backend.Services
         decimal? Lng,
         string CreatedAt);
 
-    // ───── Users and associations ─────
-
     public record UserInput(string FirstName, string? LastName, string Email, string? Phone, UserRole Role, int? AcabId);
 
     public record ProfileInput(string FirstName, string? LastName, string Email, string? Phone);
 
-    // Profile → Notifications: the channels the user wants notifications on.
-    public record NotificationSettings(bool InApp, bool Email, bool Sms);
+    public record NotificationSettings(bool InApp, bool Email);
 
-    // A row of the users table. DeleteBlockedKey says why the row cannot be deleted (a localization key).
+    public record ProfileStats(int Appeals, int Open, int Done, int Supported, int Unread, int OpenInAssociation = 0, int OtherHeads = 0);
+
+    public record AssociationChange(string? From, UserRole FromRole, string? To, UserRole ToRole);
+
     public record UserRow(User User, int AppealCount, string? DeleteBlockedKey)
     {
         public bool CanDelete => DeleteBlockedKey == null;
     }
 
-    // The users page. OwnAcab is the head's association, so the page can show its residents' code.
-    public record UsersPage(PagedResult<UserRow> Page, Acab? OwnAcab);
+    public record UsersPage(PagedResult<UserRow> Page, Acab? OwnAcab, Acab? FilterAcab = null);
 
-    // Empty English fields are filled by machine translation (TranslationWorker).
     public record AcabInput(string Name, string? Address, string? NameEn = null, string? AddressEn = null);
 
-    public record AcabRow(Acab Acab, int MemberCount, int AppealCount)
+    public record AcabRow(Acab Acab, int MemberCount, int AppealCount, int HeadCount = 0)
     {
         public bool CanDelete => MemberCount == 0 && AppealCount == 0;
     }
 
     public enum AcabCodeKind { Resident, Head }
 
-    // ───── Shared ─────
-
-    // Whether a record can be deleted. BlockedKey is a localization key taking UsageCount.
     public record DeleteCheck(int Id, string Name, int UsageCount, string? BlockedKey)
     {
         public bool Blocked => BlockedKey != null;
     }
 
     public record GeoPlace(double Lat, double Lng, string Address);
-
-    // ───── Authentication ─────
 
     public record RegisterRequest(
         string Email,
@@ -113,22 +103,36 @@ namespace CityFix_backend.Services
         string? Phone,
         string? InvitationCode);
 
-    // Either the created user, or field-level errors (field name → localization key).
-    public record RegisterResult(User? User, IReadOnlyDictionary<string, string> Errors)
+    public record LoginResult(User? User, bool LockedOut);
+
+    public record PersonalDataExport(
+        PersonalDataExport.ProfileData Profile,
+        IReadOnlyList<PersonalDataExport.AppealData> Appeals,
+        IReadOnlyList<PersonalDataExport.NotificationData> Notifications,
+        DateTime ExportedAt)
+    {
+        public record ProfileData(string Email, string? PendingEmail, string FirstName, string? LastName, string? Phone, string Role,
+            string? Association, string Language, bool NotifyInApp, bool NotifyEmail, DateTime RegisteredAt);
+
+        public record AppealData(int Id, string Title, string? Description, string? Address, decimal? Lat, decimal? Lng, string? Category,
+            string Status, string Priority, DateTime CreatedAt, IReadOnlyList<string> Photos, IReadOnlyList<UpdateData> History);
+
+        public record UpdateData(DateTime At, string OldStatus, string NewStatus, string? Comment, string? By);
+
+        public record NotificationData(DateTime At, string Type, int? AppealId, string Message, bool IsRead);
+    }
+
+    public record RegisterResult(User? User, IReadOnlyDictionary<string, string> Errors, User? ExistingAccount = null)
     {
         public bool Succeeded => User != null;
     }
 
     public enum EmailConfirmation { Confirmed, Invalid, EmailTaken }
 
-    // ───── Analytics ─────
-
-    // Whether a change is good, not which way it goes (KpiCard README).
     public enum DeltaKind { Good, Bad, Flat }
 
     public enum DeltaDirection { Up, Down, None }
 
-    // One KpiCard: value, the change with its note, and a 7-point sparkline.
     public record Kpi(
         string Value,
         string? Unit,
@@ -142,8 +146,25 @@ namespace CityFix_backend.Services
 
     public record ChartData(IReadOnlyList<string> Labels, IReadOnlyList<int> Values);
 
-    // InProgress counts every active status (under review, needs info, in progress, on hold).
-    // StatusKeys: the status of each ByStatus bar (its pill modifier), so the chart colours match the pills.
+    public record ChartSeries(IReadOnlyList<string> Labels, IReadOnlyList<double> Values);
+
+    public record WeeklyFlow(IReadOnlyList<string> Labels, IReadOnlyList<int> Created, IReadOnlyList<int> Closed);
+
+    public record OverdueItem(int Id, string Title, int DaysOverdue, string Responsible, AppealPriority Priority);
+
+    public record SupportedItem(int Id, string Title, int Supporters, AppealStatus Status);
+
+    public record ResponsibleLoad(string Name, int Open, int Overdue, double AvgAgeDays);
+
+    public record HotSpot(string Address, int Total, int Open);
+
+    public record ManagementData(
+        int? OnTimePercent, int ClosedWithDeadline, int OverdueNow, double? AvgResolutionDays,
+        double? AvgRating, int RatedCount, int ReopenedCount, int SupportTotal,
+        WeeklyFlow Flow, ChartData Ratings, ChartSeries ResolutionByCategory,
+        IReadOnlyList<OverdueItem> Overdue, IReadOnlyList<SupportedItem> MostSupported,
+        IReadOnlyList<ResponsibleLoad> Load, IReadOnlyList<HotSpot> HotSpots);
+
     public record AnalyticsData(
         int Total, int New, int InProgress, int Done, int Rejected,
         ChartData ByCategory, ChartData PerDay, ChartData ByStatus, ChartData ByPriority,

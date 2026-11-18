@@ -8,19 +8,23 @@ using CityFix_backend.ViewModels;
 
 namespace CityFix_backend.Controllers
 {
-    // The CRUD shared by simple reference lists (categories, recipients), which the explanatory note
-    // allows to work through the database context directly. Subclasses say how to search, order,
-    // count the appeals that use a row, and which fields an edit may change.
-    // A row used by appeals cannot be deleted (the foreign keys are RESTRICT as well).
     public abstract class ReferenceListController<TEntity> : AppController where TEntity : class, new()
     {
         protected readonly ApplicationDbContext Context;
+        private readonly IAuditLog _audit;
 
-        protected ReferenceListController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer)
+        protected ReferenceListController(ApplicationDbContext context, IUserService users, IStringLocalizer<SharedResource> localizer, IAuditLog audit)
             : base(users, localizer)
         {
             Context = context;
+            _audit = audit;
         }
+
+        private Task AuditAsync(string verb, TEntity entity) =>
+            AuditAsync(verb, IdOf(entity), NameOf(entity));
+
+        private async Task AuditAsync(string verb, int id, string name) =>
+            await _audit.RecordAsync(await GetActorAsync(), $"{typeof(TEntity).Name.ToLowerInvariant()}.{verb}", $"{typeof(TEntity).Name} #{id} {name}");
 
         protected abstract int IdOf(TEntity entity);
 
@@ -30,13 +34,10 @@ namespace CityFix_backend.Controllers
 
         protected abstract IQueryable<TEntity> Order(IQueryable<TEntity> query);
 
-        // Appeals per row id, for the given ids.
         protected abstract Task<Dictionary<int, int>> CountAppealsAsync(IReadOnlyCollection<int> ids);
 
-        // Copies the editable fields of a posted entity onto the stored one (never the id).
         protected abstract void CopyEditable(TEntity from, TEntity to);
 
-        // GET: {controller}?q=
         public async Task<IActionResult> Index(string? q, int page = 1)
         {
             var query = Context.Set<TEntity>().AsNoTracking();
@@ -49,10 +50,8 @@ namespace CityFix_backend.Controllers
             return View(new TablePageViewModel<TEntity> { Page = result, Counts = counts, Q = q });
         }
 
-        // GET: {controller}/Create
         public IActionResult Create() => View(new TEntity());
 
-        // POST: {controller}/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TEntity posted)
@@ -66,14 +65,13 @@ namespace CityFix_backend.Controllers
             CopyEditable(posted, entity);
             Context.Add(entity);
             await Context.SaveChangesAsync();
+            await AuditAsync("create", entity);
             FlashSuccess(L["Common.Saved"]);
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: {controller}/Edit/5
         public async Task<IActionResult> Edit(int id) => View(await FindAsync(id));
 
-        // POST: {controller}/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, TEntity posted)
@@ -83,16 +81,16 @@ namespace CityFix_backend.Controllers
                 return View(posted);
             }
 
-            CopyEditable(posted, await FindAsync(id));
+            var entity = await FindAsync(id);
+            CopyEditable(posted, entity);
             await Context.SaveChangesAsync();
+            await AuditAsync("update", entity);
             FlashSuccess(L["Common.Saved"]);
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: {controller}/Delete/5
         public async Task<IActionResult> Delete(int id) => View(await CheckDeleteAsync(id));
 
-        // POST: {controller}/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -103,8 +101,11 @@ namespace CityFix_backend.Controllers
                 return RedirectToAction(nameof(Delete), new { id });
             }
 
-            Context.Remove(await FindAsync(id));
+            var removed = await FindAsync(id);
+            var name = NameOf(removed);
+            Context.Remove(removed);
             await Context.SaveChangesAsync();
+            await AuditAsync("delete", id, name);
             FlashSuccess(L["Common.Deleted"]);
             return RedirectToAction(nameof(Index));
         }

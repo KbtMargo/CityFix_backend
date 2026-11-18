@@ -17,19 +17,17 @@ namespace CityFix_backend.Controllers
             _notifications = notifications;
         }
 
-        // GET: Notifications?tab=unread|all
-        public async Task<IActionResult> Index(string? tab)
+        public async Task<IActionResult> Index(string? tab, int page = 1)
         {
             var unreadTab = tab != "all";
             return View(new NotificationsViewModel
             {
-                Items = await _notifications.GetForUserAsync(CurrentUserId, unreadTab),
+                Page = await _notifications.GetForUserAsync(CurrentUserId, unreadTab, page),
                 UnreadCount = await _notifications.CountUnreadAsync(CurrentUserId),
                 UnreadTab = unreadTab
             });
         }
 
-        // POST: Notifications/MarkRead/5  (clicking a row: mark it read and open its appeal)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkRead(int id)
@@ -44,7 +42,6 @@ namespace CityFix_backend.Controllers
                 : RedirectToAction(nameof(Index));
         }
 
-        // POST: Notifications/MarkAllRead
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAllRead()

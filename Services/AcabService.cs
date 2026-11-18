@@ -39,7 +39,11 @@ namespace CityFix_backend.Services
                 .GroupBy(a => a.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
 
-            return acabs.Map(a => new AcabRow(a, members.GetValueOrDefault(a.Id), appeals.GetValueOrDefault(a.Id)));
+            var heads = await _context.Users.Where(u => u.AcabId != null && ids.Contains(u.AcabId.Value) && u.Role == UserRole.AcabAdmin && !u.IsBlocked)
+                .GroupBy(u => u.AcabId!.Value).Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count);
+
+            return acabs.Map(a => new AcabRow(a, members.GetValueOrDefault(a.Id), appeals.GetValueOrDefault(a.Id), heads.GetValueOrDefault(a.Id)));
         }
 
         public async Task<Acab> GetAsync(int id) =>
@@ -77,7 +81,6 @@ namespace CityFix_backend.Services
             await _context.SaveChangesAsync();
         }
 
-        // A leaked code is replaced; accounts that already registered with it keep their role.
         public async Task<string> RegenerateCodeAsync(int id, AcabCodeKind kind)
         {
             var acab = await _context.Acabs.FirstOrDefaultAsync(a => a.Id == id)
@@ -119,7 +122,19 @@ namespace CityFix_backend.Services
             return acab == null ? null : (acab, acab.HeadCode == normalized ? UserRole.AcabAdmin : UserRole.Resident);
         }
 
-        // A code no association uses yet, in either column.
+        public async Task<bool> ConsumeHeadCodeAsync(int acabId, string code)
+        {
+            var normalized = RandomCodes.NormalizeCode(code);
+            var replacement = await NewCodeAsync();
+            var now = Now;
+            var updated = await _context.Acabs
+                .Where(a => a.Id == acabId && a.HeadCode == normalized)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(a => a.HeadCode, replacement)
+                    .SetProperty(a => a.UpdatedAt, now));
+            return updated == 1;
+        }
+
         private async Task<string> NewCodeAsync(string? alsoAvoid = null)
         {
             while (true)

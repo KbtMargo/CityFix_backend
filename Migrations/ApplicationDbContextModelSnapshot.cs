@@ -97,6 +97,9 @@ namespace CityFix_backend.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -107,6 +110,9 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("DescriptionTranslated")
                         .HasMaxLength(3000)
                         .HasColumnType("character varying(3000)");
+
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Language")
                         .IsRequired()
@@ -126,16 +132,35 @@ namespace CityFix_backend.Migrations
                         .HasColumnType("geography (point, 4326)")
                         .HasComputedColumnSql("ST_SetSRID(ST_MakePoint(\"Lng\"::double precision, \"Lat\"::double precision), 4326)::geography", true);
 
+                    b.Property<DateTime?>("OverdueNotifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("RatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RatingComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int?>("RecipientId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReopenCount")
                         .HasColumnType("integer");
 
                     b.Property<int>("ResponsibleKind")
                         .HasColumnType("integer");
 
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SupportCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -169,6 +194,8 @@ namespace CityFix_backend.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("DueAt");
 
                     b.HasIndex("Location");
 
@@ -204,6 +231,9 @@ namespace CityFix_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ThumbnailPath")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -212,6 +242,24 @@ namespace CityFix_backend.Migrations
                     b.HasIndex("AppealId");
 
                     b.ToTable("AppealFiles");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AppealSupport", b =>
+                {
+                    b.Property<int>("AppealId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("AppealId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AppealSupports");
                 });
 
             modelBuilder.Entity("CityFix_backend.Models.AppealUpdate", b =>
@@ -238,7 +286,8 @@ namespace CityFix_backend.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<int?>("NewPriority")
                         .HasColumnType("integer");
@@ -252,6 +301,9 @@ namespace CityFix_backend.Migrations
                     b.Property<int>("OldStatus")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("Rating")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AppealId");
@@ -259,6 +311,50 @@ namespace CityFix_backend.Migrations
                     b.HasIndex("ChangedById");
 
                     b.ToTable("AppealUpdates");
+                });
+
+            modelBuilder.Entity("CityFix_backend.Models.AuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int?>("ActorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ActorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Target")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("At");
+
+                    b.ToTable("AuditLog", (string)null);
                 });
 
             modelBuilder.Entity("CityFix_backend.Models.Category", b =>
@@ -319,8 +415,8 @@ namespace CityFix_backend.Migrations
                     b.Property<int?>("NewStatus")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SmsState")
-                        .HasColumnType("integer");
+                    b.Property<DateTime>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -332,7 +428,7 @@ namespace CityFix_backend.Migrations
 
                     b.HasIndex("AppealId");
 
-                    b.HasIndex("EmailState", "SmsState");
+                    b.HasIndex("EmailState");
 
                     b.HasIndex("UserId", "IsRead");
 
@@ -386,6 +482,9 @@ namespace CityFix_backend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("FailedLoginCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -403,13 +502,16 @@ namespace CityFix_backend.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("NotifyEmail")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("NotifyInApp")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("NotifySms")
                         .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
@@ -424,6 +526,11 @@ namespace CityFix_backend.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -482,6 +589,25 @@ namespace CityFix_backend.Migrations
                     b.Navigation("Appeal");
                 });
 
+            modelBuilder.Entity("CityFix_backend.Models.AppealSupport", b =>
+                {
+                    b.HasOne("CityFix_backend.Models.Appeal", "Appeal")
+                        .WithMany("Supports")
+                        .HasForeignKey("AppealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CityFix_backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appeal");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CityFix_backend.Models.AppealUpdate", b =>
                 {
                     b.HasOne("CityFix_backend.Models.Appeal", "Appeal")
@@ -532,6 +658,8 @@ namespace CityFix_backend.Migrations
             modelBuilder.Entity("CityFix_backend.Models.Appeal", b =>
                 {
                     b.Navigation("Files");
+
+                    b.Navigation("Supports");
 
                     b.Navigation("Updates");
                 });

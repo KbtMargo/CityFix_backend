@@ -6,7 +6,6 @@ using QuestPDF.Infrastructure;
 
 namespace CityFix_backend.Services.Reports
 {
-    // The Analytics page as a report: key figures, then each breakdown on its own (an Excel sheet, a PDF section).
     public static class AnalyticsReports
     {
         private record Breakdown(string Title, string Column, ChartData Data);
@@ -42,8 +41,6 @@ namespace CityFix_backend.Services.Reports
             var arrow = kpi.Direction switch { DeltaDirection.Up => "▲ ", DeltaDirection.Down => "▼ ", _ => "" };
             return $"{arrow}{kpi.DeltaText} {kpi.Note}".Trim();
         }
-
-        // ───── Excel ─────
 
         public static byte[] Xlsx(AnalyticsData data, DashboardKpis kpis, ReportHeader header)
         {
@@ -90,7 +87,6 @@ namespace CityFix_backend.Services.Reports
             return ExcelStyle.Save(workbook);
         }
 
-        // An optional bold caption, then a styled Excel table. Returns the first free row after it.
         private static int Section(IXLWorksheet sheet, int row, string? caption, string[] headers, IEnumerable<object[]> rows, string name)
         {
             if (caption != null)
@@ -121,14 +117,11 @@ namespace CityFix_backend.Services.Reports
             return Math.Max(row, first + 1) + 2;
         }
 
-        // Excel sheet names: at most 31 characters, none of : \ / ? * [ ].
         private static string SheetName(string title)
         {
             var clean = new string(title.Where(c => !":\\/?*[]".Contains(c)).ToArray());
             return clean.Length <= 31 ? clean : clean[..31];
         }
-
-        // ───── PDF ─────
 
         public static byte[] Pdf(AnalyticsData data, DashboardKpis kpis, ReportHeader header) =>
             Document.Create(document => document.Page(page =>
@@ -140,7 +133,6 @@ namespace CityFix_backend.Services.Reports
                 {
                     column.Spacing(16);
 
-                    // Key figures as four cards.
                     column.Item().Row(row =>
                     {
                         row.Spacing(8);
@@ -182,7 +174,6 @@ namespace CityFix_backend.Services.Reports
                 });
             })).GeneratePdf();
 
-        // Name | bar | count | share, the bar scaled to the largest value.
         private static void BarTable(IContainer container, Breakdown b) => container.ShowEntire().Column(column =>
         {
             column.Item().PaddingBottom(4).Text(b.Title).FontSize(11).SemiBold();
@@ -220,7 +211,6 @@ namespace CityFix_backend.Services.Reports
             });
         });
 
-        // New appeals per day for the last 30 days, as columns; every fifth date is labelled.
         private static void DayChart(IContainer container, ChartData perDay) => container.ShowEntire().Column(column =>
         {
             column.Item().PaddingBottom(4).Text(SharedText.Get("Analytics.PerDay")).FontSize(11).SemiBold();

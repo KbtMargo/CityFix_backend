@@ -1,18 +1,12 @@
 using CityFix_backend.Data;
 using CityFix_backend.Helpers;
+using CityFix_backend.Models;
 using CityFix_backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    // Machine-translates in the background, so saving never waits for (or fails because of) the translator:
-    //  - appeals marked TranslationPending: title and description into the other UI language;
-    //  - appeal addresses, and the names and addresses of associations;
-    //  - people's names (Cyrillic ones transliterated, Latin ones spelled in Ukrainian);
-    //  - categories and recipients without an English name. A Latin-only name typed into the Ukrainian
-    //    field (all rows made before names were bilingual) is moved to the English field and translated back.
-    // After a failure the next round waits Translation:RetryAfterFailure.
     public class TranslationWorker : BackgroundService
     {
         private readonly IServiceScopeFactory _scopes;
@@ -32,18 +26,46 @@ namespace CityFix_backend.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var delay = _options.Interval;
-                try
+                var namesOk = await RunStageAsync("names", TranslateNamesAsync, stoppingToken);
+                var appealsOk = await RunStageAsync("appeals", TranslateAppealsAsync, stoppingToken);
+                await Task.Delay(namesOk && appealsOk ? _options.Interval : _options.RetryAfterFailure, stoppingToken);
+            }
+        }
+
+        private async Task<bool> RunStageAsync(string stage, Func<CancellationToken, Task> run, CancellationToken stoppingToken)
+        {
+            try
+            {
+                await run(stoppingToken);
+                return true;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogWarning(ex, "Machine translation of {Stage} failed; retrying in {Delay}.", stage, _options.RetryAfterFailure);
+                return false;
+            }
+        }
+
+        private readonly Dictionary<(string Kind, int Id), int> _failures = new();
+
+        private List<int> GivenUp(string kind) =>
+            _failures.Where(f => f.Key.Kind == kind && f.Value >= _options.MaxAttempts).Select(f => f.Key.Id).ToList();
+
+        private async Task AttemptAsync(string kind, int id, Func<Task> translate)
+        {
+            try
+            {
+                await translate();
+                _failures.Remove((kind, id));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                var attempts = _failures[(kind, id)] = _failures.GetValueOrDefault((kind, id)) + 1;
+                if (attempts >= _options.MaxAttempts)
                 {
-                    await TranslateNamesAsync(stoppingToken);
-                    await TranslateAppealsAsync(stoppingToken);
+                    _logger.LogWarning("Gave up translating {Kind} {Id} after {Attempts} attempts; it is skipped until restart.", kind, id, attempts);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogWarning(ex, "Machine translation failed; retrying in {Delay}.", _options.RetryAfterFailure);
-                    delay = _options.RetryAfterFailure;
-                }
-                await Task.Delay(delay, stoppingToken);
+                throw;
             }
         }
 
@@ -53,48 +75,67 @@ namespace CityFix_backend.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var translator = scope.ServiceProvider.GetRequiredService<ITranslator>();
 
-            foreach (var category in await db.Categories.Where(c => c.NameEn == null || c.NameEn == "").Take(_options.BatchSize).ToListAsync(cancellationToken))
+            var skip = GivenUp(nameof(Category));
+            foreach (var category in await db.Categories.Where(c => (c.NameEn == null || c.NameEn == "") && !skip.Contains(c.Id)).Take(_options.BatchSize).ToListAsync(cancellationToken))
             {
-                (category.Name, category.NameEn) = await BilingualAsync(translator, category.Name, 100, cancellationToken);
-                await db.SaveChangesAsync(cancellationToken);
-            }
-            foreach (var recipient in await db.Recipients.Where(r => r.NameEn == null || r.NameEn == "").Take(_options.BatchSize).ToListAsync(cancellationToken))
-            {
-                (recipient.Name, recipient.NameEn) = await BilingualAsync(translator, recipient.Name, 200, cancellationToken);
-                await db.SaveChangesAsync(cancellationToken);
-            }
-            foreach (var acab in await db.Acabs.Where(a => a.NameEn == null || a.NameEn == "" || (a.Address != null && (a.AddressEn == null || a.AddressEn == ""))).Take(_options.BatchSize).ToListAsync(cancellationToken))
-            {
-                if (string.IsNullOrWhiteSpace(acab.NameEn))
+                await AttemptAsync(nameof(Category), category.Id, async () =>
                 {
-                    (acab.Name, acab.NameEn) = await BilingualAsync(translator, acab.Name, 200, cancellationToken);
-                }
-                if (acab.Address != null && string.IsNullOrWhiteSpace(acab.AddressEn))
-                {
-                    (acab.Address, acab.AddressEn) = await BilingualAsync(translator, acab.Address, 300, cancellationToken);
-                }
-                await db.SaveChangesAsync(cancellationToken);
+                    (category.Name, category.NameEn) = await BilingualAsync(translator, category.Name, 100, cancellationToken);
+                    await db.SaveChangesAsync(cancellationToken);
+                });
             }
 
-            // People's names: a Cyrillic name is transliterated (no translator needed), a Latin one spelled in Ukrainian.
-            foreach (var user in await db.Users.Where(u => u.FullNameTranslated == null && u.FirstName != "").Take(_options.BatchSize).ToListAsync(cancellationToken))
+            skip = GivenUp(nameof(Recipient));
+            foreach (var recipient in await db.Recipients.Where(r => (r.NameEn == null || r.NameEn == "") && !skip.Contains(r.Id)).Take(_options.BatchSize).ToListAsync(cancellationToken))
             {
-                user.FullNameTranslated = TextLanguage.Detect(user.FullName) == "uk"
-                    ? Transliteration.ToLatin(user.FullName)
-                    : Limit(await translator.TranslateAsync(user.FullName, "en", "uk", cancellationToken), 200);
-                await db.SaveChangesAsync(cancellationToken);
+                await AttemptAsync(nameof(Recipient), recipient.Id, async () =>
+                {
+                    (recipient.Name, recipient.NameEn) = await BilingualAsync(translator, recipient.Name, 200, cancellationToken);
+                    await db.SaveChangesAsync(cancellationToken);
+                });
             }
 
-            // Appeal addresses, independent of the text: a geocoded Ukrainian address under an English title too.
-            foreach (var appeal in await db.Appeals.Where(a => a.Address != null && a.AddressTranslated == null).Take(_options.BatchSize).ToListAsync(cancellationToken))
+            skip = GivenUp(nameof(Acab));
+            foreach (var acab in await db.Acabs.Where(a => (a.NameEn == null || a.NameEn == "" || (a.Address != null && (a.AddressEn == null || a.AddressEn == ""))) && !skip.Contains(a.Id)).Take(_options.BatchSize).ToListAsync(cancellationToken))
             {
-                var from = TextLanguage.Detect(appeal.Address);
-                appeal.AddressTranslated = Limit(await translator.TranslateAsync(appeal.Address!, from, TextLanguage.Other(from), cancellationToken), 600);
-                await SaveAsync(db, cancellationToken);
+                await AttemptAsync(nameof(Acab), acab.Id, async () =>
+                {
+                    if (string.IsNullOrWhiteSpace(acab.NameEn))
+                    {
+                        (acab.Name, acab.NameEn) = await BilingualAsync(translator, acab.Name, 200, cancellationToken);
+                    }
+                    if (acab.Address != null && string.IsNullOrWhiteSpace(acab.AddressEn))
+                    {
+                        (acab.Address, acab.AddressEn) = await BilingualAsync(translator, acab.Address, 300, cancellationToken);
+                    }
+                    await db.SaveChangesAsync(cancellationToken);
+                });
+            }
+
+            skip = GivenUp(nameof(User));
+            foreach (var user in await db.Users.Where(u => u.FullNameTranslated == null && u.FirstName != "" && !skip.Contains(u.Id)).Take(_options.BatchSize).ToListAsync(cancellationToken))
+            {
+                await AttemptAsync(nameof(User), user.Id, async () =>
+                {
+                    user.FullNameTranslated = TextLanguage.Detect(user.FullName) == "uk"
+                        ? Transliteration.ToLatin(user.FullName)
+                        : Limit(await translator.TranslateAsync(user.FullName, "en", "uk", cancellationToken), 200);
+                    await db.SaveChangesAsync(cancellationToken);
+                });
+            }
+
+            skip = GivenUp(nameof(Appeal));
+            foreach (var appeal in await db.Appeals.Where(a => a.Address != null && a.AddressTranslated == null && !skip.Contains(a.Id)).Take(_options.BatchSize).ToListAsync(cancellationToken))
+            {
+                await AttemptAsync(nameof(Appeal), appeal.Id, async () =>
+                {
+                    var from = TextLanguage.Detect(appeal.Address);
+                    appeal.AddressTranslated = Limit(await translator.TranslateAsync(appeal.Address!, from, TextLanguage.Other(from), cancellationToken), 600);
+                    await SaveAsync(db, cancellationToken);
+                });
             }
         }
 
-        // (Ukrainian, English) for a name that so far exists in one language only.
         private static async Task<(string Uk, string En)> BilingualAsync(ITranslator translator, string name, int max, CancellationToken cancellationToken) =>
             TextLanguage.Detect(name) == "en"
                 ? (Limit(await translator.TranslateAsync(name, "en", "uk", cancellationToken), max), name)
@@ -136,8 +177,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // The appeal may have been edited meanwhile (xmin concurrency token): that edit marked it pending
-        // again, so this translation is simply dropped and redone in a later round.
         private static async Task SaveAsync(ApplicationDbContext db, CancellationToken cancellationToken)
         {
             try
