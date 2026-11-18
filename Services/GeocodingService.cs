@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace CityFix_backend.Services
 {
-    /// <summary>Own size-capped cache: every distinct query or point is a new key, so a shared unbounded cache could grow without limit.</summary>
     public sealed class GeocodingCache : MemoryCache
     {
         public GeocodingCache() : base(new MemoryCacheOptions { SizeLimit = 10_000 })
@@ -88,7 +87,6 @@ namespace CityFix_backend.Services
 
         private async Task<JsonDocument?> GetAsync(string relativeUrl, CancellationToken cancellationToken)
         {
-            // Nominatim allows one request per second for the whole app; give up instead of queueing behind a flood.
             try
             {
                 if (!await Gate.WaitAsync(MaxQueueWait, cancellationToken))

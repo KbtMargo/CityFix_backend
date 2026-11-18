@@ -9,7 +9,6 @@ namespace CityFix_backend.Services
         public int MaxPhotos { get; set; } = 5;
         public long MaxBytes { get; set; } = 10 * 1024 * 1024;
 
-        // Relative to the content root; must stay outside wwwroot so photos are served only after an access check.
         public string Path { get; set; } = "App_Data";
     }
 
@@ -20,12 +19,10 @@ namespace CityFix_backend.Services
         public double SimilarRadiusMeters { get; set; } = 500;
         public int SimilarLimit { get; set; } = 5;
 
-        // Days to resolve an appeal, by priority.
         public int UrgentDays { get; set; } = 2;
         public int NormalDays { get; set; } = 7;
         public int LowDays { get; set; } = 14;
 
-        // How long after "Done" the author may confirm or reopen, and how many times an appeal may be reopened.
         public int FeedbackDays { get; set; } = 14;
         public int MaxReopens { get; set; } = 3;
 
@@ -40,8 +37,6 @@ namespace CityFix_backend.Services
     public class SupportOptions
     {
         public const string Section = "Support";
-
-        // Shown in the sidebar's help box; without an address the letters' sender (Email:FromAddress) is used.
         public string? Email { get; set; }
         public string? Phone { get; set; }
         public string? Hours { get; set; }
@@ -69,7 +64,6 @@ namespace CityFix_backend.Services
         public string? SmtpHost { get; set; }
         public int SmtpPort { get; set; } = 587;
         public bool SmtpUseSsl { get; set; }
-        // Only for a local relay or a test mailbox (smtp4dev, Mailpit) that has no TLS.
         public bool SmtpAllowPlaintext { get; set; }
         public string? SmtpUserName { get; set; }
         public string? SmtpPassword { get; set; }
@@ -84,8 +78,6 @@ namespace CityFix_backend.Services
         public TimeSpan DispatchInterval { get; set; } = TimeSpan.FromSeconds(15);
         public int BatchSize { get; set; } = 50;
         public int MaxAttempts { get; set; } = 5;
-
-        // Read notifications are removed after KeepRead, all of them after KeepAny, so the table does not grow forever.
         public TimeSpan KeepRead { get; set; } = TimeSpan.FromDays(90);
         public TimeSpan KeepAny { get; set; } = TimeSpan.FromDays(365);
 

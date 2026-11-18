@@ -12,7 +12,6 @@ namespace CityFix_backend.ViewComponents
 
     public record SupportContacts(string? Email, string? Phone, string? Hours)
     {
-        // tel: links take digits and a leading plus only.
         public string? PhoneLink => Phone == null ? null : "tel:" + new string(Phone.Where(c => char.IsDigit(c) || c == '+').ToArray());
     }
 
@@ -65,7 +64,7 @@ namespace CityFix_backend.ViewComponents
                 items.Add(new("Dashboard", "Index", "home", "Nav.Home", "Nav.Home.SubAdmin", null, Is("Dashboard")));
                 items.Add(new("Analytics", "Index", "bars", "Nav.Analytics", "Nav.Analytics.Sub", null, Is("Analytics")));
                 items.Add(new("Appeals", "Index", "list", "Nav.AllAppeals", "Nav.AllAppeals.Sub", null, Is("Appeals")));
-                // Administrators get notified too: about appeals outside associations and those of associations without a head.
+
                 items.Add(new("Notifications", "Index", "bell", "Nav.Notifications", "Nav.Notifications.Sub", unread, Is("Notifications")));
                 items.Add(new("Users", "Index", "users", "Nav.Users", "Nav.Users.Sub", null, Is("Users")));
                 if (user.Role == UserRole.Administrator)

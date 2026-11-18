@@ -242,7 +242,6 @@ namespace CityFix_backend.Controllers
             var file = await _appeals.GetFileAsync(id, await GetActorAsync());
             var path = _files.PhysicalPathOf(file);
             var contentType = file.ContentType;
-            // Photos uploaded before thumbnails existed fall back to the full image.
             if (thumb && _files.ThumbnailPathOf(file) is string thumbnail && System.IO.File.Exists(thumbnail))
             {
                 path = thumbnail;

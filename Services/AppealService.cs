@@ -110,7 +110,6 @@ namespace CityFix_backend.Services
         }
 
         public Task<PagedResult<Appeal>> GetByAuthorAsync(int authorId, User actor, int page) =>
-            // VisibleTo keeps a head to the appeals of their own association, even for a resident who later moved in.
             _context.Appeals.AsNoTracking()
                 .VisibleTo(actor)
                 .Where(a => a.AuthorId == authorId)
@@ -294,7 +293,6 @@ namespace CityFix_backend.Services
             });
             if (priorityChanged)
             {
-                // The deadline keeps its starting point (creation or the last reopen) and takes the new priority's length.
                 var start = (appeal.DueAt ?? appeal.CreatedAt + _options.DueIn(appeal.Priority)) - _options.DueIn(appeal.Priority);
                 appeal.Priority = input.NewPriority;
                 appeal.DueAt = start + _options.DueIn(appeal.Priority);
@@ -410,11 +408,9 @@ namespace CityFix_backend.Services
             }
             catch (DbUpdateException)
             {
-                // A double click raced the first request, which already added or removed the row.
                 _context.ChangeTracker.Clear();
             }
 
-            // Counted rather than incremented, so concurrent clicks cannot drift the number.
             var count = await _context.AppealSupports.CountAsync(s => s.AppealId == id);
             await _context.Appeals.Where(a => a.Id == id).ExecuteUpdateAsync(s => s.SetProperty(a => a.SupportCount, count));
             return new SupportResult(existing == null, count);

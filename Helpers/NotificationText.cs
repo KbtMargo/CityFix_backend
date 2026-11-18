@@ -4,10 +4,6 @@ namespace CityFix_backend.Helpers
 {
     public static class NotificationText
     {
-        /// <summary>
-        /// A status change sent to someone other than the author went to a resident who pressed "affects me too".
-        /// The staff comment is addressed to the author, so it stays out of their text.
-        /// </summary>
         public static bool IsForSupporter(Notification n) =>
             n.Type == NotificationType.StatusChanged && n.Appeal != null && n.Appeal.AuthorId != n.UserId;
 

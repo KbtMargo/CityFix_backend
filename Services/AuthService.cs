@@ -66,8 +66,6 @@ namespace CityFix_backend.Services
 
             var email = EmailAddress.Normalize(request.Email);
 
-            // Answering "e-mail taken" would tell anyone which addresses have accounts. The caller treats this like a
-            // normal sign-up and mails the owner instead; hashing keeps the response time the same.
             var existing = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email && u.EmailConfirmed);
             if (existing != null)
             {
@@ -86,7 +84,6 @@ namespace CityFix_backend.Services
                     emailConfirmed: false,
                     language: CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
 
-                // A head code admits one head only; a parallel sign-up with the same code loses here and rolls back.
                 if (role == UserRole.AcabAdmin && !await _acabs.ConsumeHeadCodeAsync(acabId!.Value, request.InvitationCode!))
                 {
                     return Failed(nameof(RegisterRequest.InvitationCode), "Auth.CodeNotFound");
@@ -117,13 +114,11 @@ namespace CityFix_backend.Services
 
             var previous = new AssociationChange(user.Acab?.Name, user.Role, acab.Name, role);
             await using var transaction = await _context.Database.BeginTransactionAsync();
-            // Appeals filed earlier keep their association, so its head goes on handling them; only new ones go to the new one.
             user.AcabId = acab.Id;
             user.Role = role;
             user.UpdatedAt = _clock.GetUtcNow().UtcDateTime;
             await _context.SaveChangesAsync();
 
-            // A head code admits one head only, as at sign-up.
             if (role == UserRole.AcabAdmin && !await _acabs.ConsumeHeadCodeAsync(acab.Id, code))
             {
                 throw new ServiceValidationException("Code", "Auth.CodeNotFound");
@@ -142,7 +137,6 @@ namespace CityFix_backend.Services
                 throw new ServiceValidationException("Code", "Profile.Acab.None");
             }
 
-            // A head steps down and stays a resident of the house; a resident moves out of it.
             var change = user.Role == UserRole.AcabAdmin
                 ? new AssociationChange(user.Acab?.Name, user.Role, user.Acab?.Name, UserRole.Resident)
                 : new AssociationChange(user.Acab?.Name, user.Role, null, UserRole.Resident);
@@ -180,7 +174,6 @@ namespace CityFix_backend.Services
 
             if (!_hasher.Verify(password, user.PasswordHash))
             {
-                // One atomic UPDATE so parallel guesses cannot slip past the counter.
                 var lockUntil = now + LockoutDuration;
                 await _context.Users.Where(u => u.Id == user.Id).ExecuteUpdateAsync(s => s
                     .SetProperty(u => u.LockoutEnd, u => u.FailedLoginCount + 1 >= MaxFailedLogins ? lockUntil : u.LockoutEnd)
@@ -341,8 +334,6 @@ namespace CityFix_backend.Services
             return unchanged ? principal : CreatePrincipal(user);
         }
 
-        // The token carries the security stamp, which a successful reset (or any password change) replaces,
-        // so each link works once and dies as soon as the password changes another way.
         public string CreatePasswordResetToken(User user) =>
             _resetTokens.Protect($"{user.Id}\n{user.SecurityStamp}", PasswordResetLifetime);
 
@@ -374,7 +365,6 @@ namespace CityFix_backend.Services
             user.MustChangePassword = false;
             user.FailedLoginCount = 0;
             user.LockoutEnd = null;
-            // Following a link from the mailbox proves the address belongs to the user.
             if (!user.EmailConfirmed && user.PendingEmail == null) user.EmailConfirmed = true;
             user.UpdatedAt = _clock.GetUtcNow().UtcDateTime;
             await _context.SaveChangesAsync();
@@ -414,7 +404,6 @@ namespace CityFix_backend.Services
             _logger.LogInformation("Password letter sent to {Email}.", user.Email);
         }
 
-        // Sign-up, "resend" and "forgot password" can be triggered by anyone for any address; cap letters per address to stop mail bombing.
         private bool Throttled(string kind, string email)
         {
             var key = $"mail:{kind}:{EmailAddress.Normalize(email)}";

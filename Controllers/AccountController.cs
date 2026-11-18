@@ -60,7 +60,6 @@ namespace CityFix_backend.Controllers
 
             if (result.ExistingAccount is { } existing)
             {
-                // Same page as a fresh sign-up, so the form does not reveal who has an account; the owner gets a reset link.
                 await TrySendAsync(existing.Email, () => _auth.SendAccountExistsAsync(existing, ResetLink(existing)));
                 TempData[SentToKey] = existing.Email;
                 return RedirectToAction(nameof(CheckEmail));
@@ -156,10 +155,8 @@ namespace CityFix_backend.Controllers
             }
             else
             {
-                // Only the log says so; the page answers the same either way.
                 _logger.LogInformation("Password reset requested for {Email}, which has no active account.", EmailAddress.Normalize(model.Email));
             }
-            // The same answer whether or not the address has an account.
             FlashSuccess(L["Auth.Forgot.Sent", EmailAddress.Normalize(model.Email)]);
             return RedirectToAction(nameof(Login));
         }
@@ -329,7 +326,6 @@ namespace CityFix_backend.Controllers
                 return View(nameof(Profile), view);
             }
 
-            // The new security stamp signs out every other session; keep this one by issuing a fresh cookie.
             var current = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await SignInAsync(changed!, current.Properties?.IsPersistent == true);
             FlashSuccess(L["Profile.PasswordChanged"]);
@@ -361,7 +357,6 @@ namespace CityFix_backend.Controllers
             {
                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                 WriteIndented = true,
-                // A download, never embedded in a page, so readable text beats HTML-safe escaping here.
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
             return File(json, "application/json", $"cityfix-my-data-{DateTime.UtcNow:yyyyMMdd}.json");
@@ -382,7 +377,6 @@ namespace CityFix_backend.Controllers
             try
             {
                 await Users.AnonymizeAsync(CurrentUserId);
-                // Only the id is logged: keeping the name or e-mail here would undo the deletion.
                 await _audit.RecordAsync(new User { Id = CurrentUserId, FirstName = "—", Email = "deleted" },
                     "account.self-delete", $"User #{CurrentUserId}");
             }
@@ -397,7 +391,6 @@ namespace CityFix_backend.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        // Failures are only logged: an error shown here would reveal that the address has an account.
         private async Task TrySendAsync(string email, Func<Task> send)
         {
             try
@@ -453,7 +446,6 @@ namespace CityFix_backend.Controllers
             return ProfileSection("association");
         }
 
-        // Back to the section that was just saved rather than the top of the page.
         private RedirectResult ProfileSection(string section) => Redirect(Url.Action(nameof(Profile))! + "#" + section);
 
         private async Task<ProfileViewModel> ProfileViewAsync() =>
@@ -462,7 +454,6 @@ namespace CityFix_backend.Controllers
         private string ResetLink(User user) =>
             PublicLink(Url.Action(nameof(ResetPassword), "Account", new { token = _auth.CreatePasswordResetToken(user) })!);
 
-        // The request Host header is client-controlled, so outside development the configured public address is used.
         private string PublicLink(string path)
         {
             if (string.IsNullOrWhiteSpace(_publicUrl))

@@ -26,7 +26,6 @@ namespace CityFix_backend.Controllers
         public async Task<IActionResult> Index([FromQuery] AppealFilter filter, int? appealId)
         {
             var actor = await GetActorAsync();
-            // Residents see the whole community here (their own appeals are under "My appeals"); staff see their working scope.
             filter.Community = actor.Role == UserRole.Resident;
             return View(new DashboardViewModel
             {

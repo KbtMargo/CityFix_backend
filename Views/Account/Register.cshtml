@@ -3,7 +3,6 @@
     Layout = "_AuthLayout";
     ViewData["Title"] = L["Auth.Register.Title"].Value;
     ViewData["AuthAside"] = true;
-    // Field errors appear under their fields; anything not tied to a field goes on top.
     var formError = ViewData.ModelState.TryGetValue("", out var entry) ? entry.Errors.Select(e => e.ErrorMessage).FirstOrDefault() : null;
     var hasErrors = !ViewData.ModelState.IsValid;
 }

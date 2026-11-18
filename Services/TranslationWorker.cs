@@ -26,7 +26,6 @@ namespace CityFix_backend.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                // The two stages fail independently: a name the translator chokes on must not stall appeal translation.
                 var namesOk = await RunStageAsync("names", TranslateNamesAsync, stoppingToken);
                 var appealsOk = await RunStageAsync("appeals", TranslateAppealsAsync, stoppingToken);
                 await Task.Delay(namesOk && appealsOk ? _options.Interval : _options.RetryAfterFailure, stoppingToken);
@@ -47,8 +46,6 @@ namespace CityFix_backend.Services
             }
         }
 
-        // Names and addresses have no attempt counter in the database, so items that keep failing are remembered here
-        // and skipped until the next restart; otherwise one bad text would be retried forever.
         private readonly Dictionary<(string Kind, int Id), int> _failures = new();
 
         private List<int> GivenUp(string kind) =>

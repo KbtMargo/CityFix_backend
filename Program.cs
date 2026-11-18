@@ -44,7 +44,6 @@ builder.Services.AddOptions<MvcOptions>().Configure<IStringLocalizerFactory>((op
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
 
-// Without a persistent key ring every restart (or container rebuild) signs everyone out and voids e-mail confirmation links.
 var keysPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["DataProtection:KeysPath"] ?? "App_Data/keys"));
 var dataProtection = builder.Services.AddDataProtection()
     .SetApplicationName("CityFix")
@@ -57,17 +56,13 @@ if (OperatingSystem.IsWindows())
 var publicUrl = builder.Configuration[$"{NotificationOptions.Section}:{nameof(NotificationOptions.PublicUrl)}"];
 if (!builder.Environment.IsDevelopment() && !Uri.TryCreate(publicUrl, UriKind.Absolute, out _))
 {
-    // Links in e-mails must not be built from the client-supplied Host header.
     throw new InvalidOperationException("Set Notifications:PublicUrl to the site's public address (e.g. https://cityfix.example.org).");
 }
 
-// Outside development cookies travel over HTTPS only; locally the plain-http profile keeps working.
 var cookieSecurity = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 builder.Services.AddAntiforgery(options => options.Cookie.SecurePolicy = cookieSecurity);
 builder.Services.Configure<CookieTempDataProviderOptions>(options => options.Cookie.SecurePolicy = cookieSecurity);
 
-// Behind a reverse proxy the client address and scheme arrive in X-Forwarded-* headers. Only proxies on this machine
-// (the default) or listed in ForwardedHeaders:KnownProxies are trusted, so clients cannot spoof their address.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -141,7 +136,6 @@ if (string.IsNullOrWhiteSpace(builder.Configuration[$"{EmailOptions.Section}:{na
 {
     if (!builder.Environment.IsDevelopment())
     {
-        // The log sender would silently drop confirmation letters and write their links into the log.
         throw new InvalidOperationException("Set Email:SmtpHost (and credentials) outside the Development environment.");
     }
     builder.Services.AddSingleton<IEmailSender, LogEmailSender>();
@@ -167,8 +161,6 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
-// Visual Studio's Browser Link and hot reload load a script from, and talk to, the IDE on another localhost port.
-// Those sources are allowed in development only.
 var devTools = app.Environment.IsDevelopment() ? " http://localhost:* https://localhost:* ws://localhost:* wss://localhost:*" : "";
 var contentSecurityPolicy = string.Join("; ",
     "default-src 'self'",
@@ -222,7 +214,6 @@ app.UseRateLimiter();
 
 app.MapStaticAssets();
 
-// For load balancers and uptime monitors: plain "Healthy"/"Unhealthy", 503 when the database is down.
 app.MapHealthChecks("/health").DisableRateLimiting();
 
 app.MapControllerRoute(
@@ -243,7 +234,6 @@ if (args.Contains("--seed-demo"))
 {
     if (!app.Environment.IsDevelopment())
     {
-        // Demo accounts share a password published in the repository.
         throw new InvalidOperationException("--seed-demo is allowed only in the Development environment.");
     }
     await DemoSeeder.SeedAsync(app.Services, app.Logger);

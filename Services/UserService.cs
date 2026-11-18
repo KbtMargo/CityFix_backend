@@ -20,9 +20,6 @@ namespace CityFix_backend.Services
         }
 
         private DateTime Now => _clock.GetUtcNow().UtcDateTime;
-
-        // This service lives for one request; the sign-in cookie check, the controller and the sidebar all ask for the
-        // current user, so it is read from the database once.
         private User? _actor;
 
         public async Task<User?> FindActorAsync(int userId)
@@ -335,7 +332,6 @@ namespace CityFix_backend.Services
                 await EnsureAnotherAdministratorAsync(user.Id);
             }
 
-            // Appeals stay for the city services and statistics; everything that identifies the person goes.
             await using var transaction = await _context.Database.BeginTransactionAsync();
             user.Email = $"deleted-{user.Id}@deleted.invalid";
             user.PendingEmail = null;

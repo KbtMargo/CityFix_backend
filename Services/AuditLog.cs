@@ -38,7 +38,6 @@ namespace CityFix_backend.Services
                 Details = details == null ? null : Limit(details, 1000),
                 IpAddress = _http.HttpContext?.Connection.RemoteIpAddress?.ToString()
             };
-            // A separate context call so the entry is written even when the action itself used ExecuteUpdate/ExecuteDelete.
             _context.AuditLog.Add(entry);
             try
             {
@@ -46,7 +45,6 @@ namespace CityFix_backend.Services
             }
             catch (DbUpdateException ex)
             {
-                // The action already happened; losing its audit line must not turn it into an error page.
                 _context.Entry(entry).State = EntityState.Detached;
                 _logger.LogError(ex, "Could not write audit entry {Action} {Target} by {ActorId}.", action, target, actor.Id);
             }

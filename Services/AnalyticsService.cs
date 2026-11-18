@@ -101,7 +101,6 @@ namespace CityFix_backend.Services
             }).ToList();
             var noResponsible = SharedText.Get("Appeal.NoResponsible");
 
-            // Deadlines: share of finished appeals done in time, and what is late right now.
             var doneWithDeadline = items.Where(i => i.Row.Status == AppealStatus.Done && i.Row.DueAt != null && i.Row.ClosedAt != null).ToList();
             int? onTime = doneWithDeadline.Count == 0 ? null
                 : (int)Math.Round(doneWithDeadline.Count(i => i.Row.ClosedAt <= i.Row.DueAt) * 100.0 / doneWithDeadline.Count);
@@ -109,14 +108,12 @@ namespace CityFix_backend.Services
             var resolved = items.Where(i => i.Row.Status == AppealStatus.Done && i.Row.ClosedAt != null).ToList();
             double? avgResolution = resolved.Count == 0 ? null : Math.Round(resolved.Average(i => (i.Row.ClosedAt!.Value - i.Row.CreatedAt).TotalDays), 1);
 
-            // Residents' verdict.
             var rated = items.Where(i => i.Row.Rating != null).ToList();
             double? avgRating = rated.Count == 0 ? null : Math.Round(rated.Average(i => i.Row.Rating!.Value), 1);
             var ratings = new ChartData(
                 Enumerable.Range(1, 5).Select(n => $"{n} ★").ToList(),
                 Enumerable.Range(1, 5).Select(n => rated.Count(i => i.Row.Rating == n)).ToList());
 
-            // Inflow against outflow per week: when the first line stays above the second, the backlog grows.
             var thisWeek = StartOfWeek(now.ToKyiv().Date);
             var weeks = Enumerable.Range(0, FlowWeeks).Select(i => thisWeek.AddDays(7 * (i - FlowWeeks + 1))).ToList();
             int InWeek(IEnumerable<DateTime> dates, DateTime week) => dates.Count(d => StartOfWeek(d.ToKyiv().Date) == week);
@@ -127,7 +124,6 @@ namespace CityFix_backend.Services
                 weeks.Select(w => InWeek(createdDates, w)).ToList(),
                 weeks.Select(w => InWeek(closedDates, w)).ToList());
 
-            // Which kinds of problems take longest.
             var byCategory = resolved
                 .GroupBy(i => Localized.Pick(i.Row.Category, i.Row.CategoryEn))
                 .Select(g => (Name: g.Key, Days: Math.Round(g.Average(i => (i.Row.ClosedAt!.Value - i.Row.CreatedAt).TotalDays), 1)))
@@ -153,7 +149,6 @@ namespace CityFix_backend.Services
                 .Take(ListSize)
                 .ToList();
 
-            // The same address again and again points at a cause worth fixing for good.
             var hotSpots = items.Where(i => i.Address != null)
                 .GroupBy(i => i.Address!.Trim(), StringComparer.CurrentCultureIgnoreCase)
                 .Where(g => g.Count() > 1)

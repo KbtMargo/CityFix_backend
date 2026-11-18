@@ -14,7 +14,6 @@
             <div class="cf-stats-box__row" data-tip="@L["Stats.Open"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--open"></span><span class="app-sidebar__label">@L["Stats.Open"]</span></span><span class="cf-stats-box__value">@Model.Stats.Open</span></div>
             <div class="cf-stats-box__row" data-tip="@L["Stats.Closed"]"><span class="cf-stats-box__label"><span class="cf-dot cf-dot--closed"></span><span class="app-sidebar__label">@L["Stats.Closed"]</span></span><span class="cf-stats-box__value">@Model.Stats.Closed</span></div>
         </div>
-        @* Press and hold an item (or Alt+↑/↓ on the keyboard) to move it; site.js keeps the order per user in this browser. *@
         <nav class="cf-sidebar__nav app-nav-reorder" aria-label="@L["Nav.Label"]" data-nav-reorder="@Model.UserId"
              data-text-saved="@L["Nav.Reorder.Saved"]" data-text-reset="@L["Nav.Reorder.Reset"]" data-text-hint="@L["Nav.Reorder.Hint"]"
              data-text-moved="@L["Nav.Reorder.Moved"]">
@@ -33,7 +32,6 @@
         <div class="app-nav-toast" data-nav-toast role="status" aria-live="polite" hidden></div>
     </div>
     <div class="cf-sidebar__foot cf-stack-4 app-sidebar__foot">
-        @* Contacts open on hover or keyboard focus; on touch screens they are always shown. *@
         <div class="cf-box cf-help-box app-sidebar__help app-help" tabindex="0" aria-describedby="help-contacts">
             <div class="cf-help-box__title app-help__title"><span class="cf-icon cf-icon--help-circle cf-icon--4" aria-hidden="true"></span>@L["Help.Title"]</div>
             <div class="cf-help-box__text">@L["Help.Text"]</div>

@@ -30,7 +30,6 @@ else
             var responsible = a.ResponsibleKind == ResponsibleKind.Association ? a.Acab?.DisplayName() : a.Recipient?.DisplayName();
             var canSupport = Model.CanSupport(a);
             var supported = Model.Supported.Contains(a.Id);
-            @* The title link stretches over the whole card, so the support button can sit inside without nesting it in a link. *@
             <div class="cf-issue cf-card app-issue">
                 <div class="cf-issue__row">
                     <div class="cf-issue__main">

@@ -4,6 +4,7 @@ using CityFix_backend.Services.Reports;
 
 namespace CityFix_backend.Tests;
 
+[Trait("Category", "Unit")]
 public class AppealPolicyTests
 {
     private static readonly User Admin = new() { Id = 1, Role = UserRole.Administrator };
@@ -56,6 +57,7 @@ public class AppealPolicyTests
     }
 }
 
+[Trait("Category", "Unit")]
 public class HelperTests
 {
     [Theory]

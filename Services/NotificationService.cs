@@ -40,7 +40,6 @@ namespace CityFix_backend.Services
 
         public async Task AddSupportersStatusChangedAsync(Appeal appeal, AppealStatus newStatus, int actorId)
         {
-            // Supporters get the status only: the staff comment is addressed to the author and may be personal.
             var supporters = await _context.AppealSupports
                 .Where(s => s.AppealId == appeal.Id && s.UserId != actorId && s.UserId != appeal.AuthorId)
                 .Select(s => s.UserId)
@@ -50,7 +49,6 @@ namespace CityFix_backend.Services
 
         public async Task AddForHeadsAsync(Appeal appeal, NotificationType type, string? message, int? actorId)
         {
-            // Appeals outside an association are processed by the administrators.
             var heads = appeal.AcabId != null ? await HeadsOrAdministratorsAsync(appeal.AcabId) : await AdministratorsAsync();
             if (actorId != null) heads.Remove(actorId.Value);
             await AddAsync(heads, appeal, type, null, message);
@@ -75,7 +73,6 @@ namespace CityFix_backend.Services
             var now = _clock.GetUtcNow().UtcDateTime;
             var readBefore = now - readAge;
             var anyBefore = now - anyAge;
-            // Rows still waiting for an e-mail copy are kept until the dispatcher settles them.
             return _context.Notifications
                 .Where(n => n.EmailState != DeliveryState.Pending)
                 .Where(n => (n.IsRead && n.CreatedAt < readBefore) || n.CreatedAt < anyBefore)
@@ -130,9 +127,6 @@ namespace CityFix_backend.Services
                 });
             }
         }
-
-        // While an association has no head (the old one stepped down, the new one has not joined yet) its appeals must not
-        // go unnoticed, so the administrators get what the head would have.
         private async Task<List<int>> HeadsOrAdministratorsAsync(int? acabId)
         {
             var heads = await HeadsOfAsync(acabId);

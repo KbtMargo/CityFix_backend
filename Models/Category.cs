@@ -10,7 +10,6 @@ namespace CityFix_backend.Models
         [StringLength(100, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.Name")]
         public string Name { get; set; } = "";
-
         [StringLength(100, ErrorMessage = "Validation.MaxLength")]
         [Display(Name = "Field.NameEn")]
         public string? NameEn { get; set; }

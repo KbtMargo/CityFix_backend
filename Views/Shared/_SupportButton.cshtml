@@ -1,5 +1,4 @@
 @model (int AppealId, bool Supported, int Count)
-@* "Affects me too": site.js posts it with fetch and updates the label and counter in place. *@
 <div class="app-support">
     <button type="button" class="cf-btn cf-btn--sm @(Model.Supported ? "" : "cf-btn--outline") app-support__button" data-support
             data-url="@Url.Action("Support", "Appeals", new { id = Model.AppealId })" aria-pressed="@(Model.Supported ? "true" : "false")"

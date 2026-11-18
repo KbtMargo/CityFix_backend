@@ -66,8 +66,6 @@ namespace CityFix_backend.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var email = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
-            // Lease the batch: pushing NextAttemptAt forward under FOR UPDATE SKIP LOCKED means a second app instance
-            // (or a run that crashed mid-batch) cannot pick the same rows and send duplicates until the lease runs out.
             var now = DateTime.UtcNow;
             var leaseUntil = now + Lease;
             var ids = await db.Database.SqlQuery<int>($"""
@@ -126,7 +124,6 @@ namespace CityFix_backend.Services
                 }
                 else if (failed)
                 {
-                    // 30 s, 1 min, 2 min, 4 min … so a provider outage is not hammered every few seconds.
                     notification.NextAttemptAt = DateTime.UtcNow + RetryBase * Math.Pow(2, notification.Attempts - 1);
                 }
 

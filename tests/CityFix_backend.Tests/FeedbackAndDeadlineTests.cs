@@ -4,6 +4,7 @@ using SkiaSharp;
 
 namespace CityFix_backend.Tests;
 
+[Trait("Category", "Unit")]
 public class FeedbackAndDeadlineTests
 {
     private static readonly AppealOptions Options = new();
@@ -64,6 +65,7 @@ public class FeedbackAndDeadlineTests
     }
 }
 
+[Trait("Category", "Unit")]
 public class ThumbnailTests
 {
     private static byte[] Image(int width, int height, SKEncodedImageFormat format)

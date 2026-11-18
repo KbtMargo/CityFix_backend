@@ -13,6 +13,7 @@ namespace CityFix_backend.Models
         public string? AssignedToEn { get; set; }
         public int ChangedById { get; set; }
         public User? ChangedBy { get; set; }
+
         [System.ComponentModel.DataAnnotations.MaxLength(MaxCommentLength)]
         public string? Comment { get; set; }
         public const int MaxCommentLength = 1000;

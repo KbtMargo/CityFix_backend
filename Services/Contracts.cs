@@ -68,9 +68,6 @@ namespace CityFix_backend.Services
 
     public record NotificationSettings(bool InApp, bool Email);
 
-    /// <summary>The numbers at the top of the profile: the user's own appeals and the neighbours' ones they back.</summary>
-    /// <param name="OpenInAssociation">The user's open appeals that stay with the current association if they move.</param>
-    /// <param name="OtherHeads">Other heads of the user's association, so a stepping-down head knows if anyone is left.</param>
     public record ProfileStats(int Appeals, int Open, int Done, int Supported, int Unread, int OpenInAssociation = 0, int OtherHeads = 0);
 
     public record AssociationChange(string? From, UserRole FromRole, string? To, UserRole ToRole);
@@ -161,7 +158,6 @@ namespace CityFix_backend.Services
 
     public record HotSpot(string Address, int Total, int Open);
 
-    /// <summary>What a head of an association or an administrator needs to run the work: deadlines, quality, load, hot spots.</summary>
     public record ManagementData(
         int? OnTimePercent, int ClosedWithDeadline, int OverdueNow, double? AvgResolutionDays,
         double? AvgRating, int RatedCount, int ReopenedCount, int SupportTotal,

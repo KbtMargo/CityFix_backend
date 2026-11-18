@@ -30,7 +30,6 @@ namespace CityFix_backend.Data
             var generated = string.IsNullOrWhiteSpace(options.AdminPassword);
             if (generated && !scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
             {
-                // A generated password could only be handed over through the log, which is not a safe place for it.
                 throw new InvalidOperationException("No Administrator exists. Set Seed:AdminPassword (user secrets or an environment variable) for the first start.");
             }
             var password = generated ? RandomCodes.TemporaryPassword() : options.AdminPassword!;

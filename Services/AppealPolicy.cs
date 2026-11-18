@@ -12,8 +12,6 @@ namespace CityFix_backend.Services
             _ => appeals.Where(a => a.AuthorId == actor.Id)
         };
 
-        // Problems are public to the community, so neighbours can find them and say "affects me too"; VisibleTo above is
-        // the narrower working scope (own appeals, or the association's) used for lists and statistics.
         public static bool CanView(User actor, Appeal appeal) => true;
 
         public static bool CanEdit(User actor, Appeal appeal) =>
@@ -28,7 +26,6 @@ namespace CityFix_backend.Services
 
         public static bool CanAssign(User actor, Appeal appeal) => CanProcess(actor, appeal);
 
-        // Only the author judges the result, once, and only for a while after the appeal was marked done.
         public static bool CanRate(User actor, Appeal appeal, DateTime now, AppealOptions options) =>
             appeal.AuthorId == actor.Id && appeal.Status == AppealStatus.Done && appeal.Rating == null
             && appeal.ClosedAt != null && now - appeal.ClosedAt.Value <= TimeSpan.FromDays(options.FeedbackDays);
@@ -36,7 +33,6 @@ namespace CityFix_backend.Services
         public static bool CanReopen(User actor, Appeal appeal, DateTime now, AppealOptions options) =>
             CanRate(actor, appeal, now, options) && appeal.ReopenCount < options.MaxReopens;
 
-        // "Affects me too" is for neighbours; the author already follows the appeal, and staff resolve appeals rather than vote on them.
         public static bool CanSupport(User actor, Appeal appeal) =>
             actor.Role == UserRole.Resident && appeal.AuthorId != actor.Id && AppealWorkflow.Open.Contains(appeal.Status);
 

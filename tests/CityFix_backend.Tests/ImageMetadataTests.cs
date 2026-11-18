@@ -4,6 +4,7 @@ using CityFix_backend.Services;
 
 namespace CityFix_backend.Tests;
 
+[Trait("Category", "Unit")]
 public class ImageMetadataTests
 {
     private static byte[] Segment(byte marker, byte[] payload)

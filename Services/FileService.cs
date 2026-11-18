@@ -153,10 +153,6 @@ namespace CityFix_backend.Services
             return path;
         }
 
-        /// <summary>
-        /// Moves photos uploaded while they were public in wwwroot into the private upload folder,
-        /// stripping their metadata on the way.
-        /// </summary>
         public static void MoveLegacyUploads(IWebHostEnvironment env, UploadOptions options, ILogger logger)
         {
             var legacyRoot = Path.Combine(env.WebRootPath, "uploads");

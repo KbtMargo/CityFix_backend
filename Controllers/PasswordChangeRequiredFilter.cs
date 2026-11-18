@@ -7,10 +7,6 @@ using Microsoft.Extensions.Localization;
 
 namespace CityFix_backend.Controllers
 {
-    /// <summary>
-    /// Keeps a user who signed in with a password issued by someone else (seeded administrator, account created
-    /// or reset by an administrator) on the profile page until they choose their own.
-    /// </summary>
     public class PasswordChangeRequiredFilter : IActionFilter
     {
         private static readonly HashSet<(string Controller, string Action)> Allowed = new()

@@ -10,8 +10,6 @@
     var keptComment = TempData["Comment"] as string;
     var keptStatus = Enum.TryParse<AppealStatus>(TempData["Status"] as string, out var s) ? s : a.Status;
     var keptPriority = Enum.TryParse<AppealPriority>(TempData["Priority"] as string, out var p) ? p : a.Priority;
-    // HttpContext.Items rather than ViewData: a <partial> works on a copy of ViewData, so the layout would never see the flag.
-    // Only when a form footer below shows the error; otherwise the page-level flash must.
     if (updateError != null && (d.CanRate || d.CanProcess)) { Context.Items["FlashHandled"] = true; }
 
     var statuses = new[] { a.Status }.Concat(d.NextStatuses).ToList();

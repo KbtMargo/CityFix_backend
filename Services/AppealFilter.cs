@@ -9,31 +9,22 @@ namespace CityFix_backend.Services
         public const string TabNew = "new";
         public const string TabInProgress = "inprogress";
         public const string TabClosed = "closed";
-
         public const string ResponsibleAcab = "acab";
-
         public string? Q { get; set; }
-
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
-
         public int? CategoryId { get; set; }
         public string? Responsible { get; set; }
         public int? AcabId { get; set; }
         public AppealPriority? Priority { get; set; }
         public string? Tab { get; set; }
         public int Page { get; set; } = 1;
-
         [BindNever]
         public bool MineOnly { get; set; }
-
         [BindNever]
         public bool Community { get; set; }
-
         public string CurrentTab => Tab is TabNew or TabInProgress or TabClosed ? Tab : TabAll;
-
         public bool ResponsibleIsAcab => Responsible == ResponsibleAcab;
-
         public int? ResponsibleRecipientId => int.TryParse(Responsible, out var id) ? id : null;
 
         public int ActiveFilterCount =>

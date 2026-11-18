@@ -37,7 +37,6 @@
             .catch(function () { box.hidden = true; });
     }
 
-    // "Affects me too" instead of a duplicate appeal; pressing it again takes the support back.
     function supportButton(s, meta) {
         var button = document.createElement('button');
         button.type = 'button';

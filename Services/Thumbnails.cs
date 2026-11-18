@@ -2,16 +2,10 @@ using SkiaSharp;
 
 namespace CityFix_backend.Services
 {
-    /// <summary>
-    /// Small JPEG copies of uploaded photos for lists and thumbnail strips, so a page of appeals does not
-    /// download every full-size photo. The EXIF orientation is applied, since the copy carries no metadata.
-    /// </summary>
     public static class Thumbnails
     {
         public const int MaxSide = 480;
         private const int Quality = 80;
-
-        /// <returns>The JPEG bytes, or null when the image cannot be decoded.</returns>
         public static byte[]? Create(byte[] content)
         {
             using var data = SKData.CreateCopy(content);
@@ -30,7 +24,6 @@ namespace CityFix_backend.Services
             using var surface = SKSurface.Create(info);
             if (surface == null) return null;
             var canvas = surface.Canvas;
-            // JPEG has no transparency; transparent PNG/GIF areas become white rather than black.
             canvas.Clear(SKColors.White);
             canvas.Scale(scale);
             canvas.Concat(Orientation(origin, bitmap.Width, bitmap.Height));
@@ -41,8 +34,6 @@ namespace CityFix_backend.Services
             using var encoded = snapshot.Encode(SKEncodedImageFormat.Jpeg, Quality);
             return encoded?.ToArray();
         }
-
-        // Maps the stored pixels (w × h) onto the upright picture.
         private static SKMatrix Orientation(SKEncodedOrigin origin, float w, float h) => origin switch
         {
             SKEncodedOrigin.TopRight => new SKMatrix(-1, 0, w, 0, 1, 0, 0, 0, 1),

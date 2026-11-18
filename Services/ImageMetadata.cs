@@ -2,10 +2,6 @@ using System.Buffers.Binary;
 
 namespace CityFix_backend.Services
 {
-    /// <summary>
-    /// Removes EXIF, XMP, IPTC and text metadata (GPS position, camera, author) from uploaded photos
-    /// without re-encoding the pixels. JPEG orientation is kept so phone photos are not shown sideways.
-    /// </summary>
     public static class ImageMetadata
     {
         private static readonly HashSet<string> PngMetadataChunks = new() { "eXIf", "tEXt", "zTXt", "iTXt", "tIME" };
@@ -82,7 +78,6 @@ namespace CityFix_backend.Services
             return output.ToArray();
         }
 
-        // Keeps JFIF (APP0), ICC profile (APP2) and Adobe colour info (APP14); drops other APPn segments and comments.
         private static bool IsJpegMetadata(byte marker) =>
             marker == 0xFE || (marker is >= 0xE1 and <= 0xEF && marker is not 0xE2 and not 0xEE);
 
@@ -172,7 +167,6 @@ namespace CityFix_backend.Services
                     output.Write(d, pos, (int)size);
                     if (type == "VP8X" && length > 0)
                     {
-                        // Clear the "has EXIF" and "has XMP" flags of the extended header.
                         output.GetBuffer()[start + 8] &= unchecked((byte)~0x0C);
                     }
                 }

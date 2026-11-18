@@ -4,7 +4,6 @@
     var stats = Model.Stats;
     ViewData["Title"] = L["Profile.Title"].Value;
     string InputClass(string field) => ViewData.ModelState[field]?.Errors.Count > 0 ? "cf-input cf-input--error" : "cf-input";
-    // Administrators manage associations from the admin pages, not by codes.
     var canChangeAcab = user.Role is UserRole.Resident or UserRole.AcabAdmin;
     var sections = new List<(string Id, string Icon, string Label)> { ("personal", "users", "Profile.EditTitle") };
     if (canChangeAcab) sections.Add(("association", "apartment", "Profile.Acab.Title"));
@@ -190,7 +189,6 @@
                 <h2 class="app-profile-section__title" id="notifications-title">@L["Profile.NotificationsTitle"]</h2>
                 <p class="app-profile-section__desc">@L["Profile.NotificationsHint"]</p>
             </div>
-            @* Each switch saves the form at once; the button is there for browsers without JavaScript. *@
             <form asp-action="UpdateNotifications" method="post" data-autosave>
                 <div class="app-switch-list">
                     <label class="app-switch-row">

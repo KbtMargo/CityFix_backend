@@ -82,7 +82,6 @@
             {
                 <div class="cf-preview">
                     <img src="@Url.Action("Photo", "Appeals", new { id = file.Id, thumb = true })" alt="@file.FileName" />
-                    @* Lives inside the edit form, so it reuses its anti-forgery token and posts to its own action. *@
                     <button type="submit" class="cf-preview__remove" formaction="@Url.Action("DeletePhoto", "Appeals", new { id = file.Id })" formmethod="post" formnovalidate
                             aria-label="@L["Appeal.DeletePhoto", file.FileName]" title="@L["Appeal.DeletePhoto", file.FileName]"><span class="cf-icon cf-icon--x-lucide cf-icon--3" aria-hidden="true"></span></button>
                 </div>

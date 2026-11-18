@@ -7,10 +7,6 @@ using MimeKit;
 
 namespace CityFix_backend.Services
 {
-    /// <summary>
-    /// Keeps one SMTP connection open between letters (a notification batch would otherwise reconnect and
-    /// re-authenticate for every message) and reconnects once if the server has dropped it.
-    /// </summary>
     public sealed class SmtpEmailSender : IEmailSender, IDisposable
     {
         private readonly EmailOptions _options;
@@ -62,7 +58,6 @@ namespace CityFix_backend.Services
             var client = new SmtpClient();
             try
             {
-                // Without TLS the SMTP password would cross the network in clear text; plain connections need an explicit opt-in.
                 var security = _options.SmtpUseSsl ? SecureSocketOptions.SslOnConnect
                     : _options.SmtpAllowPlaintext ? SecureSocketOptions.StartTlsWhenAvailable
                     : SecureSocketOptions.StartTls;

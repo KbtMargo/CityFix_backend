@@ -1,6 +1,5 @@
 @model string?
 @{
-    // Extra query values (e.g. an association filter) that searching and resetting must not drop.
     var keep = ViewData["SearchKeep"] as IDictionary<string, string>;
     var resetHref = keep == null || keep.Count == 0
         ? "?"

@@ -28,7 +28,6 @@ namespace CityFix_backend.Controllers
 
         private static string Target(User user) => $"User #{user.Id} {user.Email}";
 
-        // acabId narrows the list to one association's members; heads always see only their own, so it is ignored for them.
         public async Task<IActionResult> Index(string? q, int page = 1, int? acabId = null)
         {
             var actor = await GetActorAsync();
